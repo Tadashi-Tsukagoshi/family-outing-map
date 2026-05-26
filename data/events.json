@@ -1,0 +1,77 @@
+{
+  "events": [
+    {
+      "id": "event-manual-001",
+      "name": "台湾祭in群馬太田2026 － 台南ランタン祭 －",
+      "description": "本場台湾の屋台グルメや文化が楽しめるフードフェスティバル。台湾ビールや小籠包など多数出店。",
+      "startDate": "2026-03-14",
+      "endDate": "2026-05-31",
+      "venue": "イオンモール太田 専門店1階 東入口前 駐車場内特設会場",
+      "lat": 36.2932286,
+      "lng": 139.4002068,
+      "category": "event",
+      "collectedAt": "2026-05-18T00:00:00.000Z",
+      "url": "https://taiwan-matsuri.com/202603-gunmaota/"
+    },
+    {
+      "id": "event-manual-004",
+      "name": "たてばやし花菖蒲まつり",
+      "description": "約40万本の花菖蒲が咲き誇る。入場無料。",
+      "startDate": "2026-06-01",
+      "endDate": "2026-06-14",
+      "venue": "館林市つつじが岡第二公園",
+      "lat": 36.2421,
+      "lng": 139.5452,
+      "category": "park",
+      "url": "https://www.utyututuji.jp/koyomi-summer.html",
+      "collectedAt": "2026-05-22T00:00:00.000Z"
+    },
+    {
+      "id": "event-manual-005",
+      "name": "まつおりかこ 絵本の世界",
+      "description": "絵本作家まつおりかこの原画展。一般500円・中学生以下無料。",
+      "startDate": "2026-04-25",
+      "endDate": "2026-06-28",
+      "venue": "群馬県立土屋文明記念文学館",
+      "lat": 36.4051,
+      "lng": 139.0183,
+      "category": "museum",
+      "url": "https://bungaku.pref.gunma.jp/project/2947/",
+      "collectedAt": "2026-05-22T00:00:00.000Z"
+    },
+    {
+      "id": "event-manual-006",
+      "name": "吉井どろんこ祭り2026",
+      "description": "田植え前の田んぼで全身どろんこになって楽しむイベント。事前申込制・無料。",
+      "startDate": "2026-05-31",
+      "endDate": "2026-05-31",
+      "venue": "高崎市吉井町多比良（田んぼ）",
+      "lat": 36.2089,
+      "lng": 138.9768,
+      "category": "event",
+      "url": "https://www.city.takasaki.gunma.jp/page/2448.html",
+      "collectedAt": "2026-05-22T00:00:00.000Z"
+    },
+    {
+      "id": "event-manual-007",
+      "name": "アイリスの丘（ジャーマンアイリス）",
+      "description": "丘一面に約10万株のジャーマンアイリスが咲く。一般600円・中学生以下無料。",
+      "startDate": "2026-05-01",
+      "endDate": "2026-06-10",
+      "venue": "アイリスの丘",
+      "lat": 36.3255,
+      "lng": 138.8362,
+      "category": "park",
+      "url": "https://iris-no-oka.com/",
+      "collectedAt": "2026-05-22T00:00:00.000Z"
+    }
+  ],
+  "lastCollected": "2026-05-22T00:00:00.000Z",
+  "hiddenSpotIds": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ]
+}

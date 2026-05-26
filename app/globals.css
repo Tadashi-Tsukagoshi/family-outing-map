@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-noto-sans-jp), 'Noto Sans JP', sans-serif;
+}
+
+html, body {
+  font-family: var(--font-noto-sans-jp), 'Noto Sans JP', sans-serif;
+}
+
+
+/* ── 現在地ソナーパルス ── */
+@keyframes sonar-ring {
+  0%   { transform: translate(-50%, -50%) scale(1); opacity: 0.2; }
+  100% { transform: translate(-50%, -50%) scale(5); opacity: 0; }
+}
+
+/* ── ホバーカード内の説明文（2行クリップ） ── */
+.ltt-desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 11px;
+  color: #6b7280;
+  line-height: 1.45;
+  margin: 0;
+}
