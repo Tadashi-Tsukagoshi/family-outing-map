@@ -17,6 +17,7 @@ type Props = {
   locateStatus: 'idle' | 'loading' | 'error'
   locationRadius: number
   onRadiusChange: (r: number) => void
+  mode?: 'sidebar' | 'sheet'
 }
 
 function Toggle({
@@ -79,25 +80,31 @@ export default function Sidebar({
   locateStatus,
   locationRadius,
   onRadiusChange,
+  mode = 'sidebar',
 }: Props) {
-  return (
-    <aside className="w-72 bg-white border-r border-gray-200 flex flex-col overflow-hidden">
-      <div className="p-4 pl-[22px] border-b border-gray-200">
-        <h1 className="text-xl text-black" style={{ fontFamily: "'Shippori Mincho', serif" }}>太田市イベントまっぷ</h1>
-        <p className="text-xs text-gray-400 mt-1 leading-relaxed">
-          イベント登録自由！<br />
-          みんなでつくる、太田市イベントまっぷ
-        </p>
-      </div>
+  const isSheet = mode === 'sheet'
 
+  return (
+    <aside className={`bg-white flex flex-col overflow-hidden ${isSheet ? 'w-full' : 'w-72 border-r border-gray-200'}`}>
+
+      {/* タイトル（サイドバーモードのみ） */}
+      {!isSheet && (
+        <div className="p-4 pl-[22px] border-b border-gray-200">
+          <h1 className="text-xl text-black" style={{ fontFamily: "'Shippori Mincho', serif" }}>太田市イベントまっぷ</h1>
+          <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+            イベント登録自由！<br />
+            みんなでつくる、太田市イベントまっぷ
+          </p>
+        </div>
+      )}
+
+      {/* フィルター */}
       <div className="p-4 pl-[22px] space-y-5 border-b border-gray-100">
-        {/* Weekend filter */}
         <div className="flex items-center justify-between">
           <span className="text-sm text-black">今週末のみ表示</span>
           <Toggle checked={weekendOnly} onChange={onWeekendToggle} />
         </div>
 
-        {/* Current location */}
         <div>
           <div className="flex items-center justify-between">
             <div>
@@ -113,7 +120,6 @@ export default function Sidebar({
             />
           </div>
 
-          {/* Radius slider */}
           <div className={`mt-3 pt-5 transition-opacity ${hasLocation ? 'opacity-100' : 'opacity-40'}`}>
             <div className="relative">
               <div
@@ -138,39 +144,39 @@ export default function Sidebar({
           </div>
         </div>
 
-        {/* Category filter */}
         <div>
-        <span className="text-sm text-black">カテゴリ</span>
-        <div className="flex flex-wrap gap-1.5 mt-2">
-          {(Object.keys(CATEGORY_LABELS) as Category[]).map((cat) => {
-            const active = activeCategories.has(cat)
-            return (
-              <button
-                key={cat}
-                onClick={() => onCategoryToggle(cat)}
-                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full transition-colors cursor-pointer border ${
-                  active
-                    ? 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
-                    : 'bg-gray-100 border-transparent text-gray-400 hover:bg-gray-200'
-                }`}
-                style={{ fontSize: 11 }}
-              >
-                <CategoryIcon category={cat} active={active} size={13} />
-                {CATEGORY_LABELS[cat]}
-              </button>
-            )
-          })}
+          <span className="text-sm text-black">カテゴリ</span>
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {(Object.keys(CATEGORY_LABELS) as Category[]).map((cat) => {
+              const active = activeCategories.has(cat)
+              return (
+                <button
+                  key={cat}
+                  onClick={() => onCategoryToggle(cat)}
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full transition-colors cursor-pointer border ${
+                    active
+                      ? 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
+                      : 'bg-gray-100 border-transparent text-gray-400 hover:bg-gray-200'
+                  }`}
+                  style={{ fontSize: 11 }}
+                >
+                  <CategoryIcon category={cat} active={active} size={13} />
+                  {CATEGORY_LABELS[cat]}
+                </button>
+              )
+            })}
+          </div>
         </div>
-        </div>
-
       </div>
 
-      {/* Spot list */}
-      <div className="flex-1 overflow-y-auto border-t border-gray-200">
+      {/* イベント一覧（サイドバーモードのみタイトル行を表示） */}
+      <div className={`${isSheet ? '' : 'flex-1'} overflow-y-auto border-t border-gray-200`}>
         <div className="py-3 pr-3">
-          <p className="text-sm text-black mb-2" style={{ paddingLeft: 22 }}>
-            イベント一覧　<span className="text-xs text-gray-700">{spots.length}件表示中</span>
-          </p>
+          {!isSheet && (
+            <p className="text-sm text-black mb-2" style={{ paddingLeft: 22 }}>
+              イベント一覧　<span className="text-xs text-gray-700">{spots.length}件表示中</span>
+            </p>
+          )}
           <div className="space-y-1">
             {spots.map((spot) => (
               <button

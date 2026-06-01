@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import Sidebar from './Sidebar'
 import DetailPanel from './DetailPanel'
+import BottomSheet from './BottomSheet'
 import { SPOTS, CATEGORY_LABELS, type Category, type Spot } from '@/lib/spots'
 import { eventToSpot, type EventsDatabase } from '@/lib/events'
 import { getEventStatus } from '@/lib/date-utils'
@@ -65,6 +66,15 @@ function getThisWeekendDates(): string[] {
 }
 
 export default function MapApp() {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
   const [weekendOnly, setWeekendOnly] = useState(false)
   const [activeCategories, setActiveCategories] = useState<Set<Category>>(
     () => new Set(Object.keys(CATEGORY_LABELS) as Category[])
@@ -179,24 +189,62 @@ export default function MapApp() {
     })
   }
 
+  const sidebarProps = {
+    weekendOnly,
+    onWeekendToggle: () => setWeekendOnly((v) => !v),
+    activeCategories,
+    onCategoryToggle: toggleCategory,
+    spots: filteredSpots,
+    selectedSpot,
+    onDetailOpen: handleDetailOpen,
+    onDetailClose: handleDetailClose,
+    onLocate: handleLocate,
+    onLocateClear: handleLocateClear,
+    hasLocation: userLocation !== null,
+    locateStatus,
+    locationRadius,
+    onRadiusChange: setLocationRadius,
+  }
+
+  const adminButton = (extraClass: string) => (
+    <a
+      href="/admin"
+      className={`absolute left-4 z-[999] flex items-center gap-1.5 px-4 py-2.5 rounded-full text-black text-sm font-medium transition-opacity hover:opacity-90 ${extraClass}`}
+      style={{ backgroundColor: '#ffffff', boxShadow: '0 2px 6px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.15)' }}
+    >
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="black" style={{ flexShrink: 0 }}>
+        <path d="M19 11H13V5a1 1 0 0 0-2 0v6H5a1 1 0 0 0 0 2h6v6a1 1 0 0 0 2 0v-6h6a1 1 0 0 0 0-2z"/>
+      </svg>
+      イベントを登録・編集
+    </a>
+  )
+
+  /* ── モバイルレイアウト ── */
+  if (isMobile) {
+    return (
+      <div className="relative h-full w-full">
+        <MapView
+          spots={filteredSpots}
+          selectedSpot={selectedSpot}
+          onSpotSelect={setSelectedSpot}
+          onDetailOpen={handleDetailOpen}
+          onDetailClose={handleDetailClose}
+          detailPanelOpen={false}
+          userLocation={userLocation}
+          locationRadius={locationRadius}
+        />
+        {adminButton('bottom-[88px]')}
+        <BottomSheet spotCount={filteredSpots.length}>
+          <Sidebar {...sidebarProps} mode="sheet" />
+        </BottomSheet>
+      </div>
+    )
+  }
+
+  /* ── デスクトップレイアウト ── */
   return (
     <div className="flex h-full">
-      <Sidebar
-        weekendOnly={weekendOnly}
-        onWeekendToggle={() => setWeekendOnly((v) => !v)}
-        activeCategories={activeCategories}
-        onCategoryToggle={toggleCategory}
-        spots={filteredSpots}
-        selectedSpot={selectedSpot}
-        onDetailOpen={handleDetailOpen}
-        onDetailClose={handleDetailClose}
-        onLocate={handleLocate}
-        onLocateClear={handleLocateClear}
-        hasLocation={userLocation !== null}
-        locateStatus={locateStatus}
-        locationRadius={locationRadius}
-        onRadiusChange={setLocationRadius}
-      />
+      <Sidebar {...sidebarProps} mode="sidebar" />
       {detailSpot && (
         <DetailPanel spot={detailSpot} onClose={handleDetailClose} />
       )}
@@ -211,16 +259,7 @@ export default function MapApp() {
           userLocation={userLocation}
           locationRadius={locationRadius}
         />
-        <a
-          href="/admin"
-          className="absolute bottom-6 left-4 z-[1000] flex items-center gap-1.5 px-4 py-2.5 rounded-full text-black text-sm font-medium transition-opacity hover:opacity-90"
-          style={{ backgroundColor: '#ffffff', boxShadow: '0 2px 6px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.15)' }}
-        >
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="black" style={{ flexShrink: 0 }}>
-            <path d="M19 11H13V5a1 1 0 0 0-2 0v6H5a1 1 0 0 0 0 2h6v6a1 1 0 0 0 2 0v-6h6a1 1 0 0 0 0-2z"/>
-          </svg>
-          イベントを登録・編集
-        </a>
+        {adminButton('bottom-6')}
       </main>
     </div>
   )
