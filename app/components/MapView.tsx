@@ -364,6 +364,9 @@ function SelectedSpotTracker({
 }
 
 // ─── MapResizer ──────────────────────────────────────────────────
+// detailPanelOpen の変化（サイドバー幅変化）のみに反応してサイズ無効化＋再センタリング。
+// userLocation/locationRadius の変化は FlyToLocation が担うので依存配列から除外し、
+// 初回 userLocation 設定時に FlyToLocation の instant setView を上書きしない。
 function MapResizer({
   detailPanelOpen,
   userLocation,
@@ -375,20 +378,27 @@ function MapResizer({
 }) {
   const map = useMap()
   const isFirst = useRef(true)
+  const userLocationRef = useRef(userLocation)
+  const locationRadiusRef = useRef(locationRadius)
+
+  useEffect(() => { userLocationRef.current = userLocation }, [userLocation])
+  useEffect(() => { locationRadiusRef.current = locationRadius }, [locationRadius])
 
   useEffect(() => {
     if (isFirst.current) { isFirst.current = false; return }
     map.invalidateSize()
-    if (!userLocation) return
-    const r = locationRadius * 1000
+    const ul = userLocationRef.current
+    const lr = locationRadiusRef.current
+    if (!ul) return
+    const r = lr * 1000
     const { x: w, y: h } = map.getSize()
     const targetPx = Math.min(w, h) - 12
-    const cosLat = Math.cos(userLocation[0] * Math.PI / 180)
+    const cosLat = Math.cos(ul[0] * Math.PI / 180)
     const zoom = Math.floor(
       Math.log2((targetPx * 40075016.686 * cosLat) / (2 * r * 256))
     )
-    map.setView(userLocation, zoom, { animate: true, duration: 0.3 })
-  }, [detailPanelOpen, map, userLocation, locationRadius])
+    map.setView(ul, zoom, { animate: true, duration: 0.3 })
+  }, [detailPanelOpen, map])
 
   return null
 }
