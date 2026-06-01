@@ -397,6 +397,7 @@ function MapResizer({
 function FlyToLocation({ location, radius }: { location: [number, number] | null; radius: number }) {
   const map = useMap()
   const prevLocationRef = useRef<[number, number] | null>(null)
+  const isFirstRef = useRef(true)
 
   useEffect(() => {
     if (!location) return
@@ -410,6 +411,12 @@ function FlyToLocation({ location, radius }: { location: [number, number] | null
     const prev = prevLocationRef.current
     const locationChanged = prev?.[0] !== location[0] || prev?.[1] !== location[1]
     prevLocationRef.current = location
+
+    if (isFirstRef.current) {
+      isFirstRef.current = false
+      map.setView(location, zoom, { animate: false })
+      return
+    }
 
     if (locationChanged) {
       const zoomOutLevel = Math.max(map.getZoom() - 2, map.getMinZoom())
