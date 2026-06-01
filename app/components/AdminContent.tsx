@@ -205,8 +205,9 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
     try {
       const res = await fetch(`/api/events/${ev.id}`, { method: 'DELETE' })
       if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error ?? '削除に失敗しました')
+        let data: Record<string, unknown> = {}
+        try { data = await res.json() } catch { /* empty body */ }
+        throw new Error((data.error as string | undefined) ?? '削除に失敗しました')
       }
       if (editingId === ev.id) handleCancelEdit()
       await loadEvents()
@@ -232,8 +233,13 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify(form),
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? (editingId ? '更新に失敗しました' : '登録に失敗しました'))
+      let data: Record<string, unknown> = {}
+      try {
+        data = await res.json()
+      } catch {
+        throw new Error(editingId ? '更新に失敗しました（サーバーエラー）' : '登録に失敗しました（サーバーエラー）')
+      }
+      if (!res.ok) throw new Error((data.error as string | undefined) ?? (editingId ? '更新に失敗しました' : '登録に失敗しました'))
       setSubmitStatus('ok')
       setSubmitMessage(editingId
         ? `「${data.event.name}」を更新しました！`
