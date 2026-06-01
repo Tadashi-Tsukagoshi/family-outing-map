@@ -407,7 +407,6 @@ function MapResizer({
 function FlyToLocation({ location, radius }: { location: [number, number] | null; radius: number }) {
   const map = useMap()
   const prevLocationRef = useRef<[number, number] | null>(null)
-  const isFirstRef = useRef(true)
 
   useEffect(() => {
     if (!location) return
@@ -422,21 +421,10 @@ function FlyToLocation({ location, radius }: { location: [number, number] | null
     const locationChanged = prev?.[0] !== location[0] || prev?.[1] !== location[1]
     prevLocationRef.current = location
 
-    if (isFirstRef.current) {
-      isFirstRef.current = false
-      map.setView(location, zoom, { animate: false })
-      return
-    }
-
     if (locationChanged) {
-      const zoomOutLevel = Math.max(map.getZoom() - 2, map.getMinZoom())
-      const onZoomEnd = () => {
-        map.flyTo(location, zoom, { animate: true, duration: 1.8 })
-      }
-      map.once('zoomend', onZoomEnd)
-      map.setZoom(zoomOutLevel, { animate: true })
-      return () => { map.off('zoomend', onZoomEnd) }
+      map.setView(location, zoom, { animate: false })
     } else {
+      // 半径スライダー変更のみ: 微小なズーム調整
       map.setView(location, zoom, { animate: true, duration: 0.3 })
     }
   }, [location, radius, map])
