@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic'
 import Sidebar from './Sidebar'
 import DetailPanel from './DetailPanel'
 import BottomSheet from './BottomSheet'
-import { SPOTS, CATEGORY_LABELS, type Category, type Spot } from '@/lib/spots'
+import { CATEGORY_LABELS, type Category, type Spot } from '@/lib/spots'
 import { eventToSpot, type EventsDatabase } from '@/lib/events'
 import { getEventStatus } from '@/lib/date-utils'
 
@@ -81,8 +81,6 @@ export default function MapApp() {
   const [selectedSpot, setSelectedSpot] = useState<Spot | null>(null)
   const [detailSpot,   setDetailSpot]   = useState<Spot | null>(null)
   const [collectedSpots, setCollectedSpots] = useState<Spot[]>([])
-  const [hiddenSpotIds, setHiddenSpotIds]   = useState<Set<string>>(new Set())
-  const [overrideIds,   setOverrideIds]     = useState<Set<string>>(new Set())
   const [userLocation,  setUserLocation]    = useState<[number, number] | null>(null)
   const [locateStatus,  setLocateStatus]    = useState<'idle' | 'loading' | 'error'>('idle')
   const [locationRadius, setLocationRadius] = useState(20)
@@ -138,8 +136,6 @@ export default function MapApp() {
       const res = await fetch('/api/events')
       const db: EventsDatabase = await res.json()
       setCollectedSpots(db.events.map(eventToSpot))
-      setHiddenSpotIds(new Set(db.hiddenSpotIds ?? []))
-      setOverrideIds(new Set(db.events.map(e => e.id)))
     } catch {
       // events.json がまだない場合は無視
     }
@@ -153,10 +149,7 @@ export default function MapApp() {
     handleLocate()
   }, [handleLocate])
 
-  const allSpots = useMemo(() => [
-    ...SPOTS.filter(s => !hiddenSpotIds.has(s.id) && !overrideIds.has(s.id)),
-    ...collectedSpots,
-  ], [collectedSpots, hiddenSpotIds, overrideIds])
+  const allSpots = useMemo(() => collectedSpots, [collectedSpots])
 
   const filteredSpots = useMemo(() => {
     return allSpots.filter((spot) => {

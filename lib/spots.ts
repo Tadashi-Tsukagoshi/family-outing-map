@@ -19,53 +19,6 @@ export type Spot = {
   posterType?: 'general' | 'organizer' | 'business' | 'staff'
 }
 
-export const SPOTS: Spot[] = [
-  {
-    id: '1',
-    name: '太田市美術館・図書館',
-    category: 'museum',
-    lat: 36.2920,
-    lng: 139.3670,
-    description: 'アートと本が融合した複合文化施設。週末は子ども向けワークショップも開催。',
-    weekendDates: ['2026-05-16', '2026-05-17'],
-  },
-  {
-    id: '2',
-    name: '金山総合公園',
-    category: 'park',
-    lat: 36.3066,
-    lng: 139.3578,
-    description: '標高239mの金山山頂にある自然公園。桜の名所でハイキングも楽しめる。',
-    weekendDates: ['2026-05-16', '2026-05-17'],
-  },
-  {
-    id: '3',
-    name: '太田市子ども科学館',
-    category: 'playground',
-    lat: 36.2845,
-    lng: 139.3720,
-    description: '科学実験や体験展示が充実。プラネタリウムも人気で雨の日にもおすすめ。',
-    weekendDates: ['2026-05-17'],
-  },
-  {
-    id: '4',
-    name: '道の駅おおた',
-    category: 'food',
-    lat: 36.2802,
-    lng: 139.3891,
-    description: '地元群馬の新鮮野菜や特産品が揃う道の駅。フードコートで地元グルメも楽しめる。',
-    weekendDates: [],
-  },
-  {
-    id: '5',
-    name: 'ぐんまフラワーパーク春まつり',
-    category: 'event',
-    lat: 36.3010,
-    lng: 139.4050,
-    description: '季節の花々が咲き誇るフラワーパーク。春まつり期間中は夜間ライトアップも実施。',
-    weekendDates: ['2026-05-16', '2026-05-17'],
-  },
-]
 
 export const CATEGORY_LABELS: Record<Category, string> = {
   park: '公園',

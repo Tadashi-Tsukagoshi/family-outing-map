@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { SPOTS, CATEGORY_LABELS, CATEGORY_EMOJIS, type Category, type Spot } from '@/lib/spots'
+import { CATEGORY_LABELS, CATEGORY_EMOJIS, type Category } from '@/lib/spots'
 import type { CollectedEvent } from '@/lib/events'
 
 // ─── 型 ───────────────────────────────────────────────────────────
@@ -79,22 +79,6 @@ function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   )
 }
 
-function spotToEvent(spot: Spot): CollectedEvent {
-  return {
-    id:          spot.id,
-    name:        spot.name,
-    description: spot.description,
-    startDate:   spot.startDate,
-    endDate:     spot.endDate,
-    venue:       spot.venue ?? '',
-    lat:         spot.lat,
-    lng:         spot.lng,
-    url:         spot.url,
-    imageUrl:    spot.imageUrl,
-    category:    spot.category,
-    collectedAt: '',
-  }
-}
 
 function formatDateRange(ev: CollectedEvent) {
   const start = ev.startDate ?? ev.date ?? ''
@@ -116,7 +100,6 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
   const [submitMessage, setSubmitMessage] = useState('')
   const [editingId,    setEditingId]      = useState<string | null>(null)
   const [events,        setEvents]        = useState<CollectedEvent[]>([])
-  const [hiddenSpotIds, setHiddenSpotIds] = useState<string[]>([])
   const [eventsLoading, setEventsLoading] = useState(true)
   const geoTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const formRef  = useRef<HTMLFormElement>(null)
@@ -127,7 +110,6 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
       const res  = await fetch('/api/events')
       const data = await res.json()
       setEvents(data.events ?? [])
-      setHiddenSpotIds(data.hiddenSpotIds ?? [])
     } catch {
       setEvents([])
     } finally {
@@ -259,14 +241,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
   const isSubmitting = submitStatus === 'loading'
   const categories   = Object.keys(CATEGORY_LABELS) as Category[]
 
-  const allItems = (() => {
-    const overrideIds = new Set(events.map(e => e.id))
-    const hiddenSet   = new Set(hiddenSpotIds)
-    const spotsAsEvents = SPOTS
-      .filter(s => !overrideIds.has(s.id) && !hiddenSet.has(s.id))
-      .map(spotToEvent)
-    return [...spotsAsEvents, ...events]
-  })()
+  const allItems = events
 
   return (
     <div className="min-h-screen bg-gray-50">

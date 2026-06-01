@@ -1,9 +1,6 @@
-import { promises as fs } from 'fs'
-import path from 'path'
 import crypto from 'crypto'
-import type { CollectedEvent, EventsDatabase } from '@/lib/events'
-
-const DATA_FILE = path.join(process.cwd(), 'data', 'events.json')
+import { supabaseAdmin } from '@/lib/supabase'
+import type { CollectedEvent } from '@/lib/events'
 
 export async function POST(req: Request) {
   let body: unknown
@@ -15,13 +12,12 @@ export async function POST(req: Request) {
 
   const b = body as Record<string, unknown>
 
-  // バリデーション
-  const name    = (b.name    as string | undefined)?.trim()
-  const venue   = (b.venue   as string | undefined)?.trim()
+  const name      = (b.name      as string | undefined)?.trim()
+  const venue     = (b.venue     as string | undefined)?.trim()
   const startDate = (b.startDate as string | undefined)?.trim()
   const endDate   = (b.endDate   as string | undefined)?.trim()
-  const lat     = typeof b.lat === 'number' ? b.lat : undefined
-  const lng     = typeof b.lng === 'number' ? b.lng : undefined
+  const lat       = typeof b.lat === 'number' ? b.lat : undefined
+  const lng       = typeof b.lng === 'number' ? b.lng : undefined
 
   if (!name)      return Response.json({ error: 'イベント名は必須です' },   { status: 400 })
   if (!venue)     return Response.json({ error: '会場名は必須です' },       { status: 400 })
@@ -31,41 +27,45 @@ export async function POST(req: Request) {
     return Response.json({ error: '緯度経度を取得してください' }, { status: 400 })
   }
 
-  const newEvent: CollectedEvent = {
-    id:          `event-${crypto.randomUUID()}`,
+  const newEvent = {
+    id:           `event-${crypto.randomUUID()}`,
     name,
-    description: ((b.description as string | undefined) ?? '').trim(),
-    startDate,
-    endDate,
+    description:  ((b.description as string | undefined) ?? '').trim(),
+    start_date:   startDate,
+    end_date:     endDate,
     venue,
     lat,
     lng,
-    category:    (b.category as CollectedEvent['category']) ?? 'event',
-    url:         ((b.url      as string | undefined) ?? '').trim() || undefined,
-    imageUrl:    ((b.imageUrl as string | undefined) ?? '').trim() || undefined,
-    collectedAt: new Date().toISOString(),
-    postedBy:    ((b.postedBy as string | undefined) ?? '匿名').trim() || '匿名',
-    posterType:  (b.posterType as CollectedEvent['posterType']) ?? 'general',
+    category:     (b.category as string) ?? 'event',
+    url:          ((b.url as string | undefined) ?? '').trim() || null,
+    collected_at: new Date().toISOString(),
+    posted_by:    ((b.postedBy as string | undefined) ?? '匿名').trim() || '匿名',
+    poster_type:  (b.posterType as string) ?? 'general',
   }
 
-  // 既存 DB を読み込んで追加
-  let db: EventsDatabase
-  try {
-    db = JSON.parse(await fs.readFile(DATA_FILE, 'utf-8'))
-  } catch {
-    db = { events: [], lastCollected: null }
-  }
+  const supabase = supabaseAdmin()
+  const { error } = await supabase.from('events').insert(newEvent)
 
-  db.events.push(newEvent)
-  db.lastCollected = newEvent.collectedAt
-
-  try {
-    await fs.mkdir(path.dirname(DATA_FILE), { recursive: true })
-    await fs.writeFile(DATA_FILE, JSON.stringify(db, null, 2), 'utf-8')
-  } catch (err) {
-    console.error('[POST /api/register-event]', err)
+  if (error) {
+    console.error('[POST /api/register-event]', error)
     return Response.json({ error: '登録に失敗しました（サーバーエラー）' }, { status: 500 })
   }
 
-  return Response.json({ success: true, event: newEvent }, { status: 201 })
+  const responseEvent: CollectedEvent = {
+    id:          newEvent.id,
+    name:        newEvent.name,
+    description: newEvent.description,
+    startDate:   newEvent.start_date,
+    endDate:     newEvent.end_date,
+    venue:       newEvent.venue,
+    lat:         newEvent.lat,
+    lng:         newEvent.lng,
+    category:    newEvent.category as CollectedEvent['category'],
+    url:         newEvent.url ?? undefined,
+    collectedAt: newEvent.collected_at,
+    postedBy:    newEvent.posted_by,
+    posterType:  newEvent.poster_type as CollectedEvent['posterType'],
+  }
+
+  return Response.json({ success: true, event: responseEvent }, { status: 201 })
 }

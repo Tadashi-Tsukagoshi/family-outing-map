@@ -1,23 +1,6 @@
-import { promises as fs } from 'fs'
-import path from 'path'
-import type { CollectedEvent, EventsDatabase } from '@/lib/events'
-import { SPOTS } from '@/lib/spots'
+import { supabaseAdmin } from '@/lib/supabase'
+import type { CollectedEvent } from '@/lib/events'
 import type { NextRequest } from 'next/server'
-
-const DATA_FILE = path.join(process.cwd(), 'data', 'events.json')
-
-async function readDb(): Promise<EventsDatabase> {
-  try {
-    return JSON.parse(await fs.readFile(DATA_FILE, 'utf-8'))
-  } catch {
-    return { events: [], lastCollected: null }
-  }
-}
-
-async function writeDb(db: EventsDatabase) {
-  await fs.mkdir(path.dirname(DATA_FILE), { recursive: true })
-  await fs.writeFile(DATA_FILE, JSON.stringify(db, null, 2), 'utf-8')
-}
 
 export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   try {
@@ -46,52 +29,46 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
       return Response.json({ error: '緯度経度を取得してください' }, { status: 400 })
     }
 
-    const db  = await readDb()
-    const idx = db.events.findIndex(e => e.id === id)
-
-    if (idx === -1) {
-      if (!SPOTS.some(s => s.id === id)) {
-        return Response.json({ error: 'イベントが見つかりません' }, { status: 404 })
-      }
-      const newEvent: CollectedEvent = {
-        id,
+    const supabase = supabaseAdmin()
+    const { data, error } = await supabase
+      .from('events')
+      .update({
         name,
         description: ((b.description as string | undefined) ?? '').trim(),
-        startDate,
-        endDate,
+        start_date:  startDate,
+        end_date:    endDate,
         venue,
         lat,
         lng,
-        category: (b.category as CollectedEvent['category']) ?? 'event',
-        url:      ((b.url      as string | undefined) ?? '').trim() || undefined,
-        imageUrl: ((b.imageUrl as string | undefined) ?? '').trim() || undefined,
-        collectedAt: new Date().toISOString(),
-        postedBy:   ((b.postedBy as string | undefined) ?? '匿名').trim() || '匿名',
-        posterType: (b.posterType as CollectedEvent['posterType']) ?? 'general',
-      }
-      db.events.push(newEvent)
-      await writeDb(db)
-      return Response.json({ success: true, event: newEvent })
+        category:    (b.category   as string) ?? 'event',
+        url:         ((b.url      as string | undefined) ?? '').trim() || null,
+        posted_by:   ((b.postedBy as string | undefined) ?? '匿名').trim() || '匿名',
+        poster_type: (b.posterType as string) ?? 'general',
+      })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('[PUT /api/events/[id]]', error)
+      return Response.json({ error: '更新に失敗しました' }, { status: 500 })
     }
 
     const updated: CollectedEvent = {
-      ...db.events[idx],
-      name,
-      description: ((b.description as string | undefined) ?? '').trim(),
-      startDate,
-      endDate,
-      venue,
-      lat,
-      lng,
-      category:   (b.category   as CollectedEvent['category'])   ?? db.events[idx].category   ?? 'event',
-      url:        ((b.url      as string | undefined) ?? '').trim() || undefined,
-      imageUrl:   ((b.imageUrl as string | undefined) ?? '').trim() || undefined,
-      postedBy:   ((b.postedBy as string | undefined) ?? db.events[idx].postedBy ?? '匿名').trim() || '匿名',
-      posterType: (b.posterType as CollectedEvent['posterType']) ?? db.events[idx].posterType ?? 'general',
+      id:          data.id,
+      name:        data.name,
+      description: data.description,
+      startDate:   data.start_date,
+      endDate:     data.end_date,
+      venue:       data.venue,
+      lat:         data.lat,
+      lng:         data.lng,
+      category:    data.category,
+      url:         data.url ?? undefined,
+      collectedAt: data.collected_at,
+      postedBy:    data.posted_by,
+      posterType:  data.poster_type,
     }
-
-    db.events[idx] = updated
-    await writeDb(db)
 
     return Response.json({ success: true, event: updated })
   } catch (err) {
@@ -104,23 +81,16 @@ export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: str
   try {
     const { id } = await ctx.params
 
-    const db  = await readDb()
-    const idx = db.events.findIndex(e => e.id === id)
+    const supabase = supabaseAdmin()
+    const { error } = await supabase
+      .from('events')
+      .delete()
+      .eq('id', id)
 
-    if (idx === -1) {
-      if (!SPOTS.some(s => s.id === id)) {
-        return Response.json({ error: 'イベントが見つかりません' }, { status: 404 })
-      }
-      db.hiddenSpotIds = [...new Set([...(db.hiddenSpotIds ?? []), id])]
-      await writeDb(db)
-      return Response.json({ success: true })
+    if (error) {
+      console.error('[DELETE /api/events/[id]]', error)
+      return Response.json({ error: '削除に失敗しました' }, { status: 500 })
     }
-
-    db.events.splice(idx, 1)
-    if (SPOTS.some(s => s.id === id)) {
-      db.hiddenSpotIds = [...new Set([...(db.hiddenSpotIds ?? []), id])]
-    }
-    await writeDb(db)
 
     return Response.json({ success: true })
   } catch (err) {

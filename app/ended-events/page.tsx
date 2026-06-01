@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { SPOTS, CATEGORY_LABELS, CATEGORY_EMOJIS, type Spot } from '@/lib/spots'
+import { CATEGORY_LABELS, CATEGORY_EMOJIS, type Spot } from '@/lib/spots'
 import { eventToSpot, type EventsDatabase } from '@/lib/events'
 import { getEventStatus, fmtDateRange } from '@/lib/date-utils'
 
@@ -21,18 +21,10 @@ export default function EndedEventsPage() {
       try {
         const res = await fetch('/api/events')
         const db: EventsDatabase = await res.json()
-        const hiddenSet   = new Set(db.hiddenSpotIds ?? [])
-        const overrideIds = new Set(db.events.map(e => e.id))
 
-        const fromFixed = SPOTS
-          .filter(s => !hiddenSet.has(s.id) && !overrideIds.has(s.id))
-          .filter(s => getEventStatus(s.startDate, s.endDate) === 'ended')
-
-        const fromCollected = db.events
+        const all = db.events
           .map(eventToSpot)
           .filter(s => getEventStatus(s.startDate, s.endDate) === 'ended')
-
-        const all = [...fromFixed, ...fromCollected]
         all.sort((a, b) => (b.endDate ?? '').localeCompare(a.endDate ?? ''))
         setEndedSpots(all)
       } catch {

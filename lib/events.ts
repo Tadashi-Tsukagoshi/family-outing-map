@@ -24,7 +24,6 @@ export type CollectedEvent = {
 export type EventsDatabase = {
   events: CollectedEvent[]
   lastCollected: string | null
-  hiddenSpotIds?: string[]
 }
 
 export function eventToSpot(event: CollectedEvent): Spot {

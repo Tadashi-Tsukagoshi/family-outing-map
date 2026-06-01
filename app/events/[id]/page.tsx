@@ -1,10 +1,9 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { promises as fs } from 'fs'
-import path from 'path'
-import { SPOTS, CATEGORY_LABELS, CATEGORY_COLORS, CATEGORY_EMOJIS, type Category, type Spot } from '@/lib/spots'
-import { eventToSpot, type EventsDatabase } from '@/lib/events'
+import { CATEGORY_LABELS, CATEGORY_COLORS, CATEGORY_EMOJIS, type Category, type Spot } from '@/lib/spots'
+import { eventToSpot } from '@/lib/events'
 import { fmtDateRange, getEventStatus, STATUS_CONFIG } from '@/lib/date-utils'
+import { supabaseAdmin } from '@/lib/supabase'
 import type { Metadata } from 'next'
 
 const CATEGORY_IMAGES: Record<Category, string> = {
@@ -16,20 +15,28 @@ const CATEGORY_IMAGES: Record<Category, string> = {
 }
 
 async function getSpot(id: string): Promise<Spot | null> {
-  const staticSpot = SPOTS.find(s => s.id === id)
-  if (staticSpot) return staticSpot
-
-  try {
-    const raw = await fs.readFile(
-      path.join(process.cwd(), 'data', 'events.json'),
-      'utf-8'
-    )
-    const db: EventsDatabase = JSON.parse(raw)
-    const event = db.events.find(e => e.id === id)
-    return event ? eventToSpot(event) : null
-  } catch {
-    return null
-  }
+  const supabase = supabaseAdmin()
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('id', id)
+    .single()
+  if (error || !data) return null
+  return eventToSpot({
+    id:          data.id,
+    name:        data.name,
+    description: data.description,
+    startDate:   data.start_date,
+    endDate:     data.end_date,
+    venue:       data.venue,
+    lat:         data.lat,
+    lng:         data.lng,
+    category:    data.category,
+    url:         data.url ?? undefined,
+    collectedAt: data.collected_at,
+    postedBy:    data.posted_by,
+    posterType:  data.poster_type,
+  })
 }
 
 async function fetchOgpImage(url: string): Promise<string | null> {
