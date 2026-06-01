@@ -18,6 +18,7 @@ type Props = {
   onDetailOpen: (spot: Spot) => void
   onDetailClose: () => void
   detailPanelOpen: boolean
+  isMobile?: boolean
 }
 
 type HoverState = { spot: Spot; x: number; y: number }
@@ -426,7 +427,7 @@ function FlyToLocation({ location, radius }: { location: [number, number] | null
 }
 
 // ─── MapView（メインコンポーネント） ─────────────────────────────
-export default function MapView({ spots, onSpotSelect, selectedSpot, userLocation = null, locationRadius = 60, onDetailOpen, onDetailClose, detailPanelOpen }: Props) {
+export default function MapView({ spots, onSpotSelect, selectedSpot, userLocation = null, locationRadius = 60, onDetailOpen, onDetailClose, detailPanelOpen, isMobile = false }: Props) {
   const wrapperRef  = useRef<HTMLDivElement>(null)
   const [hovered,      setHovered]      = useState<HoverState | null>(null)
   const [pinnedHover,  setPinnedHover]  = useState<HoverState | null>(null)
@@ -501,7 +502,7 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
           onHoverIn={handleHoverIn}
           onHoverOut={scheduleHide}
           onMapMove={handleImmediateHide}
-          onPinClick={onDetailOpen}
+          onPinClick={isMobile ? onSpotSelect : onDetailOpen}
         />
         <FlyToLocation location={userLocation} radius={locationRadius} />
         <MapResizer detailPanelOpen={detailPanelOpen} userLocation={userLocation} locationRadius={locationRadius} />

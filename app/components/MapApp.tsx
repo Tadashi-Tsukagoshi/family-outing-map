@@ -232,6 +232,7 @@ export default function MapApp() {
           detailPanelOpen={detailSpot !== null}
           userLocation={userLocation}
           locationRadius={locationRadius}
+          isMobile
         />
         {adminButton('bottom-[88px]')}
         <BottomSheet spotCount={filteredSpots.length}>
