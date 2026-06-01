@@ -19,7 +19,7 @@ async function writeDb(db: EventsDatabase) {
   await fs.writeFile(DATA_FILE, JSON.stringify(db, null, 2), 'utf-8')
 }
 
-export async function PUT(req: NextRequest, ctx: RouteContext<'/api/events/[id]'>) {
+export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await ctx.params
 
@@ -100,7 +100,7 @@ export async function PUT(req: NextRequest, ctx: RouteContext<'/api/events/[id]'
   }
 }
 
-export async function DELETE(_req: NextRequest, ctx: RouteContext<'/api/events/[id]'>) {
+export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await ctx.params
 

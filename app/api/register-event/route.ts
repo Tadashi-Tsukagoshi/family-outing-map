@@ -59,8 +59,13 @@ export async function POST(req: Request) {
   db.events.push(newEvent)
   db.lastCollected = newEvent.collectedAt
 
-  await fs.mkdir(path.dirname(DATA_FILE), { recursive: true })
-  await fs.writeFile(DATA_FILE, JSON.stringify(db, null, 2), 'utf-8')
+  try {
+    await fs.mkdir(path.dirname(DATA_FILE), { recursive: true })
+    await fs.writeFile(DATA_FILE, JSON.stringify(db, null, 2), 'utf-8')
+  } catch (err) {
+    console.error('[POST /api/register-event]', err)
+    return Response.json({ error: '登録に失敗しました（サーバーエラー）' }, { status: 500 })
+  }
 
   return Response.json({ success: true, event: newEvent }, { status: 201 })
 }

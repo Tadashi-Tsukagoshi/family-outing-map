@@ -241,9 +241,10 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
       }
       if (!res.ok) throw new Error((data.error as string | undefined) ?? (editingId ? '更新に失敗しました' : '登録に失敗しました'))
       setSubmitStatus('ok')
+      const eventName = (data.event as { name?: string } | undefined)?.name ?? form.name
       setSubmitMessage(editingId
-        ? `「${data.event.name}」を更新しました！`
-        : `「${data.event.name}」を登録しました！`)
+        ? `「${eventName}」を更新しました！`
+        : `「${eventName}」を登録しました！`)
       setForm(INITIAL)
       setEditingId(null)
       setGeoStatus('idle')
