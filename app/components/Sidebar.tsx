@@ -83,7 +83,11 @@ export default function Sidebar({
   return (
     <aside className="w-72 bg-white border-r border-gray-200 flex flex-col overflow-hidden">
       <div className="p-4 pl-[22px] border-b border-gray-200">
-        <h1 className="text-xl text-black" style={{ fontFamily: "'Shippori Mincho', serif" }}>太田市民おでかけまっぷ</h1>
+        <h1 className="text-xl text-black" style={{ fontFamily: "'Shippori Mincho', serif" }}>太田市イベントまっぷ</h1>
+        <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+          イベント登録自由！<br />
+          みんなでつくる、太田市イベントまっぷ
+        </p>
       </div>
 
       <div className="p-4 pl-[22px] space-y-5 border-b border-gray-100">

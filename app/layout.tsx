@@ -18,7 +18,7 @@ const shipporiMincho = Shippori_Mincho({
 })
 
 export const metadata: Metadata = {
-  title: '家族おでかけマップ | 群馬県太田市',
+  title: '太田市イベントまっぷ',
   description: '群馬県太田市周辺の家族向けおでかけスポット・イベント情報',
 }
 

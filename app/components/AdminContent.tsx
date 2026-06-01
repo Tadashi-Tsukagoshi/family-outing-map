@@ -25,6 +25,13 @@ type FormState = {
 type GeoStatus    = 'idle' | 'loading' | 'ok' | 'error'
 type SubmitStatus = 'idle' | 'loading' | 'ok' | 'error'
 
+const POSTER_TYPE_LABELS: Record<string, string> = {
+  general:   '一般ユーザー',
+  organizer: '主催者',
+  business:  '事業者',
+  staff:     '運営',
+}
+
 const INITIAL: FormState = {
   name: '', category: 'event',
   startDate: '', endDate: '',
@@ -35,7 +42,8 @@ const INITIAL: FormState = {
 }
 
 type Props = {
-  posterTypeOptions: { value: PosterType; label: string }[]
+  posterTypeOptions?: { value: PosterType; label: string }[]
+  fixedPosterType?: PosterType
   onLogout?: () => void
 }
 
@@ -97,8 +105,11 @@ function formatDateRange(ev: CollectedEvent) {
 }
 
 // ─── 管理画面本体 ──────────────────────────────────────────────────
-export default function AdminContent({ posterTypeOptions, onLogout }: Props) {
-  const [form, setForm]                   = useState<FormState>(INITIAL)
+export default function AdminContent({ posterTypeOptions, fixedPosterType, onLogout }: Props) {
+  const [form, setForm]                   = useState<FormState>({
+    ...INITIAL,
+    posterType: fixedPosterType ?? 'general',
+  })
   const [geoStatus,    setGeoStatus]      = useState<GeoStatus>('idle')
   const [geoMessage,   setGeoMessage]     = useState('')
   const [submitStatus, setSubmitStatus]   = useState<SubmitStatus>('idle')
@@ -171,7 +182,7 @@ export default function AdminContent({ posterTypeOptions, onLogout }: Props) {
       description: ev.description,
       url:         ev.url ?? '',
       postedBy:    ev.postedBy  ?? '',
-      posterType:  (ev.posterType as PosterType) ?? 'general',
+      posterType:  fixedPosterType ?? (ev.posterType as PosterType) ?? 'general',
     })
     setGeoStatus('ok')
     setGeoMessage('📍 既存の位置情報を使用中（住所を入力して「取得」を押すと更新できます）')
@@ -182,7 +193,7 @@ export default function AdminContent({ posterTypeOptions, onLogout }: Props) {
 
   const handleCancelEdit = () => {
     setEditingId(null)
-    setForm(INITIAL)
+    setForm({ ...INITIAL, posterType: fixedPosterType ?? 'general' })
     setGeoStatus('idle')
     setGeoMessage('')
     setSubmitStatus('idle')
@@ -268,52 +279,6 @@ export default function AdminContent({ posterTypeOptions, onLogout }: Props) {
       </header>
 
       <main className="max-w-xl mx-auto px-4 py-8 space-y-8">
-
-        {/* 登録済みイベント一覧 */}
-        <section>
-          <h2 className="text-sm font-semibold text-gray-700 mb-3">登録済みイベント</h2>
-          {eventsLoading ? (
-            <p className="text-sm text-gray-400">読み込み中...</p>
-          ) : allItems.length === 0 ? (
-            <p className="text-sm text-gray-400">登録されたイベントはありません。</p>
-          ) : (
-            <ul className="space-y-2">
-              {allItems.map(ev => (
-                <li
-                  key={ev.id}
-                  className={`bg-white rounded-xl border px-4 py-3 flex items-start gap-3 transition-colors
-                    ${editingId === ev.id ? 'border-blue-300 bg-blue-50' : 'border-gray-100'}`}
-                >
-                  <span className="text-xl mt-0.5 flex-shrink-0">
-                    {CATEGORY_EMOJIS[ev.category ?? 'event']}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-800 truncate">{ev.name}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{formatDateRange(ev)} · {ev.venue}</p>
-                  </div>
-                  <div className="flex gap-1.5 flex-shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => handleEdit(ev)}
-                      className="px-2.5 py-1 text-xs rounded-lg border border-blue-200 text-blue-600
-                        hover:bg-blue-100 transition-colors cursor-pointer"
-                    >
-                      編集
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(ev)}
-                      className="px-2.5 py-1 text-xs rounded-lg border border-red-200 text-red-500
-                        hover:bg-red-50 transition-colors cursor-pointer"
-                    >
-                      削除
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
 
         {/* 登録 / 編集フォーム */}
         <section>
@@ -496,20 +461,30 @@ export default function AdminContent({ posterTypeOptions, onLogout }: Props) {
             <div>
               <Label required>投稿者種別</Label>
               <div className="flex gap-2">
-                {posterTypeOptions.map(opt => (
+                {fixedPosterType ? (
                   <button
-                    key={opt.value}
                     type="button"
-                    disabled={isSubmitting}
-                    onClick={() => set('posterType', opt.value)}
-                    className={`flex-1 py-2 rounded-xl border text-sm font-medium transition-colors cursor-pointer
-                      ${form.posterType === opt.value
-                        ? 'border-green-400 bg-green-50 text-green-700'
-                        : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
+                    disabled
+                    className="flex-1 py-2 rounded-xl border text-sm font-medium border-green-400 bg-green-50 text-green-700 cursor-default"
                   >
-                    {opt.label}
+                    {POSTER_TYPE_LABELS[fixedPosterType] ?? fixedPosterType}
                   </button>
-                ))}
+                ) : (
+                  posterTypeOptions?.map(opt => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      disabled={isSubmitting}
+                      onClick={() => set('posterType', opt.value)}
+                      className={`flex-1 py-2 rounded-xl border text-sm font-medium transition-colors cursor-pointer
+                        ${form.posterType === opt.value
+                          ? 'border-green-400 bg-green-50 text-green-700'
+                          : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))
+                )}
               </div>
             </div>
 
@@ -534,6 +509,52 @@ export default function AdminContent({ posterTypeOptions, onLogout }: Props) {
                 : (editingId ? '上書き保存' : 'イベントを登録する')}
             </button>
           </form>
+        </section>
+
+        {/* 登録済みイベント一覧 */}
+        <section>
+          <h2 className="text-sm font-semibold text-gray-700 mb-3">登録済みイベント</h2>
+          {eventsLoading ? (
+            <p className="text-sm text-gray-400">読み込み中...</p>
+          ) : allItems.length === 0 ? (
+            <p className="text-sm text-gray-400">登録されたイベントはありません。</p>
+          ) : (
+            <ul className="space-y-2">
+              {allItems.map(ev => (
+                <li
+                  key={ev.id}
+                  className={`bg-white rounded-xl border px-4 py-3 flex items-start gap-3 transition-colors
+                    ${editingId === ev.id ? 'border-blue-300 bg-blue-50' : 'border-gray-100'}`}
+                >
+                  <span className="text-xl mt-0.5 flex-shrink-0">
+                    {CATEGORY_EMOJIS[ev.category ?? 'event']}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-800 truncate">{ev.name}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{formatDateRange(ev)} · {ev.venue}</p>
+                  </div>
+                  <div className="flex gap-1.5 flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => handleEdit(ev)}
+                      className="px-2.5 py-1 text-xs rounded-lg border border-blue-200 text-blue-600
+                        hover:bg-blue-100 transition-colors cursor-pointer"
+                    >
+                      編集
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(ev)}
+                      className="px-2.5 py-1 text-xs rounded-lg border border-red-200 text-red-500
+                        hover:bg-red-50 transition-colors cursor-pointer"
+                    >
+                      削除
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
       </main>

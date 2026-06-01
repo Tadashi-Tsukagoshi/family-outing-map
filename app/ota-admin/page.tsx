@@ -5,12 +5,6 @@ import AdminContent from '@/app/components/AdminContent'
 
 const AUTH_KEY = 'ota-admin-authed'
 
-const POSTER_TYPE_OPTIONS = [
-  { value: 'general',   label: '一般ユーザー' },
-  { value: 'organizer', label: '主催者' },
-  { value: 'business',  label: '事業者' },
-  { value: 'staff',     label: '運営' },
-] as const
 
 export default function OtaAdminPage() {
   const [authed,       setAuthed]       = useState(false)
@@ -53,7 +47,7 @@ export default function OtaAdminPage() {
   if (authed) {
     return (
       <AdminContent
-        posterTypeOptions={[...POSTER_TYPE_OPTIONS]}
+        fixedPosterType="staff"
         onLogout={handleLogout}
       />
     )
