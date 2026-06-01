@@ -121,7 +121,6 @@ export default function MapApp() {
 
   const handleDetailClose = useCallback(() => {
     setDetailSpot(null)
-    setSelectedSpot(null)
   }, [])
 
   useEffect(() => {
