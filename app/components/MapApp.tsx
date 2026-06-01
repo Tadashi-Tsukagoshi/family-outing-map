@@ -15,7 +15,6 @@ const STORAGE_KEY = 'outing-map-settings'
 type SavedSettings = {
   weekendOnly: boolean
   activeCategories: Category[]
-  userLocation: [number, number] | null
   locationRadius: number
 }
 
@@ -91,9 +90,8 @@ export default function MapApp() {
   // ハイドレーション後にlocalStorageから設定を復元
   useEffect(() => {
     const saved = loadSettings()
-    if (saved.weekendOnly !== undefined)  setWeekendOnly(saved.weekendOnly)
-    if (saved.activeCategories)           setActiveCategories(new Set(saved.activeCategories))
-    if (saved.userLocation)               setUserLocation(saved.userLocation)
+    if (saved.weekendOnly !== undefined)    setWeekendOnly(saved.weekendOnly)
+    if (saved.activeCategories)             setActiveCategories(new Set(saved.activeCategories))
     if (saved.locationRadius !== undefined) setLocationRadius(saved.locationRadius)
   }, [])
 
@@ -130,10 +128,9 @@ export default function MapApp() {
     saveSettings({
       weekendOnly,
       activeCategories: Array.from(activeCategories),
-      userLocation,
       locationRadius,
     })
-  }, [weekendOnly, activeCategories, userLocation, locationRadius])
+  }, [weekendOnly, activeCategories, locationRadius])
 
   const weekendDates = useMemo(() => getThisWeekendDates(), [])
 
