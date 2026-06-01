@@ -196,6 +196,19 @@ export default function Sidebar({
         </div>
       </div>
 
+      {/* 終了イベントリンク */}
+      <div className="border-t border-gray-100 p-3 pl-[22px]">
+        <a
+          href="/ended-events"
+          className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/>
+          </svg>
+          終了イベントを見る
+        </a>
+      </div>
+
     </aside>
   )
 }

@@ -66,6 +66,8 @@ export async function PUT(req: NextRequest, ctx: RouteContext<'/api/events/[id]'
       url:      ((b.url      as string | undefined) ?? '').trim() || undefined,
       imageUrl: ((b.imageUrl as string | undefined) ?? '').trim() || undefined,
       collectedAt: new Date().toISOString(),
+      postedBy:   ((b.postedBy as string | undefined) ?? '匿名').trim() || '匿名',
+      posterType: (b.posterType as CollectedEvent['posterType']) ?? 'general',
     }
     db.events.push(newEvent)
     await writeDb(db)
@@ -81,9 +83,11 @@ export async function PUT(req: NextRequest, ctx: RouteContext<'/api/events/[id]'
     venue,
     lat,
     lng,
-    category: (b.category as CollectedEvent['category']) ?? db.events[idx].category ?? 'event',
-    url:      ((b.url      as string | undefined) ?? '').trim() || undefined,
-    imageUrl: ((b.imageUrl as string | undefined) ?? '').trim() || undefined,
+    category:   (b.category   as CollectedEvent['category'])   ?? db.events[idx].category   ?? 'event',
+    url:        ((b.url      as string | undefined) ?? '').trim() || undefined,
+    imageUrl:   ((b.imageUrl as string | undefined) ?? '').trim() || undefined,
+    postedBy:   ((b.postedBy as string | undefined) ?? db.events[idx].postedBy ?? '匿名').trim() || '匿名',
+    posterType: (b.posterType as CollectedEvent['posterType']) ?? db.events[idx].posterType ?? 'general',
   }
 
   db.events[idx] = updated

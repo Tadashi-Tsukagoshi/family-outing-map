@@ -44,6 +44,8 @@ export async function POST(req: Request) {
     url:         ((b.url      as string | undefined) ?? '').trim() || undefined,
     imageUrl:    ((b.imageUrl as string | undefined) ?? '').trim() || undefined,
     collectedAt: new Date().toISOString(),
+    postedBy:    ((b.postedBy as string | undefined) ?? '匿名').trim() || '匿名',
+    posterType:  (b.posterType as CollectedEvent['posterType']) ?? 'general',
   }
 
   // 既存 DB を読み込んで追加

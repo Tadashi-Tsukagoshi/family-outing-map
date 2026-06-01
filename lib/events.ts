@@ -17,6 +17,8 @@ export type CollectedEvent = {
   imageUrl?: string
   category?: Category
   collectedAt: string
+  postedBy?: string
+  posterType?: 'general' | 'organizer' | 'business' | 'staff'
 }
 
 export type EventsDatabase = {
@@ -45,5 +47,7 @@ export function eventToSpot(event: CollectedEvent): Spot {
     venue: event.venue,
     startDate: start,
     endDate: end,
+    postedBy:   event.postedBy,
+    posterType: event.posterType,
   }
 }

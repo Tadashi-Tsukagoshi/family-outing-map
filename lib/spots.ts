@@ -15,6 +15,8 @@ export type Spot = {
   venue?: string     // 会場名
   startDate?: string // イベント開始日（ISO）
   endDate?: string   // イベント終了日（ISO）
+  postedBy?: string
+  posterType?: 'general' | 'organizer' | 'business' | 'staff'
 }
 
 export const SPOTS: Spot[] = [

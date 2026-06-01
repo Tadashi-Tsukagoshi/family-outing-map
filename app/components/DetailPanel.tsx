@@ -4,6 +4,13 @@ import { useState, useEffect } from 'react'
 import { CATEGORY_COLORS, ICON_PATHS, type Category, type Spot } from '@/lib/spots'
 import { fmtDateRange, getEventStatus, STATUS_CONFIG } from '@/lib/date-utils'
 
+const POSTER_TYPE_LABELS: Record<string, string> = {
+  general:   '一般ユーザー',
+  organizer: '主催者',
+  business:  '事業者',
+  staff:     '運営',
+}
+
 const CATEGORY_IMAGES: Record<Category, string> = {
   park:       'https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=400',
   museum:     'https://images.unsplash.com/photo-1566127992631-137a642a90f4?w=400',
@@ -103,6 +110,21 @@ export default function DetailPanel({ spot, onClose }: Props) {
         {spot.description && (
           <p style={{ fontSize: 12, color: '#4b5563', lineHeight: 1.65, margin: '0 0 14px' }}>
             {spot.description}
+          </p>
+        )}
+
+        {spot.postedBy && (
+          <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 12px' }}>
+            👤
+            {spot.posterType && (
+              <span style={{
+                marginLeft: 6, marginRight: 6, padding: '1px 5px', borderRadius: 3,
+                background: '#f3f4f6', color: '#6b7280', fontSize: 10,
+              }}>
+                {POSTER_TYPE_LABELS[spot.posterType] ?? spot.posterType}
+              </span>
+            )}
+            {spot.postedBy}
           </p>
         )}
 

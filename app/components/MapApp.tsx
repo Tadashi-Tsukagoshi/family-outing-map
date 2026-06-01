@@ -6,6 +6,7 @@ import Sidebar from './Sidebar'
 import DetailPanel from './DetailPanel'
 import { SPOTS, CATEGORY_LABELS, type Category, type Spot } from '@/lib/spots'
 import { eventToSpot, type EventsDatabase } from '@/lib/events'
+import { getEventStatus } from '@/lib/date-utils'
 
 // ─── 設定の永続化 ────────────────────────────────────────────────
 const STORAGE_KEY = 'outing-map-settings'
@@ -142,6 +143,10 @@ export default function MapApp() {
     loadEvents()
   }, [loadEvents])
 
+  useEffect(() => {
+    handleLocate()
+  }, [handleLocate])
+
   const allSpots = useMemo(() => [
     ...SPOTS.filter(s => !hiddenSpotIds.has(s.id) && !overrideIds.has(s.id)),
     ...collectedSpots,
@@ -150,6 +155,7 @@ export default function MapApp() {
   const filteredSpots = useMemo(() => {
     return allSpots.filter((spot) => {
       if (!activeCategories.has(spot.category)) return false
+      if (getEventStatus(spot.startDate, spot.endDate) === 'ended') return false
       if (weekendOnly) {
         // 期間情報があるイベント: 週末がその期間内に含まれるか確認
         if (spot.startDate && spot.endDate) {
