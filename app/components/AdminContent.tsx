@@ -1,8 +1,11 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import { CATEGORY_LABELS, CATEGORY_EMOJIS, type Category } from '@/lib/spots'
 import type { CollectedEvent } from '@/lib/events'
+
+const MapPicker = dynamic(() => import('./MapPicker'), { ssr: false })
 
 // ─── 型 ───────────────────────────────────────────────────────────
 type PosterType = 'general' | 'organizer' | 'business' | 'staff'
@@ -99,6 +102,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
   const [submitStatus, setSubmitStatus]   = useState<SubmitStatus>('idle')
   const [submitMessage, setSubmitMessage] = useState('')
   const [editingId,    setEditingId]      = useState<string | null>(null)
+  const [showMapPicker, setShowMapPicker] = useState(false)
   const [events,        setEvents]        = useState<CollectedEvent[]>([])
   const [eventsLoading, setEventsLoading] = useState(true)
   const geoTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -180,6 +184,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
     setGeoMessage('')
     setSubmitStatus('idle')
     setSubmitMessage('')
+    setShowMapPicker(false)
   }
 
   const handleDelete = async (ev: CollectedEvent) => {
@@ -231,6 +236,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
       setEditingId(null)
       setGeoStatus('idle')
       setGeoMessage('')
+      setShowMapPicker(false)
       await loadEvents()
     } catch (e) {
       setSubmitStatus('error')
@@ -399,6 +405,31 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
                     <span className="text-[10px] text-gray-400 block mb-0.5">経度</span>
                     <Input value={form.lng.toFixed(6)} readOnly className="bg-gray-50 text-gray-500 text-xs" />
                   </div>
+                </div>
+              )}
+
+              {/* 地図ピッカー */}
+              <button
+                type="button"
+                onClick={() => setShowMapPicker(v => !v)}
+                disabled={isSubmitting}
+                className="mt-2 text-xs text-blue-500 hover:text-blue-700 disabled:opacity-40 cursor-pointer"
+              >
+                {showMapPicker ? '▲ 地図を閉じる' : '▼ 地図でピンを直接指定する'}
+              </button>
+              {showMapPicker && (
+                <div className="mt-2">
+                  <p className="text-xs text-gray-400 mb-1.5">地図をクリック、またはピンをドラッグして位置を指定してください。</p>
+                  <MapPicker
+                    key={showMapPicker ? 'open' : 'closed'}
+                    lat={form.lat}
+                    lng={form.lng}
+                    onChange={(lat, lng) => {
+                      setForm(f => ({ ...f, lat, lng }))
+                      setGeoStatus('ok')
+                      setGeoMessage(`📍 地図でピンを指定しました（${lat.toFixed(5)}, ${lng.toFixed(5)}）`)
+                    }}
+                  />
                 </div>
               )}
             </div>
