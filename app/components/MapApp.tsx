@@ -229,7 +229,7 @@ export default function MapApp() {
           onSpotSelect={setSelectedSpot}
           onDetailOpen={handleDetailOpen}
           onDetailClose={handleDetailClose}
-          detailPanelOpen={false}
+          detailPanelOpen={detailSpot !== null}
           userLocation={userLocation}
           locationRadius={locationRadius}
         />
@@ -237,6 +237,11 @@ export default function MapApp() {
         <BottomSheet spotCount={filteredSpots.length}>
           <Sidebar {...sidebarProps} mode="sheet" />
         </BottomSheet>
+        {detailSpot && (
+          <div className="fixed inset-0 z-[1001]">
+            <DetailPanel spot={detailSpot} onClose={handleDetailClose} mobile />
+          </div>
+        )}
       </div>
     )
   }

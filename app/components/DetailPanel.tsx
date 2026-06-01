@@ -22,9 +22,10 @@ const CATEGORY_IMAGES: Record<Category, string> = {
 type Props = {
   spot: Spot
   onClose: () => void
+  mobile?: boolean
 }
 
-export default function DetailPanel({ spot, onClose }: Props) {
+export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
   const [ogpImage, setOgpImage] = useState<string | null>(null)
 
   useEffect(() => {
@@ -43,7 +44,7 @@ export default function DetailPanel({ spot, onClose }: Props) {
   const iconSize  = 11
 
   return (
-    <aside className="w-72 bg-white border-r border-gray-200 flex flex-col overflow-hidden">
+    <aside className={`bg-white flex flex-col overflow-hidden ${mobile ? 'w-full h-full' : 'w-72 border-r border-gray-200'}`}>
       {/* ヘッダー画像 */}
       <div className="relative shrink-0">
         <img
