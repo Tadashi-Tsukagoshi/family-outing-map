@@ -88,19 +88,22 @@ type MarkersProps = {
   onHoverOut: () => void
   onMapMove: () => void
   onPinClick: (spot: Spot) => void
+  onMapClick: () => void
 }
 
-function MapMarkers({ spots, icons, onHoverIn, onHoverOut, onMapMove, onPinClick }: MarkersProps) {
+function MapMarkers({ spots, icons, onHoverIn, onHoverOut, onMapMove, onPinClick, onMapClick }: MarkersProps) {
   const map = useMap()
 
   useEffect(() => {
     map.on('movestart', onMapMove)
     map.on('zoomstart', onMapMove)
+    map.on('click', onMapClick)
     return () => {
       map.off('movestart', onMapMove)
       map.off('zoomstart', onMapMove)
+      map.off('click', onMapClick)
     }
-  }, [map, onMapMove])
+  }, [map, onMapMove, onMapClick])
 
   return (
     <>
@@ -508,6 +511,7 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
           onHoverOut={scheduleHide}
           onMapMove={handleImmediateHide}
           onPinClick={isMobile ? onSpotSelect : onDetailOpen}
+          onMapClick={isMobile ? () => onSpotSelect(null) : () => {}}
         />
         <FlyToLocation location={userLocation} radius={locationRadius} />
         <MapResizer detailPanelOpen={detailPanelOpen} userLocation={userLocation} locationRadius={locationRadius} />
