@@ -20,6 +20,9 @@ const shipporiMincho = Shippori_Mincho({
 export const metadata: Metadata = {
   title: '太田市おでかけマップ',
   description: '今週末、子どもとどこ行く？\n家族で楽しめるイベントを地図で発見！',
+  icons: {
+    icon: '/favicon.svg',
+  },
 }
 
 export default function RootLayout({
