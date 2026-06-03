@@ -17,6 +17,7 @@ export type Spot = {
   endDate?: string   // イベント終了日（ISO）
   postedBy?: string
   posterType?: 'general' | 'organizer' | 'business' | 'staff'
+  scheduleNote?: string
 }
 
 

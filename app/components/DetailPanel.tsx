@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { CATEGORY_COLORS, ICON_PATHS, type Category, type Spot } from '@/lib/spots'
-import { fmtDateRange, getEventStatus, STATUS_CONFIG } from '@/lib/date-utils'
+import { getDateDisplay, getEventStatus, STATUS_CONFIG } from '@/lib/date-utils'
 
 const POSTER_TYPE_LABELS: Record<string, string> = {
   general:   '一般ユーザー',
@@ -38,7 +38,7 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
   }, [spot.id, spot.url])
 
   const status    = getEventStatus(spot.startDate, spot.endDate)
-  const dateRange = fmtDateRange(spot.startDate, spot.endDate)
+  const dateRange = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
   const statusCfg = status ? STATUS_CONFIG[status] : null
   const image     = ogpImage ?? CATEGORY_IMAGES[spot.category]
   const iconSize  = 11

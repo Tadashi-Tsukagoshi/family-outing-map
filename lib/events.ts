@@ -19,6 +19,7 @@ export type CollectedEvent = {
   collectedAt: string
   postedBy?: string
   posterType?: 'general' | 'organizer' | 'business' | 'staff'
+  scheduleNote?: string
 }
 
 export type EventsDatabase = {
@@ -46,7 +47,8 @@ export function eventToSpot(event: CollectedEvent): Spot {
     venue: event.venue,
     startDate: start,
     endDate: end,
-    postedBy:   event.postedBy,
-    posterType: event.posterType,
+    postedBy:     event.postedBy,
+    posterType:   event.posterType,
+    scheduleNote: event.scheduleNote,
   }
 }

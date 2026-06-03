@@ -11,18 +11,20 @@ const MapPicker = dynamic(() => import('./MapPicker'), { ssr: false })
 type PosterType = 'general' | 'organizer' | 'business' | 'staff'
 
 type FormState = {
-  name:        string
-  category:    Category
-  startDate:   string
-  endDate:     string
-  venue:       string
-  address:     string
-  lat:         number | null
-  lng:         number | null
-  description: string
-  url:         string
-  postedBy:    string
-  posterType:  PosterType
+  name:          string
+  category:      Category
+  dateConfirmed: boolean
+  startDate:     string
+  endDate:       string
+  scheduleNote:  string
+  venue:         string
+  address:       string
+  lat:           number | null
+  lng:           number | null
+  description:   string
+  url:           string
+  postedBy:      string
+  posterType:    PosterType
 }
 
 type GeoStatus    = 'idle' | 'loading' | 'ok' | 'error'
@@ -37,7 +39,8 @@ const POSTER_TYPE_LABELS: Record<string, string> = {
 
 const INITIAL: FormState = {
   name: '', category: 'event',
-  startDate: '', endDate: '',
+  dateConfirmed: true,
+  startDate: '', endDate: '', scheduleNote: '',
   venue: '', address: '',
   lat: null, lng: null,
   description: '', url: '',
@@ -84,6 +87,7 @@ function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
 
 
 function formatDateRange(ev: CollectedEvent) {
+  if (ev.scheduleNote) return ev.scheduleNote
   const start = ev.startDate ?? ev.date ?? ''
   const end   = ev.endDate   ?? ev.date ?? ''
   if (!start && !end) return '日程未定'
@@ -156,19 +160,22 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
 
   const handleEdit = (ev: CollectedEvent) => {
     setEditingId(ev.id)
+    const hasScheduleNote = !!ev.scheduleNote
     setForm({
-      name:        ev.name,
-      category:    ev.category ?? 'event',
-      startDate:   ev.startDate ?? ev.date ?? '',
-      endDate:     ev.endDate   ?? ev.date ?? '',
-      venue:       ev.venue,
-      address:     '',
-      lat:         ev.lat,
-      lng:         ev.lng,
-      description: ev.description,
-      url:         ev.url ?? '',
-      postedBy:    ev.postedBy  ?? '',
-      posterType:  fixedPosterType ?? (ev.posterType as PosterType) ?? 'general',
+      name:          ev.name,
+      category:      ev.category ?? 'event',
+      dateConfirmed: !hasScheduleNote,
+      startDate:     ev.startDate ?? ev.date ?? '',
+      endDate:       ev.endDate   ?? ev.date ?? '',
+      scheduleNote:  ev.scheduleNote ?? '',
+      venue:         ev.venue,
+      address:       '',
+      lat:           ev.lat,
+      lng:           ev.lng,
+      description:   ev.description,
+      url:           ev.url ?? '',
+      postedBy:      ev.postedBy  ?? '',
+      posterType:    fixedPosterType ?? (ev.posterType as PosterType) ?? 'general',
     })
     setGeoStatus('ok')
     setGeoMessage('📍 既存の位置情報を使用中（住所を入力して「取得」を押すと更新できます）')
@@ -218,7 +225,12 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(form),
+        body:    JSON.stringify({
+        ...form,
+        scheduleNote: form.dateConfirmed ? '' : form.scheduleNote,
+        startDate:    form.dateConfirmed ? form.startDate : '',
+        endDate:      form.dateConfirmed ? form.endDate   : '',
+      }),
       })
       let data: Record<string, unknown> = {}
       try {
@@ -322,29 +334,74 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
               </div>
             </div>
 
-            {/* 開催期間 */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label required>開始日</Label>
-                <Input
-                  type="date"
-                  value={form.startDate}
-                  onChange={e => set('startDate', e.target.value)}
-                  required
-                  disabled={isSubmitting}
-                />
+            {/* 日程確定トグル */}
+            <div>
+              <Label required>日程</Label>
+              <div className="flex gap-2 mb-3">
+                {([true, false] as const).map(confirmed => (
+                  <button
+                    key={String(confirmed)}
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={() => set('dateConfirmed', confirmed)}
+                    className={`flex-1 py-2 rounded-xl border text-sm font-medium transition-colors cursor-pointer
+                      ${form.dateConfirmed === confirmed
+                        ? 'border-green-400 bg-green-50 text-green-700'
+                        : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
+                  >
+                    {confirmed ? '日程確定' : '日程未定'}
+                  </button>
+                ))}
               </div>
-              <div>
-                <Label required>終了日</Label>
-                <Input
-                  type="date"
-                  value={form.endDate}
-                  min={form.startDate}
-                  onChange={e => set('endDate', e.target.value)}
-                  required
-                  disabled={isSubmitting}
-                />
-              </div>
+
+              {form.dateConfirmed ? (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label required>開始日</Label>
+                    <Input
+                      type="date"
+                      value={form.startDate}
+                      onChange={e => set('startDate', e.target.value)}
+                      required
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                  <div>
+                    <Label required>終了日</Label>
+                    <Input
+                      type="date"
+                      value={form.endDate}
+                      min={form.startDate}
+                      onChange={e => set('endDate', e.target.value)}
+                      required
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                      <Label>開始日</Label>
+                      <Input type="date" value="" disabled className="opacity-40" />
+                    </div>
+                    <div>
+                      <Label>終了日</Label>
+                      <Input type="date" value="" disabled className="opacity-40" />
+                    </div>
+                  </div>
+                  <div>
+                    <Label required>開催予定時期</Label>
+                    <Input
+                      value={form.scheduleNote}
+                      onChange={e => set('scheduleNote', e.target.value)}
+                      placeholder="例：7月下旬頃"
+                      required
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                </>
+              )}
             </div>
 
             {/* 会場名 */}
@@ -513,7 +570,8 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
             {/* 送信ボタン */}
             <button
               type="submit"
-              disabled={isSubmitting || !form.name || !form.venue || !form.startDate || !form.endDate}
+              disabled={isSubmitting || !form.name || !form.venue ||
+                (form.dateConfirmed ? (!form.startDate || !form.endDate) : !form.scheduleNote)}
               className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-colors cursor-pointer
                 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
             >

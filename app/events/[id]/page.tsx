@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { CATEGORY_LABELS, CATEGORY_COLORS, CATEGORY_EMOJIS, type Category, type Spot } from '@/lib/spots'
 import { eventToSpot } from '@/lib/events'
-import { fmtDateRange, getEventStatus, STATUS_CONFIG } from '@/lib/date-utils'
+import { getDateDisplay, getEventStatus, STATUS_CONFIG } from '@/lib/date-utils'
 import { supabaseAdmin } from '@/lib/supabase'
 import type { Metadata } from 'next'
 
@@ -32,10 +32,11 @@ async function getSpot(id: string): Promise<Spot | null> {
     lat:         data.lat,
     lng:         data.lng,
     category:    data.category,
-    url:         data.url ?? undefined,
-    collectedAt: data.collected_at,
-    postedBy:    data.posted_by,
-    posterType:  data.poster_type,
+    url:          data.url ?? undefined,
+    collectedAt:  data.collected_at,
+    postedBy:     data.posted_by,
+    posterType:   data.poster_type,
+    scheduleNote: data.schedule_note ?? undefined,
   })
 }
 
@@ -76,7 +77,7 @@ export default async function EventDetailPage({ params }: Props) {
     CATEGORY_IMAGES[spot.category]
 
   const status    = getEventStatus(spot.startDate, spot.endDate)
-  const dateRange = fmtDateRange(spot.startDate, spot.endDate)
+  const dateRange = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
   const statusCfg = status ? STATUS_CONFIG[status] : null
   const catColor  = CATEGORY_COLORS[spot.category]
 

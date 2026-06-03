@@ -24,8 +24,9 @@ export async function GET() {
     category: e.category,
     url: e.url,
     collectedAt: e.collected_at,
-    postedBy: e.posted_by,
-    posterType: e.poster_type,
+    postedBy:     e.posted_by,
+    posterType:   e.poster_type,
+    scheduleNote: e.schedule_note ?? undefined,
   }))
 
   return Response.json({ events, lastCollected: null })

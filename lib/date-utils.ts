@@ -20,6 +20,12 @@ export function fmtDateRange(start?: string, end?: string): string | null {
   return fmt(start ?? end!)
 }
 
+/** schedule_note があればそれを、なければ開始日〜終了日の範囲文字列を返す */
+export function getDateDisplay(scheduleNote?: string, startDate?: string, endDate?: string): string | null {
+  if (scheduleNote) return scheduleNote
+  return fmtDateRange(startDate, endDate)
+}
+
 export type EventStatus = 'active' | 'ended' | 'upcoming' | 'scheduled'
 
 export interface StatusConfig {

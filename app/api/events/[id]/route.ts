@@ -14,17 +14,18 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
     }
 
     const b = body as Record<string, unknown>
-    const name      = (b.name      as string | undefined)?.trim()
-    const venue     = (b.venue     as string | undefined)?.trim()
-    const startDate = (b.startDate as string | undefined)?.trim()
-    const endDate   = (b.endDate   as string | undefined)?.trim()
-    const lat       = typeof b.lat === 'number' ? b.lat : undefined
-    const lng       = typeof b.lng === 'number' ? b.lng : undefined
+    const name         = (b.name         as string | undefined)?.trim()
+    const venue        = (b.venue        as string | undefined)?.trim()
+    const startDate    = (b.startDate    as string | undefined)?.trim()
+    const endDate      = (b.endDate      as string | undefined)?.trim()
+    const scheduleNote = (b.scheduleNote as string | undefined)?.trim() || null
+    const lat          = typeof b.lat === 'number' ? b.lat : undefined
+    const lng          = typeof b.lng === 'number' ? b.lng : undefined
 
-    if (!name)      return Response.json({ error: 'イベント名は必須です' },   { status: 400 })
-    if (!venue)     return Response.json({ error: '会場名は必須です' },       { status: 400 })
-    if (!startDate) return Response.json({ error: '開始日は必須です' },       { status: 400 })
-    if (!endDate)   return Response.json({ error: '終了日は必須です' },       { status: 400 })
+    if (!name)  return Response.json({ error: 'イベント名は必須です' }, { status: 400 })
+    if (!venue) return Response.json({ error: '会場名は必須です' },     { status: 400 })
+    if (!scheduleNote && !startDate) return Response.json({ error: '開始日は必須です' }, { status: 400 })
+    if (!scheduleNote && !endDate)   return Response.json({ error: '終了日は必須です' }, { status: 400 })
     if (lat === undefined || lng === undefined) {
       return Response.json({ error: '緯度経度を取得してください' }, { status: 400 })
     }
@@ -34,16 +35,17 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
       .from('events')
       .update({
         name,
-        description: ((b.description as string | undefined) ?? '').trim(),
-        start_date:  startDate,
-        end_date:    endDate,
+        description:   ((b.description as string | undefined) ?? '').trim(),
+        start_date:    scheduleNote ? null : (startDate ?? null),
+        end_date:      scheduleNote ? null : (endDate   ?? null),
+        schedule_note: scheduleNote,
         venue,
         lat,
         lng,
-        category:    (b.category   as string) ?? 'event',
-        url:         ((b.url      as string | undefined) ?? '').trim() || null,
-        posted_by:   ((b.postedBy as string | undefined) ?? '匿名').trim() || '匿名',
-        poster_type: (b.posterType as string) ?? 'general',
+        category:      (b.category   as string) ?? 'event',
+        url:           ((b.url      as string | undefined) ?? '').trim() || null,
+        posted_by:     ((b.postedBy as string | undefined) ?? '匿名').trim() || '匿名',
+        poster_type:   (b.posterType as string) ?? 'general',
       })
       .eq('id', id)
       .select()
@@ -66,8 +68,9 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
       category:    data.category,
       url:         data.url ?? undefined,
       collectedAt: data.collected_at,
-      postedBy:    data.posted_by,
-      posterType:  data.poster_type,
+      postedBy:     data.posted_by,
+      posterType:   data.poster_type,
+      scheduleNote: data.schedule_note ?? undefined,
     }
 
     return Response.json({ success: true, event: updated })

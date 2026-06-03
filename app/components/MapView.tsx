@@ -6,7 +6,7 @@ import { useRef, useState, useMemo, useCallback, useEffect, useLayoutEffect } fr
 import { MapContainer, TileLayer, Marker, Circle, useMap } from 'react-leaflet'
 import { CATEGORY_COLORS, ICON_PATHS } from '@/lib/spots'
 import type { Category, Spot } from '@/lib/spots'
-import { fmtDateRange, getEventStatus, STATUS_CONFIG } from '@/lib/date-utils'
+import { getDateDisplay, getEventStatus, STATUS_CONFIG } from '@/lib/date-utils'
 
 // ─── Types ───────────────────────────────────────────────────────
 type Props = {
@@ -195,7 +195,7 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
 
   const { spot } = hovered
   const status    = getEventStatus(spot.startDate, spot.endDate)
-  const dateRange = fmtDateRange(spot.startDate, spot.endDate)
+  const dateRange = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
   const statusCfg = status ? STATUS_CONFIG[status] : null
 
   return (
