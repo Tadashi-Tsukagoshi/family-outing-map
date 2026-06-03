@@ -20,7 +20,7 @@ export function fmtDateRange(start?: string, end?: string): string | null {
   return fmt(start ?? end!)
 }
 
-export type EventStatus = 'active' | 'ending-soon' | 'ended' | 'upcoming'
+export type EventStatus = 'active' | 'ended' | 'upcoming'
 
 export interface StatusConfig {
   label: string
@@ -29,10 +29,9 @@ export interface StatusConfig {
 }
 
 export const STATUS_CONFIG: Record<EventStatus, StatusConfig> = {
-  'active':      { label: '開催中',        bg: '#dcfce7', color: '#16a34a' },
-  'ending-soon': { label: 'もうすぐ終了', bg: '#fff7ed', color: '#ea580c' },
-  'ended':       { label: '終了済み',       bg: '#f3f4f6', color: '#9ca3af' },
-  'upcoming':    { label: 'まもなく開始', bg: '#eff6ff', color: '#3b82f6' },
+  'active':   { label: '開催中',       bg: '#dcfce7', color: '#16a34a' },
+  'ended':    { label: '終了済み',     bg: '#f3f4f6', color: '#9ca3af' },
+  'upcoming': { label: 'まもなく開催', bg: '#eff6ff', color: '#3b82f6' },
 }
 
 /** 開催ステータスを判定 */
@@ -46,7 +45,6 @@ export function getEventStatus(
   today.setHours(0, 0, 0, 0)
 
   if (endDate) {
-    // 終了日の23:59:59を過ぎていたら終了
     const endDay = parseLocalDate(endDate)
     endDay.setHours(23, 59, 59, 999)
     if (endDay < today) return 'ended'
@@ -54,13 +52,10 @@ export function getEventStatus(
 
   if (startDate) {
     const start = parseLocalDate(startDate)
-    if (today < start) return 'upcoming'
-  }
-
-  if (endDate) {
-    const end = parseLocalDate(endDate)
-    const diffDays = Math.ceil((end.getTime() - today.getTime()) / 86400000)
-    if (diffDays <= 3) return 'ending-soon'
+    if (today < start) {
+      const diffDays = Math.ceil((start.getTime() - today.getTime()) / 86400000)
+      if (diffDays <= 7) return 'upcoming'
+    }
   }
 
   return 'active'
