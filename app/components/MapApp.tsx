@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect, useCallback, useLayoutEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback, useLayoutEffect, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import Sidebar from './Sidebar'
 import DetailPanel from './DetailPanel'
@@ -67,6 +67,7 @@ function getThisWeekendDates(): string[] {
 export default function MapApp() {
   const [isMobile, setIsMobile] = useState(false)
   const [headerExpanded, setHeaderExpanded] = useState(true)
+  const logoRef = useRef<HTMLDivElement>(null)
 
   useLayoutEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
@@ -150,6 +151,21 @@ export default function MapApp() {
     handleLocate()
   }, [handleLocate])
 
+  useEffect(() => {
+    if (!headerExpanded) return
+    const close = (e: Event) => {
+      if (logoRef.current && !logoRef.current.contains(e.target as Node)) {
+        setHeaderExpanded(false)
+      }
+    }
+    document.addEventListener('touchstart', close, { passive: true })
+    document.addEventListener('mousedown', close)
+    return () => {
+      document.removeEventListener('touchstart', close)
+      document.removeEventListener('mousedown', close)
+    }
+  }, [headerExpanded])
+
   const allSpots = useMemo(() => collectedSpots, [collectedSpots])
 
   const filteredSpots = useMemo(() => {
@@ -224,20 +240,11 @@ export default function MapApp() {
           locationRadius={locationRadius}
           isMobile
         />
-        {/* ポップアップを閉じる透明オーバーレイ */}
-        {headerExpanded && (
-          <div
-            className="fixed inset-0"
-            style={{ zIndex: 998 }}
-            onClick={() => setHeaderExpanded(false)}
-          />
-        )}
-
         {/* ロゴボタン＋ポップアップ */}
-        <div className="fixed top-4 left-4" style={{ zIndex: 999 }}>
+        <div ref={logoRef} className="fixed top-4 left-4" style={{ zIndex: 999 }}>
           {/* 丸ボタン */}
           <div
-            onClick={(e) => { e.stopPropagation(); setHeaderExpanded(v => !v) }}
+            onClick={() => setHeaderExpanded(v => !v)}
             className="flex items-center justify-center cursor-pointer select-none"
             style={{
               width: 40,
@@ -259,6 +266,7 @@ export default function MapApp() {
           {/* ポップアップ */}
           {headerExpanded && (
             <div
+              onClick={() => setHeaderExpanded(false)}
               className="absolute top-0 left-12"
               style={{
                 backgroundColor: '#ffffff',
