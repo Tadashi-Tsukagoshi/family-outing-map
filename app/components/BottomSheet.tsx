@@ -52,7 +52,7 @@ export default function BottomSheet({ spotCount, children, expanded, onExpandedC
           <div className="w-9 h-1 rounded-full bg-gray-300" />
         </div>
         <div className="flex items-center justify-between px-[22px] py-2">
-          <span className="text-sm font-semibold text-gray-900">イベント一覧</span>
+          <span className="text-base font-semibold text-gray-900">イベント一覧</span>
           <span className="text-xs text-gray-500">{spotCount}件表示中</span>
         </div>
       </div>
