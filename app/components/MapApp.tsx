@@ -210,7 +210,7 @@ export default function MapApp() {
       setSelectedSpot(spot)
       if (spot) setSheetExpanded(false)
     },
-    onLocate: handleLocate,
+    onLocate: () => { handleLocate(); setSheetExpanded(false) },
     onLocateClear: handleLocateClear,
     hasLocation: userLocation !== null,
     locateStatus,
