@@ -288,6 +288,15 @@ export default function MapApp() {
               <p className="text-xs text-gray-500 mt-1 leading-relaxed">
                 今週末、子どもとどこ行く？<br />家族で楽しめるイベントを地図で発見！
               </p>
+              <a
+                href="https://docs.google.com/forms/d/e/1FAIpQLSfjd2ErqEMLI7gDMk4O5iutIRSUMI6AD0hkJSnN3tAT5UjIXA/viewform?usp=publish-editor"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={e => e.stopPropagation()}
+                className="inline-block mt-2 text-xs text-blue-500 underline"
+              >
+                ご意見・ご要望はこちら
+              </a>
             </div>
           )}
         </div>
