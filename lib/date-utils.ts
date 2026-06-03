@@ -20,7 +20,7 @@ export function fmtDateRange(start?: string, end?: string): string | null {
   return fmt(start ?? end!)
 }
 
-export type EventStatus = 'active' | 'ended' | 'upcoming'
+export type EventStatus = 'active' | 'ended' | 'upcoming' | 'scheduled'
 
 export interface StatusConfig {
   label: string
@@ -29,9 +29,10 @@ export interface StatusConfig {
 }
 
 export const STATUS_CONFIG: Record<EventStatus, StatusConfig> = {
-  'active':   { label: '開催中',       bg: '#dcfce7', color: '#16a34a' },
-  'ended':    { label: '終了済み',     bg: '#f3f4f6', color: '#9ca3af' },
-  'upcoming': { label: 'まもなく開催', bg: '#eff6ff', color: '#3b82f6' },
+  'active':    { label: '開催中',       bg: '#dcfce7', color: '#16a34a' },
+  'ended':     { label: '終了済み',     bg: '#f3f4f6', color: '#9ca3af' },
+  'upcoming':  { label: 'まもなく開催', bg: '#eff6ff', color: '#3b82f6' },
+  'scheduled': { label: '開催予定',     bg: '#faf5ff', color: '#9333ea' },
 }
 
 /** 開催ステータスを判定 */
@@ -54,7 +55,7 @@ export function getEventStatus(
     const start = parseLocalDate(startDate)
     if (today < start) {
       const diffDays = Math.ceil((start.getTime() - today.getTime()) / 86400000)
-      if (diffDays <= 7) return 'upcoming'
+      return diffDays <= 7 ? 'upcoming' : 'scheduled'
     }
   }
 
