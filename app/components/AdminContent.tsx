@@ -107,6 +107,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
   const [submitMessage, setSubmitMessage] = useState('')
   const [editingId,    setEditingId]      = useState<string | null>(null)
   const [showMapPicker, setShowMapPicker] = useState(false)
+  const [showMapModal,  setShowMapModal]  = useState(false)
   const [events,        setEvents]        = useState<CollectedEvent[]>([])
   const [eventsLoading, setEventsLoading] = useState(true)
   const geoTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -466,14 +467,25 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
               )}
 
               {/* 地図ピッカー */}
-              <button
-                type="button"
-                onClick={() => setShowMapPicker(v => !v)}
-                disabled={isSubmitting}
-                className="mt-2 text-xs text-blue-500 hover:text-blue-700 disabled:opacity-40 cursor-pointer"
-              >
-                {showMapPicker ? '▲ 地図を閉じる' : '▼ 地図でピンを直接指定する'}
-              </button>
+              <div className="mt-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowMapPicker(v => !v)}
+                  disabled={isSubmitting}
+                  className="text-xs text-blue-500 hover:text-blue-700 disabled:opacity-40 cursor-pointer"
+                >
+                  {showMapPicker ? '▲ 小地図を閉じる' : '▼ 小地図で指定する'}
+                </button>
+                <span className="text-xs text-gray-300">|</span>
+                <button
+                  type="button"
+                  onClick={() => setShowMapModal(true)}
+                  disabled={isSubmitting}
+                  className="text-xs text-blue-500 hover:text-blue-700 disabled:opacity-40 cursor-pointer"
+                >
+                  🗺️ 大きな地図で指定する
+                </button>
+              </div>
               {showMapPicker && (
                 <div className="mt-2">
                   <p className="text-xs text-gray-400 mb-1.5">地図をクリック、またはピンをドラッグして位置を指定してください。</p>
@@ -629,6 +641,42 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
         </section>
 
       </main>
+
+      {/* 大きな地図モーダル */}
+      {showMapModal && (
+        <div
+          className="fixed inset-0 z-[9999] flex flex-col"
+          style={{ background: 'rgba(0,0,0,0.6)' }}
+        >
+          {/* ヘッダー */}
+          <div className="bg-white flex items-center justify-between px-4 py-3 border-b border-gray-200 flex-shrink-0">
+            <div>
+              <p className="text-sm font-semibold text-gray-800">地図でピンを指定</p>
+              <p className="text-xs text-gray-400 mt-0.5">タップまたはクリックで位置を指定。ピンはドラッグで微調整できます。</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowMapModal(false)}
+              className="ml-4 px-4 py-1.5 rounded-lg bg-green-500 hover:bg-green-600 text-white text-sm font-medium cursor-pointer transition-colors"
+            >
+              決定
+            </button>
+          </div>
+          {/* 地図エリア */}
+          <div className="flex-1 min-h-0">
+            <MapPicker
+              key="modal"
+              lat={form.lat}
+              lng={form.lng}
+              onChange={(lat, lng) => {
+                setForm(f => ({ ...f, lat, lng }))
+                setGeoStatus('ok')
+                setGeoMessage(`📍 地図でピンを指定しました（${lat.toFixed(5)}, ${lng.toFixed(5)}）`)
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
