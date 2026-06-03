@@ -11,6 +11,7 @@ type Props = {
   selectedSpot: Spot | null
   onDetailOpen: (spot: Spot) => void
   onDetailClose: () => void
+  onSpotSelect?: (spot: Spot | null) => void
   onLocate: () => void
   onLocateClear: () => void
   hasLocation: boolean
@@ -74,6 +75,7 @@ export default function Sidebar({
   selectedSpot,
   onDetailOpen,
   onDetailClose,
+  onSpotSelect,
   onLocate,
   onLocateClear,
   hasLocation,
@@ -181,7 +183,14 @@ export default function Sidebar({
             {spots.map((spot) => (
               <button
                 key={spot.id}
-                onClick={() => selectedSpot?.id === spot.id ? onDetailClose() : onDetailOpen(spot)}
+                onClick={() => {
+                  if (isSheet && onSpotSelect) {
+                    // スマホ: リストタップはピン選択のみ（詳細パネルを開かない）
+                    onSpotSelect(selectedSpot?.id === spot.id ? null : spot)
+                  } else {
+                    selectedSpot?.id === spot.id ? onDetailClose() : onDetailOpen(spot)
+                  }
+                }}
                 className={`w-full text-left py-2.5 pr-3 rounded-lg text-sm transition-colors cursor-pointer ${
                   selectedSpot?.id === spot.id
                     ? 'bg-blue-50 border border-blue-200'

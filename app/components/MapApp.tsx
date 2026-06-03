@@ -205,6 +205,7 @@ export default function MapApp() {
     selectedSpot,
     onDetailOpen: handleDetailOpen,
     onDetailClose: handleDetailClose,
+    onSpotSelect: setSelectedSpot,
     onLocate: handleLocate,
     onLocateClear: handleLocateClear,
     hasLocation: userLocation !== null,
