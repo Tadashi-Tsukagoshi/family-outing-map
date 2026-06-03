@@ -66,7 +66,7 @@ function getThisWeekendDates(): string[] {
 
 export default function MapApp() {
   const [isMobile, setIsMobile] = useState(false)
-  const [headerExpanded, setHeaderExpanded] = useState(false)
+  const [headerExpanded, setHeaderExpanded] = useState(true)
 
   useLayoutEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
@@ -224,11 +224,20 @@ export default function MapApp() {
           locationRadius={locationRadius}
           isMobile
         />
+        {/* ポップアップを閉じる透明オーバーレイ */}
+        {headerExpanded && (
+          <div
+            className="fixed inset-0"
+            style={{ zIndex: 998 }}
+            onClick={() => setHeaderExpanded(false)}
+          />
+        )}
+
         {/* ロゴボタン＋ポップアップ */}
         <div className="fixed top-4 left-4" style={{ zIndex: 999 }}>
           {/* 丸ボタン */}
           <div
-            onClick={() => setHeaderExpanded(v => !v)}
+            onClick={(e) => { e.stopPropagation(); setHeaderExpanded(v => !v) }}
             className="flex items-center justify-center cursor-pointer select-none"
             style={{
               width: 40,
