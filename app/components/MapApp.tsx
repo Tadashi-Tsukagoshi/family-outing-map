@@ -66,6 +66,7 @@ function getThisWeekendDates(): string[] {
 
 export default function MapApp() {
   const [isMobile, setIsMobile] = useState(false)
+  const [headerExpanded, setHeaderExpanded] = useState(false)
 
   useLayoutEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
@@ -223,6 +224,51 @@ export default function MapApp() {
           locationRadius={locationRadius}
           isMobile
         />
+        {/* ロゴボタン＋ポップアップ */}
+        <div className="fixed top-4 left-4" style={{ zIndex: 999 }}>
+          {/* 丸ボタン */}
+          <div
+            onClick={() => setHeaderExpanded(v => !v)}
+            className="flex items-center justify-center cursor-pointer select-none"
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              background: '#4a4a4a',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.15)',
+            }}
+          >
+            <svg width="28" height="28" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+              <g transform="translate(2,1) scale(0.078)">
+                <path d="M 0 96 C 45 68, 112 48, 168 42 C 220 36, 272 42, 316 58 C 288 100, 238 115, 182 106 C 134 97, 78 84, 30 102 Z" fill="white"/>
+                <path d="M 124 6 C 142 -2, 184 6, 194 30 C 206 62, 190 128, 162 195 C 130 258, 82 316, 22 368 C -14 398, -50 418, -74 432 C -80 436, -85 432, -76 426 C -52 406, -14 378, 18 340 C 74 280, 120 202, 142 126 C 160 68, 166 36, 130 14 Z" fill="white"/>
+                <path d="M 162 38 C 188 50, 216 78, 244 118 C 288 182, 336 246, 380 298 C 410 332, 440 364, 458 394 C 465 406, 458 416, 442 404 C 414 380, 380 344, 346 304 C 298 248, 244 178, 198 112 C 168 70, 148 44, 136 30 Z" fill="white"/>
+                <path d="M 158 232 C 176 206, 212 200, 228 218 C 242 236, 233 266, 213 275 C 193 284, 168 272, 162 252 C 158 236, 158 216, 158 232 Z" fill="white"/>
+              </g>
+            </svg>
+          </div>
+          {/* ポップアップ */}
+          {headerExpanded && (
+            <div
+              className="absolute top-0 left-12"
+              style={{
+                backgroundColor: '#ffffff',
+                borderRadius: 8,
+                boxShadow: '0 2px 6px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.15)',
+                padding: '6px 12px',
+                minWidth: 260,
+              }}
+            >
+              <p className="text-sm font-medium text-black" style={{ whiteSpace: 'nowrap' }}>
+                太田市おでかけマップ
+              </p>
+              <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                今週末、子どもとどこ行く？<br />家族で楽しめるイベントを地図で発見！
+              </p>
+            </div>
+          )}
+        </div>
+
         {adminButton('bottom-[88px]')}
         <BottomSheet spotCount={filteredSpots.length}>
           <Sidebar {...sidebarProps} mode="sheet" />

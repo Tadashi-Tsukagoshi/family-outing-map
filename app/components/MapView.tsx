@@ -499,6 +499,7 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
         center={OTA_CENTER}
         zoom={13}
         style={{ height: '100%', width: '100%' }}
+        zoomControl={!isMobile}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
