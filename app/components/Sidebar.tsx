@@ -90,10 +90,10 @@ export default function Sidebar({
       {/* タイトル（サイドバーモードのみ） */}
       {!isSheet && (
         <div className="p-4 pl-[22px] border-b border-gray-200">
-          <h1 className="text-xl text-black" style={{ fontFamily: "'Shippori Mincho', serif" }}>太田市イベントまっぷ</h1>
+          <h1 className="text-xl text-black" style={{ fontFamily: "'Shippori Mincho', serif" }}>太田市おでかけマップ</h1>
           <p className="text-xs text-gray-400 mt-1 leading-relaxed">
-            イベント登録自由！<br />
-            みんなでつくる、太田市イベントまっぷ
+            今週末、子どもとどこ行く？<br />
+            家族で楽しめるイベントを地図で発見！
           </p>
         </div>
       )}
