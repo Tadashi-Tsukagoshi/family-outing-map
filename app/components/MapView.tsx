@@ -367,40 +367,15 @@ function SelectedSpotTracker({
 }
 
 // ─── MapResizer ──────────────────────────────────────────────────
-// detailPanelOpen の変化（サイドバー幅変化）のみに反応してサイズ無効化＋再センタリング。
-// userLocation/locationRadius の変化は FlyToLocation が担うので依存配列から除外し、
-// 初回 userLocation 設定時に FlyToLocation の instant setView を上書きしない。
-function MapResizer({
-  detailPanelOpen,
-  userLocation,
-  locationRadius,
-}: {
-  detailPanelOpen: boolean
-  userLocation: [number, number] | null
-  locationRadius: number
-}) {
+// detailPanelOpen の変化（サイドバー幅変化）時にタイルを再描画する。
+// 位置・ズームは変えない。現在地への移動は FlyToLocation が担う。
+function MapResizer({ detailPanelOpen }: { detailPanelOpen: boolean }) {
   const map = useMap()
   const isFirst = useRef(true)
-  const userLocationRef = useRef(userLocation)
-  const locationRadiusRef = useRef(locationRadius)
-
-  useEffect(() => { userLocationRef.current = userLocation }, [userLocation])
-  useEffect(() => { locationRadiusRef.current = locationRadius }, [locationRadius])
 
   useEffect(() => {
     if (isFirst.current) { isFirst.current = false; return }
     map.invalidateSize()
-    const ul = userLocationRef.current
-    const lr = locationRadiusRef.current
-    if (!ul) return
-    const r = lr * 1000
-    const { x: w, y: h } = map.getSize()
-    const targetPx = Math.min(w, h) - 12
-    const cosLat = Math.cos(ul[0] * Math.PI / 180)
-    const zoom = Math.floor(
-      Math.log2((targetPx * 40075016.686 * cosLat) / (2 * r * 256))
-    )
-    map.setView(ul, zoom, { animate: true, duration: 0.3 })
   }, [detailPanelOpen, map])
 
   return null
@@ -515,7 +490,7 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
           onMapClick={isMobile ? () => { onSpotSelect(null); handleImmediateHide() } : handleImmediateHide}
         />
         <FlyToLocation location={userLocation} radius={locationRadius} />
-        <MapResizer detailPanelOpen={detailPanelOpen} userLocation={userLocation} locationRadius={locationRadius} />
+        <MapResizer detailPanelOpen={detailPanelOpen} />
         <SelectedSpotTracker selectedSpot={selectedSpot} userLocation={userLocation} onHoverChange={handlePinnedHoverChange} />
         {userLocation && (
           <>
