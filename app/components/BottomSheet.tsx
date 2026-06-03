@@ -1,16 +1,17 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useRef } from 'react'
 
 const PEEK_HEIGHT = 72
 
 type Props = {
   spotCount: number
   children: React.ReactNode
+  expanded: boolean
+  onExpandedChange: (v: boolean) => void
 }
 
-export default function BottomSheet({ spotCount, children }: Props) {
-  const [expanded, setExpanded] = useState(false)
+export default function BottomSheet({ spotCount, children, expanded, onExpandedChange }: Props) {
   const startY   = useRef(0)
   const currentY = useRef(0)
 
@@ -23,8 +24,8 @@ export default function BottomSheet({ spotCount, children }: Props) {
   }
   const onTouchEnd = () => {
     const delta = currentY.current - startY.current
-    if (!expanded && delta < -50) setExpanded(true)
-    if (expanded  && delta >  50) setExpanded(false)
+    if (!expanded && delta < -50) onExpandedChange(true)
+    if (expanded  && delta >  50) onExpandedChange(false)
   }
 
   return (
@@ -43,7 +44,7 @@ export default function BottomSheet({ spotCount, children }: Props) {
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
-        onClick={() => setExpanded(v => !v)}
+        onClick={() => onExpandedChange(!expanded)}
         className="flex-shrink-0 select-none cursor-pointer"
         style={{ touchAction: 'none' }}
       >

@@ -80,8 +80,9 @@ export default function MapApp() {
   const [activeCategories, setActiveCategories] = useState<Set<Category>>(
     () => new Set(Object.keys(CATEGORY_LABELS) as Category[])
   )
-  const [selectedSpot, setSelectedSpot] = useState<Spot | null>(null)
-  const [detailSpot,   setDetailSpot]   = useState<Spot | null>(null)
+  const [selectedSpot,   setSelectedSpot]   = useState<Spot | null>(null)
+  const [detailSpot,     setDetailSpot]     = useState<Spot | null>(null)
+  const [sheetExpanded,  setSheetExpanded]  = useState(false)
   const [collectedSpots, setCollectedSpots] = useState<Spot[]>([])
   const [userLocation,  setUserLocation]    = useState<[number, number] | null>(null)
   const [locateStatus,  setLocateStatus]    = useState<'idle' | 'loading' | 'error'>('idle')
@@ -205,7 +206,10 @@ export default function MapApp() {
     selectedSpot,
     onDetailOpen: handleDetailOpen,
     onDetailClose: handleDetailClose,
-    onSpotSelect: setSelectedSpot,
+    onSpotSelect: (spot: Spot | null) => {
+      setSelectedSpot(spot)
+      if (spot) setSheetExpanded(false)
+    },
     onLocate: handleLocate,
     onLocateClear: handleLocateClear,
     hasLocation: userLocation !== null,
@@ -289,7 +293,11 @@ export default function MapApp() {
         </div>
 
         {adminButton('bottom-[88px]')}
-        <BottomSheet spotCount={filteredSpots.length}>
+        <BottomSheet
+          spotCount={filteredSpots.length}
+          expanded={sheetExpanded}
+          onExpandedChange={setSheetExpanded}
+        >
           <Sidebar {...sidebarProps} mode="sheet" />
         </BottomSheet>
         {detailSpot && (
