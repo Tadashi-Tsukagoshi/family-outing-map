@@ -512,7 +512,7 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
           onHoverOut={scheduleHide}
           onMapMove={handleImmediateHide}
           onPinClick={isMobile ? onSpotSelect : onDetailOpen}
-          onMapClick={isMobile ? () => onSpotSelect(null) : () => {}}
+          onMapClick={isMobile ? () => { onSpotSelect(null); handleImmediateHide() } : () => {}}
         />
         <FlyToLocation location={userLocation} radius={locationRadius} />
         <MapResizer detailPanelOpen={detailPanelOpen} userLocation={userLocation} locationRadius={locationRadius} />
