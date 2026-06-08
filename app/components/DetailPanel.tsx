@@ -221,7 +221,7 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
               rel="noopener noreferrer"
               style={{ fontSize: 12, fontWeight: 600, color: '#374151', textDecoration: 'none' }}
             >
-              公式サイトを開く ↗
+              公式サイトを開く
             </a>
           )}
           <a
@@ -237,7 +237,7 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
               marginTop: -8,
             }}
           >
-            Googleマップで開く ↗
+            Googleマップで開く
           </a>
           <button
             onClick={handleLike}

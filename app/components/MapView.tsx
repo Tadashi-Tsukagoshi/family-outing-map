@@ -260,7 +260,7 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
           {/* 上部：タイトル・日程・場所 */}
           <div style={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
             <p style={{
-              fontWeight: 700, fontSize: 13, lineHeight: 1.35,
+              fontWeight: 400, fontSize: 14, lineHeight: 1.35,
               color: '#1a1a1a', margin: '0 0 3px',
               whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
             }}>
@@ -268,7 +268,7 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
             </p>
             {statusCfg && (
               <p style={{
-                fontSize: 10, margin: '0 0 2px',
+                fontSize: 11, margin: '-2px 0 8px',
                 fontWeight: 600, color: statusCfg.color,
               }}>
                 {statusCfg.label}
@@ -276,18 +276,36 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
             )}
             {dateRange && (
               <p style={{
+                display: 'flex', alignItems: 'center', gap: 6,
                 fontSize: 11, margin: '0 0 2px', color: '#6b7280',
-                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                overflow: 'hidden',
               }}>
-                📅 {dateRange}
+                <span style={{
+                  display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
+                  background: '#6b7280', color: '#fff', fontSize: 10, fontWeight: 400,
+                }}>
+                  日時
+                </span>
+                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {dateRange}
+                </span>
               </p>
             )}
             {spot.venue && (
               <p style={{
+                display: 'flex', alignItems: 'center', gap: 6,
                 fontSize: 11, margin: 0, color: '#6b7280',
-                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                overflow: 'hidden',
               }}>
-                📍 {spot.venue}
+                <span style={{
+                  display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
+                  background: '#6b7280', color: '#fff', fontSize: 10, fontWeight: 400,
+                }}>
+                  会場
+                </span>
+                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {spot.venue}
+                </span>
               </p>
             )}
           </div>
