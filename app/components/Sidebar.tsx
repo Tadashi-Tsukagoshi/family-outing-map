@@ -94,8 +94,8 @@ export default function Sidebar({
         <div className="p-4 pl-[22px] border-b border-gray-200">
           <h1 className="text-xl text-black" style={{ fontFamily: "'Shippori Mincho', serif" }}>太田市おでかけマップ</h1>
           <p className="text-xs text-gray-400 mt-1 leading-relaxed">
-            今週末、子どもとどこ行く？<br />
-            家族で楽しめるイベントを地図で発見！
+            今週末、家族でどこ行く？<br />
+            群馬県太田市のイベントを地図で発見！
           </p>
         </div>
       )}
