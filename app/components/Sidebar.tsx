@@ -167,7 +167,7 @@ export default function Sidebar({
       </div>
 
       {/* イベント一覧（サイドバーモードのみタイトル行を表示） */}
-      <div className={`${isSheet ? '' : 'flex-1'} overflow-y-auto border-t border-gray-200`}>
+      <div className={`${isSheet ? '' : 'flex-1 min-h-0'} overflow-y-auto border-t border-gray-200`}>
         <div className="py-3 pr-3">
           {!isSheet && (
             <p className="text-sm text-black mb-2" style={{ paddingLeft: 22 }}>
