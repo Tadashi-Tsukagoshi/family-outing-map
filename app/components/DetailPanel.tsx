@@ -194,23 +194,36 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
         </p>
 
         {spot.postedBy && (
-          <p style={{ display: 'flex', alignItems: 'center', fontSize: 11, color: '#6b7280', margin: '0 0 24px' }}>
-            <span style={{
-              display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
-              background: '#6b7280', color: '#fff', fontSize: 10, fontWeight: 400,
-            }}>
-              投稿
-            </span>
-            {spot.posterType && (
+          <>
+            <p style={{ display: 'flex', alignItems: 'center', fontSize: 11, color: '#6b7280', margin: '0 0 24px' }}>
               <span style={{
-                marginLeft: 6, marginRight: 6, padding: '1px 5px', borderRadius: 3,
-                background: '#f3f4f6', color: '#6b7280', fontSize: 10,
+                display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
+                background: '#6b7280', color: '#fff', fontSize: 10, fontWeight: 400,
               }}>
-                {POSTER_TYPE_LABELS[spot.posterType] ?? spot.posterType}
+                投稿
               </span>
+              {spot.posterType && (
+                <span style={{
+                  marginLeft: 6, marginRight: 6, padding: '1px 5px', borderRadius: 3,
+                  background: '#f3f4f6', color: '#374151', fontSize: 12,
+                }}>
+                  {POSTER_TYPE_LABELS[spot.posterType] ?? spot.posterType}
+                </span>
+              )}
+              <span style={{ fontSize: 12, color: '#374151' }}>{spot.postedBy}</span>
+            </p>
+            {spot.editedAt && (
+              <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#374151', margin: '-18px 0 24px' }}>
+                <span aria-hidden style={{
+                  display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
+                  fontSize: 10, fontWeight: 400, visibility: 'hidden',
+                }}>
+                  投稿
+                </span>
+                運営により編集（{new Date(spot.editedAt).toLocaleDateString('ja-JP', { year: 'numeric', month: 'numeric', day: 'numeric' })}）
+              </p>
             )}
-            {spot.postedBy}
-          </p>
+          </>
         )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

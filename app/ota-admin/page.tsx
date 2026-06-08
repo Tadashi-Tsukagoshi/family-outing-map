@@ -42,6 +42,7 @@ export default function OtaAdminPage() {
   const handleLogout = () => {
     localStorage.removeItem(AUTH_KEY)
     setAuthed(false)
+    fetch('/api/admin/auth', { method: 'DELETE' }).catch(() => {})
   }
 
   if (authed) {

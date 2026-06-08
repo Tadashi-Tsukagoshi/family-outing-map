@@ -4,7 +4,7 @@ export async function GET() {
   const supabase = supabaseAdmin()
   const { data, error } = await supabase
     .from('events')
-    .select('*')
+    .select('id, name, description, start_date, end_date, schedule_note, venue, fee, image_url, lat, lng, category, url, collected_at, posted_by, poster_type, likes, edited_by, edited_at')
     .order('start_date', { ascending: true })
 
   if (error) {
@@ -30,6 +30,8 @@ export async function GET() {
     posterType:   e.poster_type,
     scheduleNote: e.schedule_note ?? undefined,
     likes:        e.likes ?? 0,
+    editedBy:     e.edited_by ?? undefined,
+    editedAt:     e.edited_at ?? undefined,
   }))
 
   return Response.json({ events, lastCollected: null })

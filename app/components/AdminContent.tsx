@@ -55,6 +55,9 @@ type Props = {
   posterTypeOptions?: { value: PosterType; label: string }[]
   fixedPosterType?: PosterType
   onLogout?: () => void
+  /** true の場合、localStorage "myEvents" に記録された自分の投稿にのみ編集・削除ボタンを表示し、
+   *  PUT/DELETE リクエストに x-edit-token ヘッダを付与する（一般公開の /admin 用） */
+  restrictEditToOwn?: boolean
 }
 
 // ─── ユーティリティ ────────────────────────────────────────────────
@@ -99,8 +102,28 @@ function formatDateRange(ev: CollectedEvent) {
   return `${start} 〜 ${end}`
 }
 
+// ─── 自分の投稿（編集トークン）の localStorage 管理 ──────────────────
+const MY_EVENTS_KEY = 'myEvents'
+
+type MyEvent = { id: string; token: string }
+
+function readMyEvents(): MyEvent[] {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(MY_EVENTS_KEY) ?? '[]')
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+function appendMyEvent(id: string, token: string): MyEvent[] {
+  const next = [...readMyEvents(), { id, token }]
+  try { localStorage.setItem(MY_EVENTS_KEY, JSON.stringify(next)) } catch { /* noop */ }
+  return next
+}
+
 // ─── 管理画面本体 ──────────────────────────────────────────────────
-export default function AdminContent({ posterTypeOptions, fixedPosterType, onLogout }: Props) {
+export default function AdminContent({ posterTypeOptions, fixedPosterType, onLogout, restrictEditToOwn }: Props) {
   const [form, setForm]                   = useState<FormState>({
     ...INITIAL,
     posterType: fixedPosterType ?? 'general',
@@ -116,8 +139,16 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
 
   const [events,        setEvents]        = useState<CollectedEvent[]>([])
   const [eventsLoading, setEventsLoading] = useState(true)
+  const [myEvents,      setMyEvents]      = useState<MyEvent[]>([])
   const geoTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const formRef  = useRef<HTMLFormElement>(null)
+
+  useEffect(() => {
+    if (restrictEditToOwn) setMyEvents(readMyEvents())
+  }, [restrictEditToOwn])
+
+  const getEditToken = (id: string) => myEvents.find(m => m.id === id)?.token
+  const isMyEvent    = (id: string) => myEvents.some(m => m.id === id)
 
   const loadEvents = async () => {
     setEventsLoading(true)
@@ -236,7 +267,12 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
   const handleDelete = async (ev: CollectedEvent) => {
     if (!window.confirm(`「${ev.name}」を削除しますか？`)) return
     try {
-      const res = await fetch(`/api/events/${ev.id}`, { method: 'DELETE' })
+      const headers: Record<string, string> = {}
+      if (restrictEditToOwn) {
+        const token = getEditToken(ev.id)
+        if (token) headers['x-edit-token'] = token
+      }
+      const res = await fetch(`/api/events/${ev.id}`, { method: 'DELETE', headers })
       if (!res.ok) {
         let data: Record<string, unknown> = {}
         try { data = await res.json() } catch { /* empty body */ }
@@ -261,9 +297,14 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
     try {
       const url    = editingId ? `/api/events/${editingId}` : '/api/register-event'
       const method = editingId ? 'PUT' : 'POST'
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (editingId && restrictEditToOwn) {
+        const token = getEditToken(editingId)
+        if (token) headers['x-edit-token'] = token
+      }
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body:    JSON.stringify({
         ...form,
         scheduleNote: form.dateConfirmed ? '' : form.scheduleNote,
@@ -278,6 +319,13 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
         throw new Error(editingId ? '更新に失敗しました（サーバーエラー）' : '登録に失敗しました（サーバーエラー）')
       }
       if (!res.ok) throw new Error((data.error as string | undefined) ?? (editingId ? '更新に失敗しました' : '登録に失敗しました'))
+
+      if (!editingId && restrictEditToOwn) {
+        const newId    = (data.event as { id?: string } | undefined)?.id
+        const newToken = data.editToken as string | undefined
+        if (newId && newToken) setMyEvents(appendMyEvent(newId, newToken))
+      }
+
       setSubmitStatus('ok')
       const eventName = (data.event as { name?: string } | undefined)?.name ?? form.name
       setSubmitMessage(editingId
@@ -701,24 +749,26 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
                     <p className="text-sm font-medium text-gray-800 truncate">{ev.name}</p>
                     <p className="text-xs text-gray-500 mt-0.5">{formatDateRange(ev)} · {ev.venue}</p>
                   </div>
-                  <div className="flex gap-1.5 flex-shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => handleEdit(ev)}
-                      className="px-2.5 py-1 text-xs rounded-lg border border-blue-200 text-blue-600
-                        hover:bg-blue-100 transition-colors cursor-pointer"
-                    >
-                      編集
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(ev)}
-                      className="px-2.5 py-1 text-xs rounded-lg border border-red-200 text-red-500
-                        hover:bg-red-50 transition-colors cursor-pointer"
-                    >
-                      削除
-                    </button>
-                  </div>
+                  {(!restrictEditToOwn || isMyEvent(ev.id)) && (
+                    <div className="flex gap-1.5 flex-shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleEdit(ev)}
+                        className="px-2.5 py-1 text-xs rounded-lg border border-blue-200 text-blue-600
+                          hover:bg-blue-100 transition-colors cursor-pointer"
+                      >
+                        編集
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(ev)}
+                        className="px-2.5 py-1 text-xs rounded-lg border border-red-200 text-red-500
+                          hover:bg-red-50 transition-colors cursor-pointer"
+                      >
+                        削除
+                      </button>
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>

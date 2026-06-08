@@ -20,6 +20,8 @@ export type Spot = {
   posterType?: 'general' | 'organizer' | 'business' | 'staff'
   scheduleNote?: string
   likes?: number
+  editedBy?: string
+  editedAt?: string
 }
 
 

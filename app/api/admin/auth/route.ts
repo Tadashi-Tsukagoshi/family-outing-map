@@ -1,3 +1,10 @@
+import { cookies } from 'next/headers'
+import {
+  ADMIN_SESSION_COOKIE,
+  ADMIN_SESSION_MAX_AGE_SECONDS,
+  createAdminSessionToken,
+} from '@/lib/admin-session'
+
 export async function POST(req: Request) {
   let body: unknown
   try {
@@ -14,8 +21,22 @@ export async function POST(req: Request) {
   }
 
   if (password === adminPassword) {
+    const cookieStore = await cookies()
+    cookieStore.set(ADMIN_SESSION_COOKIE, createAdminSessionToken(adminPassword), {
+      httpOnly: true,
+      secure:   process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path:     '/',
+      maxAge:   ADMIN_SESSION_MAX_AGE_SECONDS,
+    })
     return Response.json({ success: true })
   }
 
   return Response.json({ error: 'パスワードが正しくありません' }, { status: 401 })
+}
+
+export async function DELETE() {
+  const cookieStore = await cookies()
+  cookieStore.delete(ADMIN_SESSION_COOKIE)
+  return Response.json({ success: true })
 }

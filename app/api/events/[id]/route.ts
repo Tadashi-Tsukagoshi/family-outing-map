@@ -1,10 +1,43 @@
 import { supabaseAdmin } from '@/lib/supabase'
 import type { CollectedEvent } from '@/lib/events'
 import type { NextRequest } from 'next/server'
+import { ADMIN_SESSION_COOKIE, verifyAdminSessionToken } from '@/lib/admin-session'
+
+async function authorizeEventAccess(req: NextRequest, id: string) {
+  const supabase = supabaseAdmin()
+  const { data, error } = await supabase
+    .from('events')
+    .select('edit_token')
+    .eq('id', id)
+    .single()
+
+  if (error || !data) {
+    return { ok: false as const, response: Response.json({ error: '対象のイベントが見つかりません' }, { status: 404 }) }
+  }
+
+  const adminPassword = process.env.ADMIN_PASSWORD
+  const adminKey      = req.headers.get('x-admin-key')
+  const editToken     = req.headers.get('x-edit-token')
+  const sessionToken  = req.cookies.get(ADMIN_SESSION_COOKIE)?.value
+
+  const isAdminByKey     = !!adminPassword && adminKey === adminPassword
+  const isAdminBySession = !!adminPassword && verifyAdminSessionToken(sessionToken, adminPassword)
+  const isAdmin = isAdminByKey || isAdminBySession
+  const isOwner = !!data.edit_token && editToken === data.edit_token
+
+  if (!isAdmin && !isOwner) {
+    return { ok: false as const, response: Response.json({ error: '権限がありません' }, { status: 403 }) }
+  }
+
+  return { ok: true as const, isAdmin }
+}
 
 export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await ctx.params
+
+    const auth = await authorizeEventAccess(req, id)
+    if (!auth.ok) return auth.response
 
     let body: unknown
     try {
@@ -32,25 +65,30 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
       return Response.json({ error: '緯度経度を取得してください' }, { status: 400 })
     }
 
+    const updateData: Record<string, unknown> = {
+      name,
+      description:   ((b.description as string | undefined) ?? '').trim(),
+      start_date:    scheduleNote ? null : (startDate ?? null),
+      end_date:      scheduleNote ? null : (endDate   ?? null),
+      schedule_note: scheduleNote,
+      venue,
+      fee,
+      image_url: imageUrl,
+      lat,
+      lng,
+      category:      (b.category   as string) ?? 'event',
+      url:           ((b.url      as string | undefined) ?? '').trim() || null,
+    }
+
+    if (auth.isAdmin) {
+      updateData.edited_by = '運営'
+      updateData.edited_at = new Date().toISOString()
+    }
+
     const supabase = supabaseAdmin()
     const { data, error } = await supabase
       .from('events')
-      .update({
-        name,
-        description:   ((b.description as string | undefined) ?? '').trim(),
-        start_date:    scheduleNote ? null : (startDate ?? null),
-        end_date:      scheduleNote ? null : (endDate   ?? null),
-        schedule_note: scheduleNote,
-        venue,
-        fee,
-        image_url: imageUrl,
-        lat,
-        lng,
-        category:      (b.category   as string) ?? 'event',
-        url:           ((b.url      as string | undefined) ?? '').trim() || null,
-        posted_by:     ((b.postedBy as string | undefined) ?? '匿名').trim() || '匿名',
-        poster_type:   (b.posterType as string) ?? 'general',
-      })
+      .update(updateData)
       .eq('id', id)
       .select()
       .single()
@@ -86,9 +124,12 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
   }
 }
 
-export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await ctx.params
+
+    const auth = await authorizeEventAccess(req, id)
+    if (!auth.ok) return auth.response
 
     const supabase = supabaseAdmin()
     const { error } = await supabase
