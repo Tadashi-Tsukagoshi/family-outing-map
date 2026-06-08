@@ -59,12 +59,12 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
 
   useEffect(() => {
     setOgpImage(null)
-    if (!spot.url) return
+    if (!spot.url || spot.imageUrl) return
     fetch(`/api/ogp?url=${encodeURIComponent(spot.url)}`)
       .then(r => r.json())
       .then(d => setOgpImage((d.imageUrl as string | null) ?? null))
       .catch(() => {})
-  }, [spot.id, spot.url])
+  }, [spot.id, spot.url, spot.imageUrl])
 
   useEffect(() => {
     setLikes(spot.likes ?? 0)
@@ -87,7 +87,7 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
   const status    = getEventStatus(spot.startDate, spot.endDate)
   const dateRange = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
   const statusCfg = status ? STATUS_CONFIG[status] : null
-  const image     = ogpImage ?? CATEGORY_IMAGES[spot.category]
+  const image     = spot.imageUrl || ogpImage || CATEGORY_IMAGES[spot.category]
   const iconSize  = 11
 
   return (

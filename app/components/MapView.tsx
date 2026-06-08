@@ -243,7 +243,7 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
       }}>
         {/* 画像（全体の約55%） */}
         <img
-          src={ogpImage || CATEGORY_IMAGES[spot.category]}
+          src={spot.imageUrl || ogpImage || CATEGORY_IMAGES[spot.category]}
           alt=""
           style={{ display: 'block', width: '100%', height: 100, objectFit: 'cover' }}
           onError={(e) => { (e.currentTarget as HTMLImageElement).src = CATEGORY_IMAGES[spot.category] }}
@@ -477,13 +477,13 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
 
   const handlePinnedHoverChange = useCallback((hover: HoverState | null) => {
     setPinnedHover(hover)
-    if (hover?.spot.url) fetchOgp(hover.spot.id, hover.spot.url)
+    if (hover?.spot.url && !hover.spot.imageUrl) fetchOgp(hover.spot.id, hover.spot.url)
   }, [fetchOgp])
 
   const handleHoverIn = useCallback((spot: Spot, x: number, y: number) => {
     clearHide()
     setHovered({ spot, x, y })
-    if (spot.url) fetchOgp(spot.id, spot.url)
+    if (spot.url && !spot.imageUrl) fetchOgp(spot.id, spot.url)
   }, [clearHide, fetchOgp])
 
   const handleImmediateHide = useCallback(() => {

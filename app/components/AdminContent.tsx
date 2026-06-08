@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { CATEGORY_LABELS, CATEGORY_EMOJIS, type Category } from '@/lib/spots'
 import type { CollectedEvent } from '@/lib/events'
+import { resizeImage } from '@/lib/image-utils'
 
 const MapPicker = dynamic(() => import('./MapPicker'), { ssr: false })
 
@@ -19,6 +20,7 @@ type FormState = {
   scheduleNote:  string
   venue:         string
   fee:           string
+  imageUrl:      string
   address:       string
   lat:           number | null
   lng:           number | null
@@ -30,6 +32,7 @@ type FormState = {
 
 type GeoStatus    = 'idle' | 'loading' | 'ok' | 'error'
 type SubmitStatus = 'idle' | 'loading' | 'ok' | 'error'
+type ImageStatus  = 'idle' | 'uploading' | 'ok' | 'error'
 
 const POSTER_TYPE_LABELS: Record<string, string> = {
   general:   '一般ユーザー',
@@ -42,7 +45,7 @@ const INITIAL: FormState = {
   name: '', category: 'event',
   dateConfirmed: true,
   startDate: '', endDate: '', scheduleNote: '',
-  venue: '', fee: '', address: '',
+  venue: '', fee: '', imageUrl: '', address: '',
   lat: null, lng: null,
   description: '', url: '',
   postedBy: '', posterType: 'general',
@@ -108,6 +111,8 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
   const [submitMessage, setSubmitMessage] = useState('')
   const [editingId,    setEditingId]      = useState<string | null>(null)
   const [showMapPicker, setShowMapPicker] = useState(false)
+  const [imageStatus,  setImageStatus]    = useState<ImageStatus>('idle')
+  const [imageMessage, setImageMessage]   = useState('')
 
   const [events,        setEvents]        = useState<CollectedEvent[]>([])
   const [eventsLoading, setEventsLoading] = useState(true)
@@ -160,6 +165,32 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
     }
   }
 
+  const handleImageChange = async (file: File | null) => {
+    if (!file) return
+    setImageStatus('uploading')
+    setImageMessage('画像をアップロード中...')
+    try {
+      const blob = await resizeImage(file)
+      const fd   = new FormData()
+      fd.append('file', blob, 'image.jpg')
+      const res  = await fetch('/api/upload-image', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (!res.ok) throw new Error((data.error as string | undefined) ?? 'アップロードに失敗しました')
+      set('imageUrl', data.url as string)
+      setImageStatus('ok')
+      setImageMessage('アップロードしました')
+    } catch (e) {
+      setImageStatus('error')
+      setImageMessage(e instanceof Error ? e.message : 'アップロードに失敗しました')
+    }
+  }
+
+  const handleImageRemove = () => {
+    set('imageUrl', '')
+    setImageStatus('idle')
+    setImageMessage('')
+  }
+
   const handleEdit = (ev: CollectedEvent) => {
     setEditingId(ev.id)
     const hasScheduleNote = !!ev.scheduleNote
@@ -172,6 +203,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
       scheduleNote:  ev.scheduleNote ?? '',
       venue:         ev.venue,
       fee:           ev.fee ?? '',
+      imageUrl:      ev.imageUrl ?? '',
       address:       '',
       lat:           ev.lat,
       lng:           ev.lng,
@@ -182,6 +214,8 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
     })
     setGeoStatus('ok')
     setGeoMessage('📍 既存の位置情報を使用中（住所を入力して「取得」を押すと更新できます）')
+    setImageStatus('idle')
+    setImageMessage('')
     setSubmitStatus('idle')
     setSubmitMessage('')
     setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
@@ -192,6 +226,8 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
     setForm({ ...INITIAL, posterType: fixedPosterType ?? 'general' })
     setGeoStatus('idle')
     setGeoMessage('')
+    setImageStatus('idle')
+    setImageMessage('')
     setSubmitStatus('idle')
     setSubmitMessage('')
     setShowMapPicker(false)
@@ -251,6 +287,8 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
       setEditingId(null)
       setGeoStatus('idle')
       setGeoMessage('')
+      setImageStatus('idle')
+      setImageMessage('')
       setShowMapPicker(false)
       await loadEvents()
     } catch (e) {
@@ -529,6 +567,51 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
               />
             </div>
 
+            {/* 画像 */}
+            <div>
+              <Label>画像</Label>
+              <p className="text-xs text-gray-400 mb-1">
+                任意。1枚までアップロードできます（自動でリサイズ・圧縮されます）。
+              </p>
+              {form.imageUrl ? (
+                <div className="flex items-center gap-3">
+                  <img
+                    src={form.imageUrl}
+                    alt=""
+                    className="w-24 h-16 object-cover rounded-lg border border-gray-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleImageRemove}
+                    disabled={isSubmitting || imageStatus === 'uploading'}
+                    className="flex-shrink-0 px-3 py-1.5 rounded-lg border border-gray-300 text-xs text-gray-600
+                      hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                  >
+                    画像を削除
+                  </button>
+                </div>
+              ) : (
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={e => handleImageChange(e.target.files?.[0] ?? null)}
+                  disabled={isSubmitting || imageStatus === 'uploading'}
+                  className="block w-full text-sm text-gray-600
+                    file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border file:border-gray-300
+                    file:text-sm file:bg-white file:text-gray-600 hover:file:bg-gray-50
+                    file:cursor-pointer disabled:opacity-50"
+                />
+              )}
+              {imageMessage && (
+                <p className={`mt-1.5 text-xs leading-snug
+                  ${imageStatus === 'ok'        ? 'text-green-600' : ''}
+                  ${imageStatus === 'error'     ? 'text-red-500'   : ''}
+                  ${imageStatus === 'uploading' ? 'text-gray-400'  : ''}`}>
+                  {imageMessage}
+                </p>
+              )}
+            </div>
+
             {/* ニックネーム */}
             <div>
               <Label required>ニックネーム・ハンドルネーム</Label>
@@ -584,7 +667,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
             {/* 送信ボタン */}
             <button
               type="submit"
-              disabled={isSubmitting || !form.name || !form.venue ||
+              disabled={isSubmitting || imageStatus === 'uploading' || !form.name || !form.venue ||
                 (form.dateConfirmed ? (!form.startDate || !form.endDate) : !form.scheduleNote)}
               className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-colors cursor-pointer
                 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed"

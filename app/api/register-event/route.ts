@@ -15,6 +15,7 @@ export async function POST(req: Request) {
   const name         = (b.name         as string | undefined)?.trim()
   const venue        = (b.venue        as string | undefined)?.trim()
   const fee          = (b.fee          as string | undefined)?.trim() || null
+  const imageUrl     = (b.imageUrl     as string | undefined)?.trim() || null
   const startDate    = (b.startDate    as string | undefined)?.trim()
   const endDate      = (b.endDate      as string | undefined)?.trim()
   const scheduleNote = (b.scheduleNote as string | undefined)?.trim() || null
@@ -38,6 +39,7 @@ export async function POST(req: Request) {
     schedule_note: scheduleNote,
     venue,
     fee,
+    image_url:     imageUrl,
     lat,
     lng,
     category:      (b.category as string) ?? 'event',
@@ -63,6 +65,7 @@ export async function POST(req: Request) {
     endDate:     newEvent.end_date   ?? undefined,
     venue:       newEvent.venue,
     fee:         newEvent.fee ?? undefined,
+    imageUrl:    newEvent.image_url ?? undefined,
     lat:         newEvent.lat,
     lng:         newEvent.lng,
     category:    newEvent.category as CollectedEvent['category'],

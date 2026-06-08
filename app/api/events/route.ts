@@ -20,6 +20,7 @@ export async function GET() {
     endDate: e.end_date,
     venue: e.venue,
     fee: e.fee ?? undefined,
+    imageUrl: e.image_url ?? undefined,
     lat: e.lat,
     lng: e.lng,
     category: e.category,
