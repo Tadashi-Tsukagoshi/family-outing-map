@@ -274,6 +274,14 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
                 {statusCfg.label}
               </p>
             )}
+            {!statusCfg && spot.scheduleNote && (
+              <p style={{
+                fontSize: 11, margin: '-2px 0 8px',
+                fontWeight: 600, color: '#6b7280',
+              }}>
+                日程未確定
+              </p>
+            )}
             {dateRange && (
               <p style={{
                 display: 'flex', alignItems: 'center', gap: 6,
