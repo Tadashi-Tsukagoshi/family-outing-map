@@ -11,6 +11,33 @@ const POSTER_TYPE_LABELS: Record<string, string> = {
   staff:     'サイト管理者',
 }
 
+const LIKED_EVENTS_KEY = 'outing-map-liked-events'
+
+function hasLiked(id: string): boolean {
+  try {
+    const raw = localStorage.getItem(LIKED_EVENTS_KEY)
+    return raw ? (JSON.parse(raw) as string[]).includes(id) : false
+  } catch {
+    return false
+  }
+}
+
+function rememberLiked(id: string) {
+  try {
+    const raw = localStorage.getItem(LIKED_EVENTS_KEY)
+    const ids = raw ? (JSON.parse(raw) as string[]) : []
+    if (!ids.includes(id)) localStorage.setItem(LIKED_EVENTS_KEY, JSON.stringify([...ids, id]))
+  } catch {}
+}
+
+function forgetLiked(id: string) {
+  try {
+    const raw = localStorage.getItem(LIKED_EVENTS_KEY)
+    const ids = raw ? (JSON.parse(raw) as string[]) : []
+    localStorage.setItem(LIKED_EVENTS_KEY, JSON.stringify(ids.filter((x) => x !== id)))
+  } catch {}
+}
+
 const CATEGORY_IMAGES: Record<Category, string> = {
   park:       'https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=400',
   museum:     'https://images.unsplash.com/photo-1566127992631-137a642a90f4?w=400',
@@ -27,6 +54,8 @@ type Props = {
 
 export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
   const [ogpImage, setOgpImage] = useState<string | null>(null)
+  const [likes, setLikes] = useState(spot.likes ?? 0)
+  const [liked, setLiked] = useState(false)
 
   useEffect(() => {
     setOgpImage(null)
@@ -36,6 +65,24 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
       .then(d => setOgpImage((d.imageUrl as string | null) ?? null))
       .catch(() => {})
   }, [spot.id, spot.url])
+
+  useEffect(() => {
+    setLikes(spot.likes ?? 0)
+    setLiked(hasLiked(spot.id))
+  }, [spot.id, spot.likes])
+
+  const handleLike = async () => {
+    const next = !liked
+    setLiked(next)
+    setLikes((n) => n + (next ? 1 : -1))
+    if (next) rememberLiked(spot.id)
+    else      forgetLiked(spot.id)
+    try {
+      const res = await fetch(`/api/events/${spot.id}/like`, { method: next ? 'POST' : 'DELETE' })
+      const d = await res.json()
+      if (typeof d.likes === 'number') setLikes(d.likes)
+    } catch {}
+  }
 
   const status    = getEventStatus(spot.startDate, spot.endDate)
   const dateRange = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
@@ -84,9 +131,28 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
 
       {/* コンテンツ */}
       <div className="flex-1 overflow-y-auto" style={{ padding: '14px 16px 20px' }}>
-        <h2 style={{ fontSize: 14, fontWeight: 700, color: '#111', lineHeight: 1.4, margin: '0 0 10px' }}>
+        <h2 style={{ fontSize: 14, fontWeight: 700, color: '#111', lineHeight: 1.4, margin: '0 0 8px' }}>
           {spot.name}
         </h2>
+
+        <button
+          onClick={handleLike}
+          aria-pressed={liked}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            padding: '5px 10px', borderRadius: 999,
+            border: liked ? '1px solid #fda4af' : '1px solid #e5e7eb',
+            background: liked ? '#fff1f2' : '#fff',
+            color: liked ? '#e11d48' : '#6b7280',
+            fontSize: 12, fontWeight: 700,
+            cursor: 'pointer',
+            margin: '0 0 10px',
+          }}
+        >
+          <span aria-hidden="true">{liked ? '❤️' : '🤍'}</span>
+          いいね
+          <span>{likes}</span>
+        </button>
 
         {(statusCfg || dateRange) && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>

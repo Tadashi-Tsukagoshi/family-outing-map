@@ -27,6 +27,7 @@ export async function GET() {
     postedBy:     e.posted_by,
     posterType:   e.poster_type,
     scheduleNote: e.schedule_note ?? undefined,
+    likes:        e.likes ?? 0,
   }))
 
   return Response.json({ events, lastCollected: null })

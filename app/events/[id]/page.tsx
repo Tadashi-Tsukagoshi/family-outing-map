@@ -37,6 +37,7 @@ async function getSpot(id: string): Promise<Spot | null> {
     postedBy:     data.posted_by,
     posterType:   data.poster_type,
     scheduleNote: data.schedule_note ?? undefined,
+    likes:        data.likes ?? 0,
   })
 }
 

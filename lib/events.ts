@@ -20,6 +20,7 @@ export type CollectedEvent = {
   postedBy?: string
   posterType?: 'general' | 'organizer' | 'business' | 'staff'
   scheduleNote?: string
+  likes?: number
 }
 
 export type EventsDatabase = {
@@ -50,5 +51,6 @@ export function eventToSpot(event: CollectedEvent): Spot {
     postedBy:     event.postedBy,
     posterType:   event.posterType,
     scheduleNote: event.scheduleNote,
+    likes:        event.likes,
   }
 }
