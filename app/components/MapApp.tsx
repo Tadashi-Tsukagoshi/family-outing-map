@@ -93,7 +93,16 @@ export default function MapApp() {
   useEffect(() => {
     const saved = loadSettings()
     if (saved.weekendOnly !== undefined)    setWeekendOnly(saved.weekendOnly)
-    if (saved.activeCategories)             setActiveCategories(new Set(saved.activeCategories))
+    if (saved.activeCategories) {
+      // 旧カテゴリ構成（park/museum/playground/food/event）からの移行措置:
+      // 新設カテゴリ（music/exhibition）は保存データに存在しなくてもデフォルトでオンにする
+      const OLD_CATEGORIES = new Set(['park', 'museum', 'playground', 'food', 'event'])
+      const restored = new Set<Category>()
+      for (const cat of Object.keys(CATEGORY_LABELS) as Category[]) {
+        if (saved.activeCategories.includes(cat) || !OLD_CATEGORIES.has(cat)) restored.add(cat)
+      }
+      setActiveCategories(restored)
+    }
     if (saved.locationRadius !== undefined) setLocationRadius(saved.locationRadius)
   }, [])
 

@@ -50,7 +50,7 @@ function Toggle({
   )
 }
 
-function CategoryIcon({ category, active = true, size = 20 }: { category: Category; active?: boolean; size?: number }) {
+export function CategoryIcon({ category, active = true, size = 20 }: { category: Category; active?: boolean; size?: number }) {
   const bg   = active ? CATEGORY_COLORS[category] : '#d1d5db'
   const icon = Math.round(size * 0.55)
   return (

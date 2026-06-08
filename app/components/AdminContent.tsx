@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react'
 import dynamic from 'next/dynamic'
-import { CATEGORY_LABELS, CATEGORY_EMOJIS, type Category } from '@/lib/spots'
+import { CATEGORY_LABELS, type Category } from '@/lib/spots'
+import { CategoryIcon } from './Sidebar'
 import type { CollectedEvent } from '@/lib/events'
 import { resizeImage } from '@/lib/image-utils'
 
@@ -404,7 +405,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
             {/* カテゴリ */}
             <div>
               <Label required>カテゴリ</Label>
-              <div className="grid grid-cols-5 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 {categories.map(cat => (
                   <button
                     key={cat}
@@ -416,7 +417,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
                         ? 'border-green-400 bg-green-50 text-green-700'
                         : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
                   >
-                    <span className="text-lg">{CATEGORY_EMOJIS[cat]}</span>
+                    <CategoryIcon category={cat} active={form.category === cat} size={28} />
                     {CATEGORY_LABELS[cat].replace('・', '・\n')}
                   </button>
                 ))}
@@ -742,8 +743,8 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
                   className={`bg-white rounded-xl border px-4 py-3 flex items-start gap-3 transition-colors
                     ${editingId === ev.id ? 'border-blue-300 bg-blue-50' : 'border-gray-100'}`}
                 >
-                  <span className="text-xl mt-0.5 flex-shrink-0">
-                    {CATEGORY_EMOJIS[ev.category ?? 'event']}
+                  <span className="mt-0.5 flex-shrink-0">
+                    <CategoryIcon category={ev.category ?? 'event'} size={20} />
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-800 truncate">{ev.name}</p>

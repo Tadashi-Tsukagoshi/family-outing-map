@@ -39,11 +39,9 @@ function forgetLiked(id: string) {
 }
 
 const CATEGORY_IMAGES: Record<Category, string> = {
-  park:       'https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=400',
-  museum:     'https://images.unsplash.com/photo-1566127992631-137a642a90f4?w=400',
-  playground: 'https://images.unsplash.com/photo-1576398289164-c48dc021b4e1?w=400',
-  food:       'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400',
   event:      'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400',
+  music:      'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400',
+  exhibition: 'https://images.unsplash.com/photo-1566127992631-137a642a90f4?w=400',
 }
 
 type Props = {
