@@ -85,8 +85,9 @@ export default function MapApp() {
   const [sheetExpanded,  setSheetExpanded]  = useState(false)
   const [collectedSpots, setCollectedSpots] = useState<Spot[]>([])
   const [userLocation,  setUserLocation]    = useState<[number, number] | null>(null)
-  const [locateStatus,  setLocateStatus]    = useState<'idle' | 'loading' | 'error'>('idle')
+  const [locateStatus,  setLocateStatus]    = useState<'idle' | 'loading'>('idle')
   const [locationRadius, setLocationRadius] = useState(20)
+  const [recenterSignal, setRecenterSignal] = useState(0)
 
   // ハイドレーション後にlocalStorageから設定を復元
   useEffect(() => {
@@ -97,14 +98,21 @@ export default function MapApp() {
   }, [])
 
   const handleLocate = useCallback(() => {
-    if (!navigator.geolocation) { setLocateStatus('error'); return }
+    if (!navigator.geolocation) { setLocateStatus('idle'); setRecenterSignal((n) => n + 1); return }
     setLocateStatus('loading')
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setUserLocation([pos.coords.latitude, pos.coords.longitude])
         setLocateStatus('idle')
       },
-      () => setLocateStatus('error'),
+      (err) => {
+        // PERMISSION_DENIED=1 / POSITION_UNAVAILABLE=2 / TIMEOUT=3
+        console.warn(`[geolocation] failed (code=${err.code}): ${err.message}`)
+        setLocateStatus('idle')
+        // 取得失敗時はエラー表示の代わりに太田市中心へ地図を戻す
+        setRecenterSignal((n) => n + 1)
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 5 * 60 * 1000 },
     )
   }, [])
 
@@ -244,6 +252,7 @@ export default function MapApp() {
           detailPanelOpen={detailSpot !== null}
           userLocation={userLocation}
           locationRadius={locationRadius}
+          recenterSignal={recenterSignal}
           isMobile
         />
         {/* ロゴボタン＋ポップアップ */}
@@ -335,6 +344,7 @@ export default function MapApp() {
           detailPanelOpen={detailSpot !== null}
           userLocation={userLocation}
           locationRadius={locationRadius}
+          recenterSignal={recenterSignal}
         />
         {adminButton('bottom-6')}
       </main>

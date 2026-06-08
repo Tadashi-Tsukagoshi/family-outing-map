@@ -15,7 +15,7 @@ type Props = {
   onLocate: () => void
   onLocateClear: () => void
   hasLocation: boolean
-  locateStatus: 'idle' | 'loading' | 'error'
+  locateStatus: 'idle' | 'loading'
   locationRadius: number
   onRadiusChange: (r: number) => void
   mode?: 'sidebar' | 'sheet'
@@ -109,12 +109,7 @@ export default function Sidebar({
 
         <div>
           <div className="flex items-center justify-between">
-            <div>
-              <span className="text-sm text-black">現在地を表示</span>
-              {locateStatus === 'error' && (
-                <p className="text-xs text-red-500 mt-0.5">位置情報の取得に失敗しました</p>
-              )}
-            </div>
+            <span className="text-sm text-black">現在地を表示</span>
             <Toggle
               checked={hasLocation || locateStatus === 'loading'}
               onChange={hasLocation ? onLocateClear : onLocate}

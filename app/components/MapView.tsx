@@ -15,6 +15,7 @@ type Props = {
   selectedSpot: Spot | null
   userLocation?: [number, number] | null
   locationRadius?: number
+  recenterSignal?: number
   onDetailOpen: (spot: Spot) => void
   onDetailClose: () => void
   detailPanelOpen: boolean
@@ -381,6 +382,18 @@ function MapResizer({ detailPanelOpen }: { detailPanelOpen: boolean }) {
   return null
 }
 
+// ─── RecenterToOta（現在地取得失敗時に太田市中心へ戻す） ───────────
+function RecenterToOta({ signal }: { signal: number }) {
+  const map = useMap()
+  const isFirst = useRef(true)
+
+  useEffect(() => {
+    if (isFirst.current) { isFirst.current = false; return }
+    map.setView(OTA_CENTER, 13, { animate: true, duration: 0.5 })
+  }, [signal, map])
+  return null
+}
+
 // ─── FlyToLocation ───────────────────────────────────────────────
 function FlyToLocation({ location, radius }: { location: [number, number] | null; radius: number }) {
   const map = useMap()
@@ -410,7 +423,7 @@ function FlyToLocation({ location, radius }: { location: [number, number] | null
 }
 
 // ─── MapView（メインコンポーネント） ─────────────────────────────
-export default function MapView({ spots, onSpotSelect, selectedSpot, userLocation = null, locationRadius = 60, onDetailOpen, onDetailClose, detailPanelOpen, isMobile = false }: Props) {
+export default function MapView({ spots, onSpotSelect, selectedSpot, userLocation = null, locationRadius = 60, recenterSignal = 0, onDetailOpen, onDetailClose, detailPanelOpen, isMobile = false }: Props) {
   const wrapperRef  = useRef<HTMLDivElement>(null)
   const [hovered,      setHovered]      = useState<HoverState | null>(null)
   const [pinnedHover,  setPinnedHover]  = useState<HoverState | null>(null)
@@ -490,6 +503,7 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
           onMapClick={isMobile ? () => { onSpotSelect(null); handleImmediateHide() } : handleImmediateHide}
         />
         <FlyToLocation location={userLocation} radius={locationRadius} />
+        <RecenterToOta signal={recenterSignal} />
         <MapResizer detailPanelOpen={detailPanelOpen} />
         <SelectedSpotTracker selectedSpot={selectedSpot} userLocation={userLocation} onHoverChange={handlePinnedHoverChange} />
         {userLocation && (
