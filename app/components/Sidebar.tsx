@@ -95,7 +95,7 @@ export default function Sidebar({
           <h1 className="text-xl text-black" style={{ fontFamily: "'Shippori Mincho', serif" }}>太田市おでかけマップ</h1>
           <p className="text-xs text-gray-400 mt-1 leading-relaxed">
             今週末、家族でどこ行く？<br />
-            群馬県太田市のイベントを地図で発見！
+            群馬県太田市周辺のイベントを地図で発見！
           </p>
         </div>
       )}

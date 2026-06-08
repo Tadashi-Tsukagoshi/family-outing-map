@@ -295,7 +295,7 @@ export default function MapApp() {
                 太田市おでかけマップ
               </p>
               <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                今週末、家族でどこ行く？<br />群馬県太田市のイベントを地図で発見！
+                今週末、家族でどこ行く？<br />群馬県太田市周辺のイベントを地図で発見！
               </p>
               <a
                 href="https://docs.google.com/forms/d/e/1FAIpQLSfjd2ErqEMLI7gDMk4O5iutIRSUMI6AD0hkJSnN3tAT5UjIXA/viewform?usp=publish-editor"
