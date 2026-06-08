@@ -16,6 +16,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
     const b = body as Record<string, unknown>
     const name         = (b.name         as string | undefined)?.trim()
     const venue        = (b.venue        as string | undefined)?.trim()
+    const fee          = (b.fee          as string | undefined)?.trim() || null
     const startDate    = (b.startDate    as string | undefined)?.trim()
     const endDate      = (b.endDate      as string | undefined)?.trim()
     const scheduleNote = (b.scheduleNote as string | undefined)?.trim() || null
@@ -40,6 +41,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
         end_date:      scheduleNote ? null : (endDate   ?? null),
         schedule_note: scheduleNote,
         venue,
+        fee,
         lat,
         lng,
         category:      (b.category   as string) ?? 'event',
@@ -63,6 +65,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
       startDate:   data.start_date,
       endDate:     data.end_date,
       venue:       data.venue,
+      fee:         data.fee ?? undefined,
       lat:         data.lat,
       lng:         data.lng,
       category:    data.category,

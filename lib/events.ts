@@ -11,6 +11,7 @@ export type CollectedEvent = {
   /** イベント終了日 */
   endDate?: string
   venue: string
+  fee?: string
   lat: number
   lng: number
   url?: string
@@ -46,6 +47,7 @@ export function eventToSpot(event: CollectedEvent): Spot {
     source: 'collected',
     date: end,       // 旧表示コード互換
     venue: event.venue,
+    fee: event.fee,
     startDate: start,
     endDate: end,
     postedBy:     event.postedBy,

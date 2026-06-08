@@ -13,6 +13,7 @@ export type Spot = {
   source?: 'manual' | 'collected'
   date?: string      // 後方互換用（endDate の別名）
   venue?: string     // 会場名
+  fee?: string       // 料金
   startDate?: string // イベント開始日（ISO）
   endDate?: string   // イベント終了日（ISO）
   postedBy?: string

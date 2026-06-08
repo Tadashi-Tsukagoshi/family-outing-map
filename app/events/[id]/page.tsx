@@ -29,6 +29,7 @@ async function getSpot(id: string): Promise<Spot | null> {
     startDate:   data.start_date,
     endDate:     data.end_date,
     venue:       data.venue,
+    fee:         data.fee ?? undefined,
     lat:         data.lat,
     lng:         data.lng,
     category:    data.category,

@@ -131,58 +131,76 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
 
       {/* コンテンツ */}
       <div className="flex-1 overflow-y-auto" style={{ padding: '14px 16px 20px' }}>
-        <h2 style={{ fontSize: 14, fontWeight: 700, color: '#111', lineHeight: 1.4, margin: '0 0 8px' }}>
+        <h2 style={{ fontSize: 18, fontWeight: 400, color: '#111', lineHeight: 1.4, margin: '0 0 1px' }}>
           {spot.name}
         </h2>
 
-        <button
-          onClick={handleLike}
-          aria-pressed={liked}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: 5,
-            padding: '5px 10px', borderRadius: 999,
-            border: liked ? '1px solid #fda4af' : '1px solid #e5e7eb',
-            background: liked ? '#fff1f2' : '#fff',
-            color: liked ? '#e11d48' : '#6b7280',
-            fontSize: 12, fontWeight: 700,
-            cursor: 'pointer',
-            margin: '0 0 10px',
-          }}
-        >
-          <span aria-hidden="true">{liked ? '❤️' : '🤍'}</span>
-          いいね
-          <span>{likes}</span>
-        </button>
-
-        {(statusCfg || dateRange) && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+        {(statusCfg || spot.scheduleNote || dateRange) && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 8 }}>
             {statusCfg && (
-              <span style={{
-                padding: '2px 6px', borderRadius: 4, fontSize: 10,
-                fontWeight: 700, background: statusCfg.bg, color: statusCfg.color,
-              }}>
+              <span style={{ fontSize: 14, fontWeight: 600, color: statusCfg.color }}>
                 {statusCfg.label}
               </span>
             )}
+            {!statusCfg && spot.scheduleNote && (
+              <span style={{ fontSize: 14, fontWeight: 600, color: '#9ca3af' }}>
+                日程未確定
+              </span>
+            )}
             {dateRange && (
-              <p style={{ fontSize: 12, color: '#374151', margin: 0 }}>📅 {dateRange}</p>
+              <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#374151', margin: 0 }}>
+                <span style={{
+                  display: 'inline-block', padding: '1px 4px', borderRadius: 4,
+                  background: '#6b7280', color: '#fff', fontSize: 10, fontWeight: 400,
+                }}>
+                  日時
+                </span>
+                {dateRange}
+              </p>
             )}
           </div>
         )}
 
         {spot.venue && (
-          <p style={{ fontSize: 12, color: '#374151', margin: '0 0 8px' }}>📍 {spot.venue}</p>
-        )}
-
-        {spot.description && (
-          <p style={{ fontSize: 12, color: '#4b5563', lineHeight: 1.65, margin: '0 0 14px' }}>
-            {spot.description}
+          <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#374151', margin: '0 0 8px' }}>
+            <span style={{
+              display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
+              background: '#6b7280', color: '#fff', fontSize: 10, fontWeight: 400,
+            }}>
+              会場
+            </span>
+            <span>{spot.venue}</span>
           </p>
         )}
 
+        <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#374151', margin: '0 0 8px' }}>
+          <span style={{
+            display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
+            background: '#6b7280', color: '#fff', fontSize: 10, fontWeight: 400,
+          }}>
+            料金
+          </span>
+          {spot.fee && <span>{spot.fee}</span>}
+        </p>
+
+        <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#4b5563', lineHeight: 1.65, margin: '0 0 14px' }}>
+          <span style={{
+            display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
+            background: '#6b7280', color: '#fff', fontSize: 10, fontWeight: 400,
+          }}>
+            説明
+          </span>
+          {spot.description && <span>{spot.description}</span>}
+        </p>
+
         {spot.postedBy && (
-          <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 12px' }}>
-            👤
+          <p style={{ display: 'flex', alignItems: 'center', fontSize: 11, color: '#6b7280', margin: '0 0 24px' }}>
+            <span style={{
+              display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
+              background: '#6b7280', color: '#fff', fontSize: 10, fontWeight: 400,
+            }}>
+              投稿
+            </span>
             {spot.posterType && (
               <span style={{
                 marginLeft: 6, marginRight: 6, padding: '1px 5px', borderRadius: 3,
@@ -201,7 +219,7 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
               href={spot.url}
               target="_blank"
               rel="noopener noreferrer"
-              style={{ fontSize: 12, fontWeight: 600, color: '#2563eb', textDecoration: 'none' }}
+              style={{ fontSize: 12, fontWeight: 600, color: '#374151', textDecoration: 'none' }}
             >
               公式サイトを開く ↗
             </a>
@@ -212,14 +230,33 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
             rel="noopener noreferrer"
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 4,
-              padding: '5px 10px', borderRadius: 6,
-              background: '#f0fdf4', color: '#15803d',
+              padding: '5px 0', borderRadius: 6,
+              color: '#374151',
               fontSize: 12, fontWeight: 600, textDecoration: 'none',
               alignSelf: 'flex-start',
+              marginTop: -8,
             }}
           >
             Googleマップで開く ↗
           </a>
+          <button
+            onClick={handleLike}
+            aria-pressed={liked}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 5,
+              padding: '5px 10px', borderRadius: 999,
+              border: liked ? '1px solid #fda4af' : '1px solid #e5e7eb',
+              background: liked ? '#fff1f2' : '#fff',
+              color: liked ? '#e11d48' : '#6b7280',
+              fontSize: 12, fontWeight: 700,
+              cursor: 'pointer',
+              alignSelf: 'flex-start',
+            }}
+          >
+            <span aria-hidden="true">{liked ? '❤️' : '🤍'}</span>
+            いいね
+            <span>{likes}</span>
+          </button>
         </div>
       </div>
     </aside>

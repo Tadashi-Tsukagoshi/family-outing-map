@@ -18,6 +18,7 @@ type FormState = {
   endDate:       string
   scheduleNote:  string
   venue:         string
+  fee:           string
   address:       string
   lat:           number | null
   lng:           number | null
@@ -41,7 +42,7 @@ const INITIAL: FormState = {
   name: '', category: 'event',
   dateConfirmed: true,
   startDate: '', endDate: '', scheduleNote: '',
-  venue: '', address: '',
+  venue: '', fee: '', address: '',
   lat: null, lng: null,
   description: '', url: '',
   postedBy: '', posterType: 'general',
@@ -170,6 +171,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
       endDate:       ev.endDate   ?? ev.date ?? '',
       scheduleNote:  ev.scheduleNote ?? '',
       venue:         ev.venue,
+      fee:           ev.fee ?? '',
       address:       '',
       lat:           ev.lat,
       lng:           ev.lng,
@@ -413,6 +415,17 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
                 onChange={e => set('venue', e.target.value)}
                 placeholder="例：太田市総合体育館"
                 required
+                disabled={isSubmitting}
+              />
+            </div>
+
+            {/* 料金 */}
+            <div>
+              <Label>料金</Label>
+              <Input
+                value={form.fee}
+                onChange={e => set('fee', e.target.value)}
+                placeholder="例：大人500円・子ども無料"
                 disabled={isSubmitting}
               />
             </div>
