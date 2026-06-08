@@ -294,7 +294,7 @@ export default function MapApp() {
               <p className="text-sm font-medium text-black" style={{ whiteSpace: 'nowrap' }}>
                 太田市おでかけマップ
               </p>
-              <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+              <p className="text-xs text-gray-500 mt-1 leading-relaxed" style={{ whiteSpace: 'nowrap' }}>
                 今週末、家族でどこ行く？<br />群馬県太田市周辺のイベントを地図で発見！
               </p>
               <a
