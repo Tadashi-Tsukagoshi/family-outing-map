@@ -241,7 +241,7 @@ export default function MapApp() {
       <svg viewBox="0 0 24 24" width="14" height="14" fill="black" style={{ flexShrink: 0 }}>
         <path d="M19 11H13V5a1 1 0 0 0-2 0v6H5a1 1 0 0 0 0 2h6v6a1 1 0 0 0 2 0v-6h6a1 1 0 0 0 0-2z"/>
       </svg>
-      イベントを登録・編集
+      イベントを登録（無料）
     </a>
   )
 

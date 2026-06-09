@@ -36,6 +36,8 @@ const CARD_W   = 260
 const GAP      = 14
 /** コンテナ端の最小余白 */
 const MARGIN   = 8
+/** PC詳細パネル幅（w-72 = 288px）*/
+const DETAIL_PANEL_W = 288
 
 // ─── Unsplash images ─────────────────────────────────────────────
 const CATEGORY_IMAGES: Record<Category, string> = {
@@ -320,11 +322,13 @@ function SelectedSpotTracker({
   userLocation,
   onHoverChange,
   isMobile,
+  detailPanelOpen,
 }: {
   selectedSpot: Spot | null
   userLocation: [number, number] | null
   onHoverChange: (hover: HoverState | null) => void
   isMobile: boolean
+  detailPanelOpen: boolean
 }) {
   const map = useMap()
   const userLocationRef = useRef(userLocation)
@@ -351,16 +355,23 @@ function SelectedSpotTracker({
       const centerLatLng = map.unproject(L.point(spotPx.x, spotPx.y + containerH / 4), zoom)
       map.panTo(centerLatLng, { animate: true, duration: 0.5 })
     } else {
-      // PC: 範囲外なら flyToBounds、範囲内なら即表示
-      if (map.getBounds().contains(spotLatLng)) {
-        updatePosition()
+      // PC: 範囲内でパネルに隠れる場合・範囲外の場合ともにオフセット付き panTo
+      const inBounds = map.getBounds().contains(spotLatLng)
+      const pt = inBounds ? map.latLngToContainerPoint(spotLatLng) : null
+      const hiddenByPanel = detailPanelOpen && (pt === null || pt.x < DETAIL_PANEL_W)
+
+      if (!inBounds || hiddenByPanel) {
+        // ズームを変えずにパネルを除いた可視エリア中央へ panTo
+        const zoom = map.getZoom()
+        const spotPx = map.project(spotLatLng, zoom)
+        const offsetX = detailPanelOpen ? DETAIL_PANEL_W / 2 : 0
+        const centerLatLng = map.unproject(L.point(spotPx.x - offsetX, spotPx.y), zoom)
+        map.panTo(centerLatLng, { animate: true, duration: 0.5 })
       } else {
-        const loc = userLocationRef.current
-        const other = loc ? L.latLng(loc[0], loc[1]) : map.getCenter()
-        map.flyToBounds(L.latLngBounds([spotLatLng, other]), { padding: [60, 60] })
+        updatePosition()
       }
     }
-  }, [selectedSpot, map, onHoverChange, updatePosition, isMobile])
+  }, [selectedSpot, map, onHoverChange, updatePosition, isMobile, detailPanelOpen])
 
   // マップ移動イベント: 移動中は非表示、終了後に再表示
   useEffect(() => {
@@ -533,7 +544,7 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
         <FlyToLocation location={userLocation} radius={locationRadius} />
         <RecenterToOta signal={recenterSignal} />
         <MapResizer detailPanelOpen={detailPanelOpen} />
-        <SelectedSpotTracker selectedSpot={selectedSpot} userLocation={userLocation} onHoverChange={handlePinnedHoverChange} isMobile={isMobile} />
+        <SelectedSpotTracker selectedSpot={selectedSpot} userLocation={userLocation} onHoverChange={handlePinnedHoverChange} isMobile={isMobile} detailPanelOpen={detailPanelOpen} />
         {userLocation && (
           <>
             <Circle
