@@ -338,7 +338,7 @@ export default function MapApp() {
               boxShadow: '0 -4px 24px rgba(0,0,0,0.15)',
             }}
           >
-            <DetailPanel spot={detailSpot} onClose={handleDetailClose} mobile />
+            <DetailPanel spot={detailSpot} onClose={() => { handleDetailClose(); setSheetState('mid') }} mobile />
           </div>
         )}
       </div>
