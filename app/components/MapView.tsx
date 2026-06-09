@@ -63,17 +63,27 @@ const USER_LOCATION_ICON = L.divIcon({
 })
 
 // ─── Helpers ─────────────────────────────────────────────────────
-function buildDivIcon(category: Category, selected: boolean): L.DivIcon {
-  const color  = CATEGORY_COLORS[category]
-  const size   = selected ? 30 : 24
-  const hit    = 44  // クリック判定エリア（視覚サイズより大きい透明領域）
-  const svg    = Math.round(size * 0.52)
-  const border = selected ? '3px solid #1e40af' : '2.5px solid white'
-  const shadow = selected ? '0 3px 10px rgba(0,0,0,.45)' : '0 2px 8px rgba(0,0,0,.3)'
+function buildDivIcon(category: Category, selected: boolean, label = '', isMobile = false): L.DivIcon {
+  const color = CATEGORY_COLORS[category]
+  const hit   = isMobile ? 44 : 28
 
+  if (selected) {
+    const selHit  = 44
+    const selSize = 34
+    const char = label.charAt(0)
+    return L.divIcon({
+      className: '',
+      html: `<div style="width:${selHit}px;height:${selHit}px;display:flex;align-items:center;justify-content:center;"><div class="pin-selected" style="width:${selSize}px;height:${selSize}px;border-radius:50%;background:${color};box-shadow:0 4px 16px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;color:white;font-size:18px;font-weight:400;font-family:sans-serif;line-height:1;">${char}</div></div>`,
+      iconSize:   [selHit, selHit],
+      iconAnchor: [selHit / 2, selHit / 2],
+    })
+  }
+
+  const size = 24
+  const svg  = Math.round(size * 0.52)
   return L.divIcon({
     className: '',
-    html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:${border};box-shadow:${shadow};display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="${svg}" height="${svg}" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="${ICON_PATHS[category]}" fill-rule="nonzero"/></svg></div></div>`,
+    html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="${svg}" height="${svg}" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="${ICON_PATHS[category]}" fill-rule="nonzero"/></svg></div></div>`,
     iconSize:   [hit, hit],
     iconAnchor: [hit / 2, hit / 2],
   })
@@ -344,10 +354,12 @@ function SelectedSpotTracker({
   selectedSpot,
   userLocation,
   onHoverChange,
+  isMobile,
 }: {
   selectedSpot: Spot | null
   userLocation: [number, number] | null
   onHoverChange: (hover: HoverState | null) => void
+  isMobile: boolean
 }) {
   const map = useMap()
   const userLocationRef = useRef(userLocation)
@@ -359,19 +371,31 @@ function SelectedSpotTracker({
     onHoverChange({ spot: selectedSpot, x: pt.x, y: pt.y })
   }, [selectedSpot, map, onHoverChange])
 
-  // selectedSpot 変更時: 範囲外なら flyToBounds、範囲内なら即表示
+  // selectedSpot 変更時
   useEffect(() => {
     if (!selectedSpot) { onHoverChange(null); return }
     const spotLatLng = L.latLng(selectedSpot.lat, selectedSpot.lng)
-    if (map.getBounds().contains(spotLatLng)) {
-      updatePosition()
+
+    if (isMobile) {
+      // ボトムシート（50vh）上の可視エリア中央にピンを配置する
+      // 可視エリア中央 y = containerH/4、マップ中心 y = containerH/2 なので
+      // 中心の projected y = spot の projected y + containerH/4
+      const zoom    = map.getZoom()
+      const spotPx  = map.project(spotLatLng, zoom)
+      const { y: containerH } = map.getSize()
+      const centerLatLng = map.unproject(L.point(spotPx.x, spotPx.y + containerH / 4), zoom)
+      map.panTo(centerLatLng, { animate: true, duration: 0.5 })
     } else {
-      const loc = userLocationRef.current
-      const other = loc ? L.latLng(loc[0], loc[1]) : map.getCenter()
-      map.flyToBounds(L.latLngBounds([spotLatLng, other]), { padding: [60, 60] })
-      // moveend 後に updatePosition が呼ばれて吹き出しが表示される
+      // PC: 範囲外なら flyToBounds、範囲内なら即表示
+      if (map.getBounds().contains(spotLatLng)) {
+        updatePosition()
+      } else {
+        const loc = userLocationRef.current
+        const other = loc ? L.latLng(loc[0], loc[1]) : map.getCenter()
+        map.flyToBounds(L.latLngBounds([spotLatLng, other]), { padding: [60, 60] })
+      }
     }
-  }, [selectedSpot, map, onHoverChange, updatePosition])
+  }, [selectedSpot, map, onHoverChange, updatePosition, isMobile])
 
   // マップ移動イベント: 移動中は非表示、終了後に再表示
   useEffect(() => {
@@ -451,7 +475,9 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
   const wrapperRef  = useRef<HTMLDivElement>(null)
   const [hovered,      setHovered]      = useState<HoverState | null>(null)
   const [pinnedHover,  setPinnedHover]  = useState<HoverState | null>(null)
-  const hideTimer   = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hideTimer            = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // クリック直後のアイコン差し替えによる mouseover 再発火を抑制するタイムスタンプ
+  const suppressHoverUntil  = useRef(0)
 
   // OGP キャッシュ: ref で二重fetch防止、state で再レンダートリガー
   const ogpCacheRef = useRef<Record<string, OgpEntry>>({})
@@ -487,6 +513,7 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
   }, [fetchOgp])
 
   const handleHoverIn = useCallback((spot: Spot, x: number, y: number) => {
+    if (Date.now() < suppressHoverUntil.current) return
     clearHide()
     setHovered({ spot, x, y })
     if (spot.url && !spot.imageUrl) fetchOgp(spot.id, spot.url)
@@ -497,13 +524,19 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
     setHovered(null)
   }, [clearHide])
 
+  const handlePinClick = useCallback((spot: Spot) => {
+    suppressHoverUntil.current = Date.now() + 150
+    handleImmediateHide()
+    onDetailOpen(spot)
+  }, [handleImmediateHide, onDetailOpen])
+
   const icons = useMemo(() => {
     const result: Record<string, L.DivIcon> = {}
     for (const s of spots) {
-      result[s.id] = buildDivIcon(s.category, false)
+      result[s.id] = buildDivIcon(s.category, s.id === selectedSpot?.id, s.name, isMobile)
     }
     return result
-  }, [spots])
+  }, [spots, selectedSpot, isMobile])
 
   return (
     <div ref={wrapperRef} style={{ position: 'relative', height: '100%', width: '100%' }}>
@@ -523,13 +556,13 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
           onHoverIn={handleHoverIn}
           onHoverOut={scheduleHide}
           onMapMove={handleImmediateHide}
-          onPinClick={isMobile ? onSpotSelect : onDetailOpen}
-          onMapClick={isMobile ? () => { onSpotSelect(null); handleImmediateHide() } : handleImmediateHide}
+          onPinClick={handlePinClick}
+          onMapClick={isMobile ? () => { onDetailClose(); onSpotSelect(null); handleImmediateHide() } : () => { onDetailClose(); handleImmediateHide() }}
         />
         <FlyToLocation location={userLocation} radius={locationRadius} />
         <RecenterToOta signal={recenterSignal} />
         <MapResizer detailPanelOpen={detailPanelOpen} />
-        <SelectedSpotTracker selectedSpot={selectedSpot} userLocation={userLocation} onHoverChange={handlePinnedHoverChange} />
+        <SelectedSpotTracker selectedSpot={selectedSpot} userLocation={userLocation} onHoverChange={handlePinnedHoverChange} isMobile={isMobile} />
         {userLocation && (
           <>
             <Circle
@@ -548,9 +581,9 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
         )}
       </MapContainer>
 
-      {/* マウスホバー優先、なければサイドバー選択スポットの吹き出しを表示 */}
+      {/* モバイルはホバーカード不要。PC: hovered は常に表示、pinnedHover は詳細パネルが閉じている時のみ */}
       {(() => {
-        const activeHover = hovered ?? pinnedHover
+        const activeHover = isMobile ? null : (hovered ?? (detailPanelOpen ? null : pinnedHover))
         if (!activeHover) return null
         return (
           <HoverCard

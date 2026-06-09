@@ -15,6 +15,35 @@ html, body {
   100% { transform: translate(-50%, -50%) scale(5); opacity: 0; }
 }
 
+/* ── 選択中ピンのバウンス ── */
+@keyframes pin-bounce {
+  0% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+  50% {
+    transform: translateY(-12px);
+    animation-timing-function: ease-in;
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.pin-selected {
+  animation: pin-bounce 0.48s 2;
+}
+
+/* ── モバイル詳細シートのスライドアップ ── */
+@keyframes sheet-slide-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.detail-sheet-enter {
+  animation: sheet-slide-up 0.3s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
 /* ── ホバーカード内の説明文（2行クリップ） ── */
 .ltt-desc {
   display: -webkit-box;

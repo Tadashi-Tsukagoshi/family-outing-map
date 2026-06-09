@@ -89,7 +89,7 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
   const iconSize  = 11
 
   return (
-    <aside className={`bg-white flex flex-col overflow-hidden ${mobile ? 'w-full h-full' : 'w-72 border-r border-gray-200'}`}>
+    <aside className={`bg-white flex flex-col overflow-hidden ${mobile ? 'w-full h-full' : 'w-72 h-full shadow-lg'}`}>
       {/* ヘッダー画像 */}
       <div className="relative shrink-0">
         <img

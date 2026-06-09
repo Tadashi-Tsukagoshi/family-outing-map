@@ -328,7 +328,15 @@ export default function MapApp() {
           <Sidebar {...sidebarProps} mode="sheet" />
         </BottomSheet>
         {detailSpot && (
-          <div className="fixed inset-0 z-[1001]">
+          <div
+            key={detailSpot.id}
+            className="detail-sheet-enter fixed bottom-0 left-0 right-0 z-[1001] overflow-hidden"
+            style={{
+              height: '50vh',
+              borderRadius: '16px 16px 0 0',
+              boxShadow: '0 -4px 24px rgba(0,0,0,0.15)',
+            }}
+          >
             <DetailPanel spot={detailSpot} onClose={handleDetailClose} mobile />
           </div>
         )}
@@ -340,10 +348,12 @@ export default function MapApp() {
   return (
     <div className="flex h-full">
       <Sidebar {...sidebarProps} mode="sidebar" />
-      {detailSpot && (
-        <DetailPanel spot={detailSpot} onClose={handleDetailClose} />
-      )}
       <main className="flex-1 relative">
+        {detailSpot && (
+          <div className="absolute inset-y-0 left-0 z-[500]">
+            <DetailPanel spot={detailSpot} onClose={handleDetailClose} />
+          </div>
+        )}
         <MapView
           spots={filteredSpots}
           selectedSpot={selectedSpot}
@@ -360,3 +370,4 @@ export default function MapApp() {
     </div>
   )
 }
+
