@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useCallback, useLayoutEffect, useRef } fr
 import dynamic from 'next/dynamic'
 import Sidebar from './Sidebar'
 import DetailPanel from './DetailPanel'
-import BottomSheet from './BottomSheet'
+import BottomSheet, { type SheetState } from './BottomSheet'
 import { CATEGORY_LABELS, type Category, type Spot } from '@/lib/spots'
 import { eventToSpot, type EventsDatabase } from '@/lib/events'
 import { getEventStatus } from '@/lib/date-utils'
@@ -81,7 +81,7 @@ export default function MapApp() {
   )
   const [selectedSpot,   setSelectedSpot]   = useState<Spot | null>(null)
   const [detailSpot,     setDetailSpot]     = useState<Spot | null>(null)
-  const [sheetExpanded,  setSheetExpanded]  = useState(false)
+  const [sheetState,     setSheetState]     = useState<SheetState>('closed')
   const [collectedSpots, setCollectedSpots] = useState<Spot[]>([])
   const [userLocation,  setUserLocation]    = useState<[number, number] | null>(null)
   const [locateStatus,  setLocateStatus]    = useState<'idle' | 'loading'>('idle')
@@ -221,10 +221,14 @@ export default function MapApp() {
     onDetailOpen: handleDetailOpen,
     onDetailClose: handleDetailClose,
     onSpotSelect: (spot: Spot | null) => {
-      setSelectedSpot(spot)
-      if (spot) setSheetExpanded(false)
+      if (spot) {
+        handleDetailOpen(spot)
+        setSheetState('closed')
+      } else {
+        handleDetailClose()
+      }
     },
-    onLocate: () => { handleLocate(); setSheetExpanded(false) },
+    onLocate: () => { handleLocate(); setSheetState('closed') },
     onLocateClear: handleLocateClear,
     hasLocation: userLocation !== null,
     locateStatus,
@@ -319,8 +323,8 @@ export default function MapApp() {
         {adminButton('bottom-[88px]')}
         <BottomSheet
           spotCount={filteredSpots.length}
-          expanded={sheetExpanded}
-          onExpandedChange={setSheetExpanded}
+          sheetState={sheetState}
+          onSheetStateChange={setSheetState}
         >
           <Sidebar {...sidebarProps} mode="sheet" />
         </BottomSheet>

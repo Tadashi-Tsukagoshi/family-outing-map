@@ -180,7 +180,6 @@ export default function Sidebar({
                 key={spot.id}
                 onClick={() => {
                   if (isSheet && onSpotSelect) {
-                    // スマホ: リストタップはピン選択のみ（詳細パネルを開かない）
                     onSpotSelect(selectedSpot?.id === spot.id ? null : spot)
                   } else {
                     selectedSpot?.id === spot.id ? onDetailClose() : onDetailOpen(spot)

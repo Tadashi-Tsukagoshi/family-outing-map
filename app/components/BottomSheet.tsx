@@ -4,14 +4,22 @@ import { useRef } from 'react'
 
 const PEEK_HEIGHT = 72
 
+export type SheetState = 'closed' | 'mid' | 'full'
+
+const SHEET_HEIGHTS: Record<SheetState, string> = {
+  closed: `${PEEK_HEIGHT}px`,
+  mid:    '50vh',
+  full:   '85vh',
+}
+
 type Props = {
   spotCount: number
   children: React.ReactNode
-  expanded: boolean
-  onExpandedChange: (v: boolean) => void
+  sheetState: SheetState
+  onSheetStateChange: (v: SheetState) => void
 }
 
-export default function BottomSheet({ spotCount, children, expanded, onExpandedChange }: Props) {
+export default function BottomSheet({ spotCount, children, sheetState, onSheetStateChange }: Props) {
   const startY   = useRef(0)
   const currentY = useRef(0)
 
@@ -24,15 +32,27 @@ export default function BottomSheet({ spotCount, children, expanded, onExpandedC
   }
   const onTouchEnd = () => {
     const delta = currentY.current - startY.current
-    if (!expanded && delta < -50) onExpandedChange(true)
-    if (expanded  && delta >  50) onExpandedChange(false)
+    if (delta < -50) {
+      if (sheetState === 'closed') onSheetStateChange('mid')
+      else if (sheetState === 'mid') onSheetStateChange('full')
+    }
+    if (delta > 50) {
+      if (sheetState === 'full') onSheetStateChange('mid')
+      else if (sheetState === 'mid') onSheetStateChange('closed')
+    }
+  }
+
+  const handleTap = () => {
+    if (sheetState === 'closed') onSheetStateChange('mid')
+    else if (sheetState === 'mid') onSheetStateChange('closed')
+    else onSheetStateChange('mid')
   }
 
   return (
     <div
       className="fixed bottom-0 left-0 right-0 bg-white flex flex-col overflow-hidden"
       style={{
-        height:       expanded ? '85vh' : `${PEEK_HEIGHT}px`,
+        height:       SHEET_HEIGHTS[sheetState],
         transition:   'height 0.3s cubic-bezier(0.32,0.72,0,1)',
         borderRadius: '16px 16px 0 0',
         boxShadow:    '0 -4px 24px rgba(0,0,0,0.12)',
@@ -44,7 +64,7 @@ export default function BottomSheet({ spotCount, children, expanded, onExpandedC
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
-        onClick={() => onExpandedChange(!expanded)}
+        onClick={handleTap}
         className="flex-shrink-0 select-none cursor-pointer"
         style={{ touchAction: 'none' }}
       >
