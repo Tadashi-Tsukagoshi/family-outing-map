@@ -145,17 +145,15 @@ type Pos = {
 }
 
 type HoverCardProps = {
-  hovered:         HoverState
-  wrapperRef:      React.RefObject<HTMLDivElement | null>
-  onMouseEnter:    () => void
-  onMouseLeave:    () => void
-  ogpImage:        string | null | undefined
-  onDetailOpen:    (spot: Spot) => void
-  onDetailClose:   () => void
-  detailPanelOpen: boolean
+  hovered:      HoverState
+  wrapperRef:   React.RefObject<HTMLDivElement | null>
+  onMouseEnter: () => void
+  onMouseLeave: () => void
+  ogpImage:     string | null | undefined
+  onDetailOpen: (spot: Spot) => void
 }
 
-function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, onDetailOpen, onDetailClose, detailPanelOpen }: HoverCardProps) {
+function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, onDetailOpen }: HoverCardProps) {
   const cardRef = useRef<HTMLDivElement>(null)
 
   // ready:false で初期化 → 測定前は opacity:0 で非表示
@@ -225,23 +223,6 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
       onMouseLeave={onMouseLeave}
       onClick={() => onDetailOpen(spot)}
     >
-      {/* ── 閉じるボタン（詳細パネルが開いている時のみ） ── */}
-      {detailPanelOpen && <button
-        onClick={(e) => { e.stopPropagation(); onDetailClose() }}
-        aria-label="閉じる"
-        style={{
-          position: 'absolute', top: 6, right: 6, zIndex: 1,
-          width: 22, height: 22, borderRadius: '50%',
-          background: 'white', color: '#111',
-          border: 'none', cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 13, lineHeight: 1,
-          boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
-        }}
-      >
-        ×
-      </button>}
-
       {/* ── カード本体 ── */}
       <div style={{
         borderRadius: 8,
@@ -329,22 +310,6 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
         </div>
       </div>
 
-      {/* 透明ブリッジ：ピンとカード間の隙間をカバーし hover を維持 */}
-      {pos.ready && (() => {
-        const bridgeW    = 36
-        const pinInWrap  = hovered.x - pos.left + CARD_W / 2
-        const bridgeLeft = Math.max(0, Math.min(CARD_W - bridgeW, pinInWrap - bridgeW / 2))
-        return (
-          <div style={{
-            position: 'absolute',
-            left: bridgeLeft,
-            width: bridgeW,
-            ...(pos.above
-              ? { top: pos.cardH, height: GAP }
-              : { top: -GAP,      height: GAP }),
-          }} />
-        )
-      })()}
     </div>
   )
 }
@@ -437,7 +402,7 @@ function RecenterToOta({ signal }: { signal: number }) {
 
   useEffect(() => {
     if (isFirst.current) { isFirst.current = false; return }
-    map.setView(OTA_CENTER, 13, { animate: true, duration: 0.5 })
+    map.setView(OTA_CENTER, 12, { animate: false })
   }, [signal, map])
   return null
 }
@@ -525,10 +490,16 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
   }, [clearHide])
 
   const handlePinClick = useCallback((spot: Spot) => {
-    suppressHoverUntil.current = Date.now() + 150
+    suppressHoverUntil.current = Date.now() + 500
     handleImmediateHide()
     onDetailOpen(spot)
   }, [handleImmediateHide, onDetailOpen])
+
+  // 抑制ウィンドウ内はカード側の onMouseEnter による clearHide もブロックする
+  const handleCardMouseEnter = useCallback(() => {
+    if (Date.now() < suppressHoverUntil.current) return
+    clearHide()
+  }, [clearHide])
 
   const icons = useMemo(() => {
     const result: Record<string, L.DivIcon> = {}
@@ -542,7 +513,7 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
     <div ref={wrapperRef} style={{ position: 'relative', height: '100%', width: '100%' }}>
       <MapContainer
         center={OTA_CENTER}
-        zoom={13}
+        zoom={12}
         style={{ height: '100%', width: '100%' }}
         zoomControl={!isMobile}
       >
@@ -590,12 +561,10 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
             key={activeHover.spot.id}
             hovered={activeHover}
             wrapperRef={wrapperRef}
-            onMouseEnter={clearHide}
+            onMouseEnter={handleCardMouseEnter}
             onMouseLeave={scheduleHide}
             ogpImage={ogpCache[activeHover.spot.id] ?? undefined}
             onDetailOpen={onDetailOpen}
-            onDetailClose={onDetailClose}
-            detailPanelOpen={detailPanelOpen}
           />
         )
       })()}

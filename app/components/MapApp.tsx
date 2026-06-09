@@ -15,7 +15,6 @@ const STORAGE_KEY = 'outing-map-settings'
 type SavedSettings = {
   weekendOnly: boolean
   activeCategories: Category[]
-  locationRadius: number
 }
 
 function loadSettings(): Partial<SavedSettings> {
@@ -86,7 +85,7 @@ export default function MapApp() {
   const [collectedSpots, setCollectedSpots] = useState<Spot[]>([])
   const [userLocation,  setUserLocation]    = useState<[number, number] | null>(null)
   const [locateStatus,  setLocateStatus]    = useState<'idle' | 'loading'>('idle')
-  const [locationRadius, setLocationRadius] = useState(20)
+  const [locationRadius, setLocationRadius] = useState(10)
   const [recenterSignal, setRecenterSignal] = useState(0)
 
   // ハイドレーション後にlocalStorageから設定を復元
@@ -103,7 +102,6 @@ export default function MapApp() {
       }
       setActiveCategories(restored)
     }
-    if (saved.locationRadius !== undefined) setLocationRadius(saved.locationRadius)
   }, [])
 
   const handleLocate = useCallback(() => {
@@ -146,7 +144,6 @@ export default function MapApp() {
     saveSettings({
       weekendOnly,
       activeCategories: Array.from(activeCategories),
-      locationRadius,
     })
   }, [weekendOnly, activeCategories, locationRadius])
 
