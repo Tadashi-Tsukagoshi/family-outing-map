@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { CATEGORY_COLORS, ICON_PATHS, type Category, type Spot } from '@/lib/spots'
+import { CATEGORY_COLORS, CATEGORY_LIGHT_COLORS, ICON_PATHS, type Category, type Spot } from '@/lib/spots'
 import { getDateDisplay, getEventStatus, STATUS_CONFIG } from '@/lib/date-utils'
 
 const POSTER_TYPE_LABELS: Record<string, string> = {
@@ -82,11 +82,13 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
     } catch {}
   }
 
-  const status    = getEventStatus(spot.startDate, spot.endDate)
-  const dateRange = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
-  const statusCfg = status ? STATUS_CONFIG[status] : null
-  const image     = spot.imageUrl || ogpImage || CATEGORY_IMAGES[spot.category]
-  const iconSize  = 11
+  const status      = getEventStatus(spot.startDate, spot.endDate)
+  const dateRange   = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
+  const statusCfg   = status ? STATUS_CONFIG[status] : null
+  const image       = spot.imageUrl || ogpImage || CATEGORY_IMAGES[spot.category]
+  const iconSize    = 11
+  const badgeBg     = CATEGORY_LIGHT_COLORS[spot.category]
+  const badgeColor  = '#374151'
 
   return (
     <aside className={`bg-white flex flex-col overflow-hidden ${mobile ? 'w-full h-full' : 'w-72 h-full shadow-lg'}`}>
@@ -149,7 +151,7 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
               <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#374151', margin: 0 }}>
                 <span style={{
                   display: 'inline-block', padding: '1px 4px', borderRadius: 4,
-                  background: '#6b7280', color: '#fff', fontSize: 10, fontWeight: 400,
+                  background: badgeBg, color: badgeColor, fontSize: 10, fontWeight: 400,
                 }}>
                   日時
                 </span>
@@ -163,7 +165,7 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
           <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#374151', margin: '0 0 8px' }}>
             <span style={{
               display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
-              background: '#6b7280', color: '#fff', fontSize: 10, fontWeight: 400,
+              background: badgeBg, color: badgeColor, fontSize: 10, fontWeight: 400,
             }}>
               会場
             </span>
@@ -174,7 +176,7 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
         <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#374151', margin: '0 0 8px' }}>
           <span style={{
             display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
-            background: '#6b7280', color: '#fff', fontSize: 10, fontWeight: 400,
+            background: badgeBg, color: badgeColor, fontSize: 10, fontWeight: 400,
           }}>
             料金
           </span>
@@ -184,7 +186,7 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
         <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#4b5563', lineHeight: 1.65, margin: '0 0 14px' }}>
           <span style={{
             display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
-            background: '#6b7280', color: '#fff', fontSize: 10, fontWeight: 400,
+            background: badgeBg, color: badgeColor, fontSize: 10, fontWeight: 400,
           }}>
             説明
           </span>
@@ -196,7 +198,7 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
             <p style={{ display: 'flex', alignItems: 'center', fontSize: 11, color: '#6b7280', margin: '0 0 24px' }}>
               <span style={{
                 display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
-                background: '#6b7280', color: '#fff', fontSize: 10, fontWeight: 400,
+                background: badgeBg, color: badgeColor, fontSize: 10, fontWeight: 400,
               }}>
                 投稿
               </span>
