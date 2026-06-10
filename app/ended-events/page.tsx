@@ -9,7 +9,7 @@ const POSTER_TYPE_LABELS: Record<string, string> = {
   general:   '一般ユーザー',
   organizer: '主催者',
   business:  '事業者',
-  staff:     'サイト管理者',
+  staff:     '運営',
 }
 
 export default function EndedEventsPage() {
