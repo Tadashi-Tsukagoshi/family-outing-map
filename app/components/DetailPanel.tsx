@@ -212,7 +212,7 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
               )}
               <span style={{ fontSize: 12, color: '#374151' }}>{spot.postedBy}</span>
             </p>
-            {spot.editedAt && (
+            {spot.editedAt && spot.posterType !== 'staff' && (
               <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#374151', margin: '-18px 0 24px' }}>
                 <span aria-hidden style={{
                   display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
