@@ -18,10 +18,17 @@ const shipporiMincho = Shippori_Mincho({
 })
 
 export const metadata: Metadata = {
-  title: '太田市おでかけマップ',
+  title: '群馬県おでかけまっぷ',
   description: '今週末、子どもとどこ行く？\n家族で楽しめるイベントを地図で発見！',
+  manifest: '/manifest.json',
   icons: {
     icon: '/favicon.svg',
+    apple: '/apple-touch-icon.png',
+  },
+  appleWebApp: {
+    capable: true,
+    title: '群馬県おでかけまっぷ',
+    statusBarStyle: 'default',
   },
 }
 
