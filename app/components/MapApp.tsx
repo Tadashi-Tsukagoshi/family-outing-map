@@ -236,18 +236,6 @@ export default function MapApp() {
     onRadiusChange: setLocationRadius,
   }
 
-  const adminButton = (extraClass: string) => (
-    <a
-      href="/admin"
-      className={`absolute left-4 z-[999] flex items-center gap-1.5 px-4 py-2.5 rounded-full text-black text-sm font-medium transition-opacity hover:opacity-90 ${extraClass}`}
-      style={{ backgroundColor: '#ffffff', boxShadow: '0 2px 6px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.15)' }}
-    >
-      <svg viewBox="0 0 24 24" width="14" height="14" fill="black" style={{ flexShrink: 0 }}>
-        <path d="M19 11H13V5a1 1 0 0 0-2 0v6H5a1 1 0 0 0 0 2h6v6a1 1 0 0 0 2 0v-6h6a1 1 0 0 0 0-2z"/>
-      </svg>
-      イベントを登録（無料）
-    </a>
-  )
 
   /* ── モバイルレイアウト ── */
   if (isMobile) {
@@ -314,13 +302,12 @@ export default function MapApp() {
                 onClick={e => e.stopPropagation()}
                 className="inline-block mt-2 text-xs text-blue-500 underline"
               >
-                ご意見・ご要望はこちら
+                イベント情報をお寄せください
               </a>
             </div>
           )}
         </div>
 
-        {adminButton('bottom-[88px]')}
         <BottomSheet
           spotCount={filteredSpots.length}
           sheetState={sheetState}
@@ -366,7 +353,6 @@ export default function MapApp() {
           locationRadius={locationRadius}
           recenterSignal={recenterSignal}
         />
-        {adminButton('bottom-6')}
       </main>
     </div>
   )

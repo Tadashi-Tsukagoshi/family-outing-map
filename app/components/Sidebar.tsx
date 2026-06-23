@@ -226,7 +226,7 @@ export default function Sidebar({
             rel="noopener noreferrer"
             className="block text-xs text-blue-500 underline pl-[22px] pr-3 py-3"
           >
-            ご意見・ご要望はこちら
+            イベント情報をお寄せください
           </a>
         )}
       </div>
