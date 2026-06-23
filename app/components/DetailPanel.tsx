@@ -147,6 +147,34 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
                 日程未確定
               </span>
             )}
+            <button
+              onClick={handleLike}
+              aria-pressed={liked}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 4,
+                padding: 0, border: 'none', background: 'none',
+                cursor: 'pointer', alignSelf: 'flex-start',
+              }}
+            >
+              <svg viewBox="0 0 24 24" width={20} height={20}>
+                {liked ? (
+                  <path
+                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                    fill="#e11d48"
+                  />
+                ) : (
+                  <path
+                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                    fill="none"
+                    stroke="#6b7280"
+                    strokeWidth={2}
+                  />
+                )}
+              </svg>
+              <span style={{ fontSize: 12, fontWeight: 600, color: liked ? '#e11d48' : '#6b7280' }}>
+                {likes}
+              </span>
+            </button>
             {dateRange && (
               <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#374151', margin: 0 }}>
                 <span style={{
@@ -252,24 +280,6 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
           >
             Googleマップで開く
           </a>
-          <button
-            onClick={handleLike}
-            aria-pressed={liked}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 5,
-              padding: '5px 10px', borderRadius: 999,
-              border: liked ? '1px solid #fda4af' : '1px solid #e5e7eb',
-              background: liked ? '#fff1f2' : '#fff',
-              color: liked ? '#e11d48' : '#6b7280',
-              fontSize: 12, fontWeight: 700,
-              cursor: 'pointer',
-              alignSelf: 'flex-start',
-            }}
-          >
-            <span aria-hidden="true">{liked ? '❤️' : '🤍'}</span>
-            いいね
-            <span>{likes}</span>
-          </button>
         </div>
       </div>
     </aside>
