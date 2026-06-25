@@ -4,7 +4,6 @@ import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 import { useRef, useState, useMemo, useCallback, useEffect, useLayoutEffect } from 'react'
 import { MapContainer, TileLayer, Marker, Circle, useMap } from 'react-leaflet'
-import { CATEGORY_COLORS, ICON_PATHS } from '@/lib/spots'
 import type { Category, Spot } from '@/lib/spots'
 import { getDateDisplay, getEventStatus, STATUS_CONFIG } from '@/lib/date-utils'
 
@@ -65,27 +64,34 @@ const USER_LOCATION_ICON = L.divIcon({
 })
 
 // ─── Helpers ─────────────────────────────────────────────────────
-function buildDivIcon(category: Category, selected: boolean, label = '', isMobile = false): L.DivIcon {
-  const color = CATEGORY_COLORS[category]
-  const hit   = isMobile ? 44 : 28
+function pickIcon(name: string): { src: string; bg: string; glow: string; ratio: number } {
+  const lanternGlow = 'filter:drop-shadow(0 0 2px rgba(255,255,255,0.8));'
+  if (name.includes('花火')) return { src: '/icons/fireworks.png', bg: '#1e1614', glow: '', ratio: 0.7 }
+  if (name.includes('祭') || name.includes('まつり')) return { src: '/icons/lantern.png', bg: '#1e1614', glow: lanternGlow, ratio: 0.63 }
+  return { src: '/icons/tent.png', bg: 'white', glow: '', ratio: 0.7 }
+}
+
+function buildDivIcon(spot: Spot, selected: boolean, isMobile: boolean): L.DivIcon {
+  const { src: icon, bg, glow, ratio } = pickIcon(spot.name)
 
   if (selected) {
-    const selHit  = 44
-    const selSize = 34
-    const char = label.charAt(0)
+    const hit  = 48
+    const size = 44
+    const img  = Math.round(size * ratio)
     return L.divIcon({
       className: '',
-      html: `<div style="width:${selHit}px;height:${selHit}px;display:flex;align-items:center;justify-content:center;"><div class="pin-selected" style="width:${selSize}px;height:${selSize}px;border-radius:50%;background:${color};box-shadow:0 4px 16px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;color:white;font-size:18px;font-weight:400;font-family:sans-serif;line-height:1;">${char}</div></div>`,
-      iconSize:   [selHit, selHit],
-      iconAnchor: [selHit / 2, selHit / 2],
+      html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><div class="pin-selected" style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2.5px solid #d1d5db;box-shadow:0 4px 12px rgba(0,0,0,.4);overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}"></div></div>`,
+      iconSize:   [hit, hit],
+      iconAnchor: [hit / 2, hit / 2],
     })
   }
 
-  const size = 24
-  const svg  = Math.round(size * 0.52)
+  const hit  = isMobile ? 48 : 40
+  const size = 36
+  const img  = Math.round(size * ratio)
   return L.divIcon({
     className: '',
-    html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="${svg}" height="${svg}" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="${ICON_PATHS[category]}" fill-rule="nonzero"/></svg></div></div>`,
+    html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2.5px solid #d1d5db;box-shadow:0 2px 6px rgba(0,0,0,.25);overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}"></div></div>`,
     iconSize:   [hit, hit],
     iconAnchor: [hit / 2, hit / 2],
   })
@@ -515,7 +521,7 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
   const icons = useMemo(() => {
     const result: Record<string, L.DivIcon> = {}
     for (const s of spots) {
-      result[s.id] = buildDivIcon(s.category, s.id === selectedSpot?.id, s.name, isMobile)
+      result[s.id] = buildDivIcon(s, s.id === selectedSpot?.id, isMobile)
     }
     return result
   }, [spots, selectedSpot, isMobile])

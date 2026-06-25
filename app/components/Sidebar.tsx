@@ -229,6 +229,9 @@ export default function Sidebar({
             イベント情報をお寄せください
           </a>
         )}
+        <p className="text-[10px] text-gray-400 pl-[22px] pr-3 mt-1">
+          アイコン: <a href="https://openmoji.org/" target="_blank" rel="noopener noreferrer" className="underline">OpenMoji</a> (CC BY-SA 4.0) / <a href="https://github.com/googlefonts/noto-emoji" target="_blank" rel="noopener noreferrer" className="underline">Noto Emoji</a> (Apache 2.0)
+        </p>
       </div>
 
     </aside>
