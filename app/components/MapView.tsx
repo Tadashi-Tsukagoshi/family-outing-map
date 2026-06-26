@@ -64,15 +64,20 @@ const USER_LOCATION_ICON = L.divIcon({
 })
 
 // ─── Helpers ─────────────────────────────────────────────────────
-function pickIcon(name: string): { src: string; bg: string; glow: string; ratio: number } {
-  const lanternGlow = 'filter:drop-shadow(0 0 2px rgba(255,255,255,0.8));'
-  if (name.includes('花火')) return { src: '/icons/fireworks.png', bg: '#1e1614', glow: '', ratio: 0.7 }
+const CANOPY_COLORS = ['red', 'blue', 'green'] as const
+
+function pickIcon(name: string, id: string): { src: string; bg: string; glow: string; ratio: number } {
+  const lanternGlow = 'filter:drop-shadow(0 0 1.5px rgba(255,255,255,1)) drop-shadow(0 0 1.5px rgba(255,255,255,1));'
+  if (name.includes('花火')) return { src: '/icons/fireworks.png', bg: '#1e1614', glow: '', ratio: 0.78 }
   if (name.includes('祭') || name.includes('まつり')) return { src: '/icons/lantern.png', bg: '#1e1614', glow: lanternGlow, ratio: 0.63 }
-  return { src: '/icons/tent.png', bg: 'white', glow: '', ratio: 0.7 }
+  let sum = 0
+  for (let i = 0; i < id.length; i++) sum += id.charCodeAt(i)
+  const color = CANOPY_COLORS[sum % 3]
+  return { src: `/icons/canopy_${color}.svg`, bg: 'white', glow: '', ratio: 0.78 }
 }
 
 function buildDivIcon(spot: Spot, selected: boolean, isMobile: boolean): L.DivIcon {
-  const { src: icon, bg, glow, ratio } = pickIcon(spot.name)
+  const { src: icon, bg, glow, ratio } = pickIcon(spot.name, spot.id)
 
   if (selected) {
     const hit  = 48

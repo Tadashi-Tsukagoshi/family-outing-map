@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="5 16 89.7 89.7">
+<line x1="14" y1="51" x2="14" y2="86" stroke="#2b2b2b" stroke-width="4.5" stroke-linecap="round"/><line x1="40" y1="51" x2="40" y2="86" stroke="#2b2b2b" stroke-width="4.5" stroke-linecap="round"/><line x1="60" y1="51" x2="60" y2="86" stroke="#2b2b2b" stroke-width="4.5" stroke-linecap="round"/><line x1="86" y1="51" x2="86" y2="86" stroke="#2b2b2b" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="22,34 78,34 88,52 12,52" fill="#3bb35a" stroke="#2b2b2b" stroke-width="4" stroke-linejoin="round"/>
+<polygon points="22,34 33.2,34 27,52 12,52" fill="#3bb35a"/><polygon points="33.2,34 44.4,34 42,52 27,52" fill="#ffffff"/><polygon points="44.4,34 55.6,34 57,52 42,52" fill="#3bb35a"/><polygon points="55.6,34 66.8,34 72,52 57,52" fill="#ffffff"/><polygon points="66.8,34 78,34 88,52 72,52" fill="#3bb35a"/>
+<polygon points="22,34 78,34 88,52 12,52" fill="none" stroke="#2b2b2b" stroke-width="4" stroke-linejoin="round"/>
+<path d="M 12,52 Q 18.33,59 24.67,52 Q 31.0,59 37.33,52 Q 43.67,59 50.0,52 Q 56.33,59 62.67,52 Q 69.0,59 75.33,52 Q 81.67,59 88.0,52" fill="none" stroke="#2b2b2b" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="50" y1="34" x2="50" y2="26" stroke="#2b2b2b" stroke-width="4" stroke-linecap="round"/>
+<circle cx="50" cy="24" r="3" fill="#ffffff" stroke="#2b2b2b" stroke-width="2.5"/>
+</svg>
