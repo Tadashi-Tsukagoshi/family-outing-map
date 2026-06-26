@@ -3,7 +3,7 @@
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 import { useRef, useState, useMemo, useCallback, useEffect, useLayoutEffect } from 'react'
-import { MapContainer, TileLayer, Marker, Circle, useMap } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Circle, ZoomControl, useMap } from 'react-leaflet'
 import { getCategoryIconSrc, type Category, type Spot } from '@/lib/spots'
 import { getDateDisplay, getEventStatus, STATUS_CONFIG } from '@/lib/date-utils'
 
@@ -533,7 +533,7 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
         center={OTA_CENTER}
         zoom={12}
         style={{ height: '100%', width: '100%' }}
-        zoomControl={!isMobile}
+        zoomControl={false}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -548,6 +548,7 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
           onPinClick={handlePinClick}
           onMapClick={isMobile ? () => { onDetailClose(); onSpotSelect(null); handleImmediateHide() } : () => { onDetailClose(); handleImmediateHide() }}
         />
+        {!isMobile && <ZoomControl position="topright" />}
         <FlyToLocation location={userLocation} radius={locationRadius} />
         <RecenterToOta signal={recenterSignal} />
         <MapResizer detailPanelOpen={detailPanelOpen} />
