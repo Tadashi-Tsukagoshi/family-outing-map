@@ -7,9 +7,9 @@ import { supabaseAdmin } from '@/lib/supabase'
 import type { Metadata } from 'next'
 
 const CATEGORY_IMAGES: Record<Category, string> = {
-  event:      'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80',
-  music:      'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80',
-  exhibition: 'https://images.unsplash.com/photo-1566127992631-137a642a90f4?w=800&q=80',
+  event:     'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80',
+  fireworks: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80',
+  festival:  'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80',
 }
 
 async function getSpot(id: string): Promise<Spot | null> {

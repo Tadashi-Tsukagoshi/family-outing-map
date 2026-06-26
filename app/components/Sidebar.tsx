@@ -1,6 +1,6 @@
 'use client'
 
-import { CATEGORY_LABELS, CATEGORY_COLORS, ICON_PATHS, type Category, type Spot } from '@/lib/spots'
+import { CATEGORY_LABELS, getCategoryIconSrc, isDarkPin, type Category, type Spot } from '@/lib/spots'
 
 type Props = {
   weekendOnly: boolean
@@ -50,18 +50,21 @@ function Toggle({
   )
 }
 
-export function CategoryIcon({ category, active = true, size = 20 }: { category: Category; active?: boolean; size?: number }) {
-  const bg   = active ? CATEGORY_COLORS[category] : '#d1d5db'
-  const icon = Math.round(size * 0.55)
+const ICON_RATIO: Record<Category, number> = { event: 0.92, fireworks: 0.78, festival: 0.92 }
+
+export function CategoryIcon({ category, active = true, size = 20, id }: { category: Category; active?: boolean; size?: number; id?: string }) {
+  const imgSize = Math.round(size * ICON_RATIO[category])
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-      width: size, height: size, borderRadius: '50%',
-      backgroundColor: bg, flexShrink: 0,
+      width: size, height: size, flexShrink: 0,
+      ...(category === 'fireworks' ? { backgroundColor: '#1e1614', borderRadius: '50%', overflow: 'hidden' } : {}),
     }}>
-      <svg viewBox="0 0 24 24" width={icon} height={icon} fill="white">
-        <path d={ICON_PATHS[category]} fillRule="nonzero" />
-      </svg>
+      <img
+        src={getCategoryIconSrc(category, active ? id : undefined)}
+        alt=""
+        style={{ width: imgSize, height: imgSize, objectFit: 'contain', display: 'block', opacity: active ? 1 : 0.35 }}
+      />
     </span>
   )
 }
@@ -193,7 +196,7 @@ export default function Sidebar({
                 style={{ paddingLeft: 24 }}
               >
                 <div className="flex items-center gap-2">
-                  <CategoryIcon category={spot.category} size={20} />
+                  <CategoryIcon category={spot.category} size={20} id={spot.id} />
                   <span className="text-black text-sm leading-tight flex-1 min-w-0 truncate">
                     {spot.name}
                   </span>

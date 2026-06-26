@@ -93,9 +93,9 @@ export default function MapApp() {
     const saved = loadSettings()
     if (saved.weekendOnly !== undefined)    setWeekendOnly(saved.weekendOnly)
     if (saved.activeCategories) {
-      // 旧カテゴリ構成（park/museum/playground/food/event）からの移行措置:
-      // 新設カテゴリ（music/exhibition）は保存データに存在しなくてもデフォルトでオンにする
-      const OLD_CATEGORIES = new Set(['park', 'museum', 'playground', 'food', 'event'])
+      // 旧カテゴリ構成（park/museum/playground/food/event/music/exhibition）からの移行措置:
+      // 新設カテゴリ（fireworks/festival）は保存データに存在しなくてもデフォルトでオンにする
+      const OLD_CATEGORIES = new Set(['park', 'museum', 'playground', 'food', 'event', 'music', 'exhibition'])
       const restored = new Set<Category>()
       for (const cat of Object.keys(CATEGORY_LABELS) as Category[]) {
         if (saved.activeCategories.includes(cat) || !OLD_CATEGORIES.has(cat)) restored.add(cat)

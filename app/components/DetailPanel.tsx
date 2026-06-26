@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { CATEGORY_COLORS, CATEGORY_LIGHT_COLORS, ICON_PATHS, type Category, type Spot } from '@/lib/spots'
+import { CATEGORY_LIGHT_COLORS, type Category, type Spot } from '@/lib/spots'
 import { getDateDisplay, getEventStatus, STATUS_CONFIG } from '@/lib/date-utils'
 
 const POSTER_TYPE_LABELS: Record<string, string> = {
@@ -39,9 +39,9 @@ function forgetLiked(id: string) {
 }
 
 const CATEGORY_IMAGES: Record<Category, string> = {
-  event:      'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400',
-  music:      'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400',
-  exhibition: 'https://images.unsplash.com/photo-1566127992631-137a642a90f4?w=400',
+  event:     'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400',
+  fireworks: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400',
+  festival:  'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400',
 }
 
 type Props = {
@@ -86,7 +86,6 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
   const dateRange   = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
   const statusCfg   = status ? STATUS_CONFIG[status] : null
   const image       = spot.imageUrl || ogpImage || CATEGORY_IMAGES[spot.category]
-  const iconSize    = 11
   const badgeBg     = CATEGORY_LIGHT_COLORS[spot.category]
   const badgeColor  = '#374151'
 
@@ -115,18 +114,6 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
         >
           ×
         </button>
-        {/* カテゴリアイコン */}
-        <span style={{
-          position: 'absolute', bottom: 8, left: 12,
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          width: 26, height: 26, borderRadius: '50%',
-          backgroundColor: CATEGORY_COLORS[spot.category],
-          boxShadow: '0 1px 4px rgba(0,0,0,.3)',
-        }}>
-          <svg viewBox="0 0 24 24" width={iconSize} height={iconSize} fill="white">
-            <path d={ICON_PATHS[spot.category]} fillRule="nonzero" />
-          </svg>
-        </span>
       </div>
 
       {/* コンテンツ */}

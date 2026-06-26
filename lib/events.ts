@@ -1,4 +1,5 @@
 import type { Spot, Category } from './spots'
+import { normalizeCategory } from './spots'
 
 export type CollectedEvent = {
   id: string
@@ -38,7 +39,7 @@ export function eventToSpot(event: CollectedEvent): Spot {
   return {
     id: event.id,
     name: event.name,
-    category: event.category ?? 'event',
+    category: normalizeCategory(event.category),
     lat: event.lat,
     lng: event.lng,
     description: event.description,

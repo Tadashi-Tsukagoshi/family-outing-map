@@ -4,7 +4,7 @@ import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 import { useRef, useState, useMemo, useCallback, useEffect, useLayoutEffect } from 'react'
 import { MapContainer, TileLayer, Marker, Circle, useMap } from 'react-leaflet'
-import type { Category, Spot } from '@/lib/spots'
+import { getCategoryIconSrc, type Category, type Spot } from '@/lib/spots'
 import { getDateDisplay, getEventStatus, STATUS_CONFIG } from '@/lib/date-utils'
 
 // ─── Types ───────────────────────────────────────────────────────
@@ -40,9 +40,9 @@ const DETAIL_PANEL_W = 288
 
 // ─── Unsplash images ─────────────────────────────────────────────
 const CATEGORY_IMAGES: Record<Category, string> = {
-  event:      'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=200',
-  music:      'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=200',
-  exhibition: 'https://images.unsplash.com/photo-1566127992631-137a642a90f4?w=200',
+  event:     'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=200',
+  fireworks: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=200',
+  festival:  'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=200',
 }
 
 // ─── User location icon ──────────────────────────────────────────
@@ -64,20 +64,16 @@ const USER_LOCATION_ICON = L.divIcon({
 })
 
 // ─── Helpers ─────────────────────────────────────────────────────
-const CANOPY_COLORS = ['red', 'blue', 'green'] as const
-
-function pickIcon(name: string, id: string): { src: string; bg: string; glow: string; ratio: number } {
+function pickIcon(category: Category, id: string): { src: string; bg: string; glow: string; ratio: number } {
   const lanternGlow = 'filter:drop-shadow(0 0 1.5px rgba(255,255,255,1)) drop-shadow(0 0 1.5px rgba(255,255,255,1));'
-  if (name.includes('花火')) return { src: '/icons/fireworks.png', bg: '#1e1614', glow: '', ratio: 0.78 }
-  if (name.includes('祭') || name.includes('まつり')) return { src: '/icons/lantern.png', bg: '#1e1614', glow: lanternGlow, ratio: 0.63 }
-  let sum = 0
-  for (let i = 0; i < id.length; i++) sum += id.charCodeAt(i)
-  const color = CANOPY_COLORS[sum % 3]
-  return { src: `/icons/canopy_${color}.svg`, bg: 'white', glow: '', ratio: 0.78 }
+  const src = getCategoryIconSrc(category, id)
+  if (category === 'fireworks') return { src, bg: '#1e1614', glow: '', ratio: 0.78 }
+  if (category === 'festival')  return { src, bg: '#1e1614', glow: lanternGlow, ratio: 0.63 }
+  return { src, bg: 'white', glow: '', ratio: 0.78 }
 }
 
 function buildDivIcon(spot: Spot, selected: boolean, isMobile: boolean): L.DivIcon {
-  const { src: icon, bg, glow, ratio } = pickIcon(spot.name, spot.id)
+  const { src: icon, bg, glow, ratio } = pickIcon(spot.category, spot.id)
 
   if (selected) {
     const hit  = 48
