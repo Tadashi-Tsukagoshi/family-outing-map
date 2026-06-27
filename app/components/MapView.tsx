@@ -6,6 +6,7 @@ import { useRef, useState, useMemo, useCallback, useEffect, useLayoutEffect } fr
 import { MapContainer, TileLayer, Marker, Circle, ZoomControl, useMap } from 'react-leaflet'
 import { getCategoryIconSrc, type Category, type Spot } from '@/lib/spots'
 import { getDateDisplay, getEventStatus, STATUS_CONFIG } from '@/lib/date-utils'
+import { type SheetState } from './BottomSheet'
 
 // ─── Types ───────────────────────────────────────────────────────
 type Props = {
@@ -19,6 +20,7 @@ type Props = {
   onDetailClose: () => void
   detailPanelOpen: boolean
   isMobile?: boolean
+  sheetState?: SheetState
 }
 
 type HoverState = { spot: Spot; x: number; y: number }
@@ -426,7 +428,9 @@ function RecenterToOta({ signal }: { signal: number }) {
 }
 
 // ─── FlyToLocation ───────────────────────────────────────────────
-function FlyToLocation({ location, radius, isMobile }: { location: [number, number] | null; radius: number; isMobile: boolean }) {
+const PEEK_HEIGHT = 72
+
+function FlyToLocation({ location, radius, isMobile, sheetState }: { location: [number, number] | null; radius: number; isMobile: boolean; sheetState: SheetState }) {
   const map = useMap()
   const prevLocationRef = useRef<[number, number] | null>(null)
 
@@ -437,9 +441,16 @@ function FlyToLocation({ location, radius, isMobile }: { location: [number, numb
     const locationChanged = prev?.[0] !== location[0] || prev?.[1] !== location[1]
     prevLocationRef.current = location
 
-    const fitOpts = isMobile
-      ? { paddingTopLeft: [12, 12] as [number, number], paddingBottomRight: [12, map.getSize().y / 2] as [number, number] }
-      : { padding: [12, 12] as [number, number] }
+    let fitOpts: object
+    if (isMobile) {
+      const bottomPad =
+        sheetState === 'mid'  ? map.getSize().y / 2 :
+        sheetState === 'full' ? map.getSize().y * 0.85 :
+        PEEK_HEIGHT
+      fitOpts = { paddingTopLeft: [12, 12] as [number, number], paddingBottomRight: [12, bottomPad] as [number, number] }
+    } else {
+      fitOpts = { padding: [12, 12] as [number, number] }
+    }
 
     map.options.zoomSnap = 0
     if (locationChanged) {
@@ -448,12 +459,12 @@ function FlyToLocation({ location, radius, isMobile }: { location: [number, numb
       map.fitBounds(bounds, { animate: true, duration: 0.3, ...fitOpts })
     }
     map.options.zoomSnap = 1
-  }, [location, radius, isMobile, map])
+  }, [location, radius, isMobile, sheetState, map])
   return null
 }
 
 // ─── MapView（メインコンポーネント） ─────────────────────────────
-export default function MapView({ spots, onSpotSelect, selectedSpot, userLocation = null, locationRadius = 60, recenterSignal = 0, onDetailOpen, onDetailClose, detailPanelOpen, isMobile = false }: Props) {
+export default function MapView({ spots, onSpotSelect, selectedSpot, userLocation = null, locationRadius = 60, recenterSignal = 0, onDetailOpen, onDetailClose, detailPanelOpen, isMobile = false, sheetState = 'closed' }: Props) {
   const wrapperRef  = useRef<HTMLDivElement>(null)
   const [hovered,      setHovered]      = useState<HoverState | null>(null)
   const [pinnedHover,  setPinnedHover]  = useState<HoverState | null>(null)
@@ -548,7 +559,7 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
           onMapClick={isMobile ? () => { onDetailClose(); onSpotSelect(null); handleImmediateHide() } : () => { onDetailClose(); handleImmediateHide() }}
         />
         {!isMobile && <ZoomControl position="topright" />}
-        <FlyToLocation location={userLocation} radius={locationRadius} isMobile={isMobile} />
+        <FlyToLocation location={userLocation} radius={locationRadius} isMobile={isMobile} sheetState={sheetState} />
         <RecenterToOta signal={recenterSignal} />
         <MapResizer detailPanelOpen={detailPanelOpen} />
         <SelectedSpotTracker selectedSpot={selectedSpot} userLocation={userLocation} onHoverChange={handlePinnedHoverChange} isMobile={isMobile} detailPanelOpen={detailPanelOpen} />

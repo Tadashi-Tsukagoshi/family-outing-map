@@ -252,6 +252,7 @@ export default function MapApp() {
           locationRadius={locationRadius}
           recenterSignal={recenterSignal}
           isMobile
+          sheetState={sheetState}
         />
         {/* タイトルボタン＋ポップアップ */}
         <div ref={logoRef} className="fixed top-4 left-4" style={{ zIndex: 999 }}>
