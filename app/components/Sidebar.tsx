@@ -106,13 +106,13 @@ export default function Sidebar({
       {/* フィルター */}
       <div className="p-4 pl-[22px] space-y-5 border-b border-gray-100">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-black">今週末のみ表示</span>
+          <span className="text-sm" style={{ color: '#1F1F1F' }}>今週末のみ表示</span>
           <Toggle checked={weekendOnly} onChange={onWeekendToggle} />
         </div>
 
         <div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-black">現在地を表示</span>
+            <span className="text-sm" style={{ color: '#1F1F1F' }}>現在地を表示</span>
             <Toggle
               checked={hasLocation || locateStatus === 'loading'}
               onChange={hasLocation ? onLocateClear : onLocate}
@@ -145,7 +145,7 @@ export default function Sidebar({
         </div>
 
         <div>
-          <span className="text-sm text-black">カテゴリ</span>
+          <span className="text-sm" style={{ color: '#1F1F1F' }}>カテゴリ</span>
           <div className="flex flex-wrap gap-1.5 mt-2">
             {(Object.keys(CATEGORY_LABELS) as Category[]).map((cat) => {
               const active = activeCategories.has(cat)
@@ -153,14 +153,14 @@ export default function Sidebar({
                 <button
                   key={cat}
                   onClick={() => onCategoryToggle(cat)}
-                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full transition-colors cursor-pointer border ${
+                  className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full transition-colors cursor-pointer border ${
                     active
                       ? 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
                       : 'bg-gray-100 border-transparent text-gray-400 hover:bg-gray-200'
                   }`}
-                  style={{ fontSize: 11 }}
+                  style={{ fontSize: 13, lineHeight: 1 }}
                 >
-                  <CategoryIcon category={cat} active={active} size={13} />
+                  <CategoryIcon category={cat} active={active} size={15} />
                   {CATEGORY_LABELS[cat]}
                 </button>
               )
@@ -173,7 +173,7 @@ export default function Sidebar({
       <div className={`${isSheet ? '' : 'flex-1 min-h-0'} overflow-y-auto border-t border-gray-200`}>
         <div className="py-3 pr-3">
           {!isSheet && (
-            <p className="text-sm text-black mb-2" style={{ paddingLeft: 22 }}>
+            <p className="text-sm mb-2" style={{ paddingLeft: 22, color: '#1F1F1F' }}>
               イベント一覧　<span className="text-xs text-gray-700">{spots.length}件表示中</span>
             </p>
           )}
@@ -197,7 +197,7 @@ export default function Sidebar({
               >
                 <div className="flex items-center gap-2">
                   <CategoryIcon category={spot.category} size={20} id={spot.id} />
-                  <span className="text-black text-sm leading-tight flex-1 min-w-0 truncate">
+                  <span className="text-sm leading-tight flex-1 min-w-0 truncate" style={{ color: '#1F1F1F' }}>
                     {spot.name}
                   </span>
                 </div>
