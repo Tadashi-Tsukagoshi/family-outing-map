@@ -125,7 +125,7 @@ export default function Sidebar({
               <div
                 className={`absolute -top-5 -translate-x-1/2 text-xs font-semibold tabular-nums pointer-events-none whitespace-nowrap ${hasLocation ? 'text-blue-600' : 'text-gray-400'}`}
                 style={{
-                  left: `calc(${((locationRadius - 10) / 90) * 100}% + ${8 - ((locationRadius - 10) / 90) * 16}px)`,
+                  left: `calc(${((locationRadius - 10) / 50) * 100}% + ${8 - ((locationRadius - 10) / 50) * 16}px)`,
                 }}
               >
                 {locationRadius} km
@@ -133,8 +133,8 @@ export default function Sidebar({
               <input
                 type="range"
                 min={10}
-                max={100}
-                step={5}
+                max={60}
+                step={10}
                 value={locationRadius}
                 onChange={(e) => onRadiusChange(Number(e.target.value))}
                 disabled={!hasLocation}

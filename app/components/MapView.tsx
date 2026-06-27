@@ -432,23 +432,18 @@ function FlyToLocation({ location, radius }: { location: [number, number] | null
 
   useEffect(() => {
     if (!location) return
-    const r = radius * 1000
-    const { x: w, y: h } = map.getSize()
-    const targetPx = Math.min(w, h) - 12
-    const cosLat = Math.cos(location[0] * Math.PI / 180)
-    const zoom = Math.floor(
-      Math.log2((targetPx * 40075016.686 * cosLat) / (2 * r * 256))
-    )
+    const bounds = L.latLng(location[0], location[1]).toBounds(radius * 1000 * 2)
     const prev = prevLocationRef.current
     const locationChanged = prev?.[0] !== location[0] || prev?.[1] !== location[1]
     prevLocationRef.current = location
 
+    map.options.zoomSnap = 0
     if (locationChanged) {
-      map.setView(location, zoom, { animate: false })
+      map.fitBounds(bounds, { animate: false, padding: [12, 12] })
     } else {
-      // 半径スライダー変更のみ: 微小なズーム調整
-      map.setView(location, zoom, { animate: true, duration: 0.3 })
+      map.fitBounds(bounds, { animate: true, duration: 0.3, padding: [12, 12] })
     }
+    map.options.zoomSnap = 1
   }, [location, radius, map])
   return null
 }
