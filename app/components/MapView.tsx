@@ -104,6 +104,7 @@ function buildDivIcon(spot: Spot, selected: boolean, isMobile: boolean): L.DivIc
 type MarkersProps = {
   spots: Spot[]
   icons: Record<string, L.DivIcon>
+  selectedSpotId: string | null
   onHoverIn: (spot: Spot, x: number, y: number) => void
   onHoverOut: () => void
   onMapMove: () => void
@@ -111,7 +112,7 @@ type MarkersProps = {
   onMapClick: () => void
 }
 
-function MapMarkers({ spots, icons, onHoverIn, onHoverOut, onMapMove, onPinClick, onMapClick }: MarkersProps) {
+function MapMarkers({ spots, icons, selectedSpotId, onHoverIn, onHoverOut, onMapMove, onPinClick, onMapClick }: MarkersProps) {
   const map = useMap()
 
   useEffect(() => {
@@ -132,6 +133,7 @@ function MapMarkers({ spots, icons, onHoverIn, onHoverOut, onMapMove, onPinClick
           key={spot.id}
           position={[spot.lat, spot.lng]}
           icon={icons[spot.id]}
+          zIndexOffset={spot.id === selectedSpotId ? 1000 : 0}
           eventHandlers={{
             mouseover: () => {
               const pt = map.latLngToContainerPoint([spot.lat, spot.lng])
@@ -555,6 +557,7 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
         <MapMarkers
           spots={spots}
           icons={icons}
+          selectedSpotId={selectedSpot?.id ?? null}
           onHoverIn={handleHoverIn}
           onHoverOut={scheduleHide}
           onMapMove={handleImmediateHide}
