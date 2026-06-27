@@ -426,7 +426,7 @@ function RecenterToOta({ signal }: { signal: number }) {
 }
 
 // ─── FlyToLocation ───────────────────────────────────────────────
-function FlyToLocation({ location, radius }: { location: [number, number] | null; radius: number }) {
+function FlyToLocation({ location, radius, isMobile }: { location: [number, number] | null; radius: number; isMobile: boolean }) {
   const map = useMap()
   const prevLocationRef = useRef<[number, number] | null>(null)
 
@@ -437,14 +437,18 @@ function FlyToLocation({ location, radius }: { location: [number, number] | null
     const locationChanged = prev?.[0] !== location[0] || prev?.[1] !== location[1]
     prevLocationRef.current = location
 
+    const fitOpts = isMobile
+      ? { paddingTopLeft: [12, 12] as [number, number], paddingBottomRight: [12, map.getSize().y / 2] as [number, number] }
+      : { padding: [12, 12] as [number, number] }
+
     map.options.zoomSnap = 0
     if (locationChanged) {
-      map.fitBounds(bounds, { animate: false, padding: [12, 12] })
+      map.fitBounds(bounds, { animate: false, ...fitOpts })
     } else {
-      map.fitBounds(bounds, { animate: true, duration: 0.3, padding: [12, 12] })
+      map.fitBounds(bounds, { animate: true, duration: 0.3, ...fitOpts })
     }
     map.options.zoomSnap = 1
-  }, [location, radius, map])
+  }, [location, radius, isMobile, map])
   return null
 }
 
@@ -544,7 +548,7 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
           onMapClick={isMobile ? () => { onDetailClose(); onSpotSelect(null); handleImmediateHide() } : () => { onDetailClose(); handleImmediateHide() }}
         />
         {!isMobile && <ZoomControl position="topright" />}
-        <FlyToLocation location={userLocation} radius={locationRadius} />
+        <FlyToLocation location={userLocation} radius={locationRadius} isMobile={isMobile} />
         <RecenterToOta signal={recenterSignal} />
         <MapResizer detailPanelOpen={detailPanelOpen} />
         <SelectedSpotTracker selectedSpot={selectedSpot} userLocation={userLocation} onHoverChange={handlePinnedHoverChange} isMobile={isMobile} detailPanelOpen={detailPanelOpen} />
