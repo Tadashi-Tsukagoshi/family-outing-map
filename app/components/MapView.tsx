@@ -433,6 +433,8 @@ const PEEK_HEIGHT = 72
 function FlyToLocation({ location, radius, isMobile, sheetState }: { location: [number, number] | null; radius: number; isMobile: boolean; sheetState: SheetState }) {
   const map = useMap()
   const prevLocationRef = useRef<[number, number] | null>(null)
+  const sheetStateRef = useRef<SheetState>(sheetState)
+  useEffect(() => { sheetStateRef.current = sheetState }, [sheetState])
 
   useEffect(() => {
     if (!location) return
@@ -443,9 +445,10 @@ function FlyToLocation({ location, radius, isMobile, sheetState }: { location: [
 
     let fitOpts: object
     if (isMobile) {
+      const s = sheetStateRef.current
       const bottomPad =
-        sheetState === 'mid'  ? map.getSize().y / 2 :
-        sheetState === 'full' ? map.getSize().y * 0.85 :
+        s === 'mid'  ? map.getSize().y / 2 :
+        s === 'full' ? map.getSize().y * 0.85 :
         PEEK_HEIGHT
       fitOpts = { paddingTopLeft: [12, 12] as [number, number], paddingBottomRight: [12, bottomPad] as [number, number] }
     } else {
@@ -459,7 +462,7 @@ function FlyToLocation({ location, radius, isMobile, sheetState }: { location: [
       map.fitBounds(bounds, { animate: true, duration: 0.3, ...fitOpts })
     }
     map.options.zoomSnap = 1
-  }, [location, radius, isMobile, sheetState, map])
+  }, [location, radius, isMobile, map])
   return null
 }
 
