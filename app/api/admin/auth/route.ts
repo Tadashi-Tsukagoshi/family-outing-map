@@ -3,7 +3,19 @@ import {
   ADMIN_SESSION_COOKIE,
   ADMIN_SESSION_MAX_AGE_SECONDS,
   createAdminSessionToken,
+  verifyAdminSessionToken,
 } from '@/lib/admin-session'
+
+export async function GET() {
+  const adminPassword = process.env.ADMIN_PASSWORD
+  if (!adminPassword) return Response.json({ authed: false })
+
+  const cookieStore  = await cookies()
+  const sessionToken = cookieStore.get(ADMIN_SESSION_COOKIE)?.value
+  const authed       = verifyAdminSessionToken(sessionToken, adminPassword)
+
+  return Response.json({ authed })
+}
 
 export async function POST(req: Request) {
   let body: unknown

@@ -13,7 +13,20 @@ export default function OtaAdminPage() {
   const [loginLoading, setLoginLoading] = useState(false)
 
   useEffect(() => {
-    if (localStorage.getItem(AUTH_KEY) === 'true') setAuthed(true)
+    if (localStorage.getItem(AUTH_KEY) !== 'true') return
+    setAuthed(true)
+
+    // 体感速度維持のため即座に画面を出しつつ、裏でサーバー側セッションの有効性を確認する。
+    // セッションCookieが失効/削除されていた場合はログイン画面に戻す。
+    fetch('/api/admin/auth')
+      .then(res => res.json())
+      .then((data: { authed?: boolean }) => {
+        if (!data.authed) {
+          localStorage.removeItem(AUTH_KEY)
+          setAuthed(false)
+        }
+      })
+      .catch(() => {})
   }, [])
 
   const handleLogin = async (e: React.FormEvent) => {

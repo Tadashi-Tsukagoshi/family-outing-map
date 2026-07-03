@@ -277,7 +277,10 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
       if (!res.ok) {
         let data: Record<string, unknown> = {}
         try { data = await res.json() } catch { /* empty body */ }
-        throw new Error((data.error as string | undefined) ?? '削除に失敗しました')
+        const message = (data.error as string | undefined) ?? '削除に失敗しました'
+        throw new Error(res.status === 403
+          ? `${message}。セッションが切れている可能性があります。ログアウトして再ログインしてください`
+          : message)
       }
       if (editingId === ev.id) handleCancelEdit()
       await loadEvents()
@@ -319,7 +322,12 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
       } catch {
         throw new Error(editingId ? '更新に失敗しました（サーバーエラー）' : '登録に失敗しました（サーバーエラー）')
       }
-      if (!res.ok) throw new Error((data.error as string | undefined) ?? (editingId ? '更新に失敗しました' : '登録に失敗しました'))
+      if (!res.ok) {
+        const message = (data.error as string | undefined) ?? (editingId ? '更新に失敗しました' : '登録に失敗しました')
+        throw new Error(res.status === 403
+          ? `${message}。セッションが切れている可能性があります。ログアウトして再ログインしてください`
+          : message)
+      }
 
       if (!editingId && restrictEditToOwn) {
         const newId    = (data.event as { id?: string } | undefined)?.id
