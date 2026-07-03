@@ -44,6 +44,11 @@ html, body {
   animation: sheet-slide-up 0.3s cubic-bezier(0.32, 0.72, 0, 1) both;
 }
 
+/* ── 画像ライトボックス表示中は地図のズームコントロールを隠す ── */
+body.lightbox-open .leaflet-control-zoom {
+  display: none !important;
+}
+
 /* ── ホバーカード内の説明文（2行クリップ） ── */
 .ltt-desc {
   display: -webkit-box;

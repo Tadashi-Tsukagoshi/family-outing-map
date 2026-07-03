@@ -70,6 +70,11 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
   }, [spot.id])
 
   useEffect(() => {
+    document.body.classList.toggle('lightbox-open', lightboxOpen)
+    return () => { document.body.classList.remove('lightbox-open') }
+  }, [lightboxOpen])
+
+  useEffect(() => {
     setLikes(spot.likes ?? 0)
     setLiked(hasLiked(spot.id))
   }, [spot.id, spot.likes])
