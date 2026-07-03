@@ -4,7 +4,7 @@ import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 import { useRef, useState, useMemo, useCallback, useEffect, useLayoutEffect } from 'react'
 import { MapContainer, TileLayer, Marker, Circle, ZoomControl, useMap } from 'react-leaflet'
-import { getCategoryIconSrc, type Category, type Spot } from '@/lib/spots'
+import { getCategoryIconSrc, BADGE_BG_COLOR, type Category, type Spot } from '@/lib/spots'
 import { getDateDisplay, getEventStatus, STATUS_CONFIG } from '@/lib/date-utils'
 import { type SheetState } from './BottomSheet'
 
@@ -292,7 +292,7 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
               }}>
                 <span style={{
                   display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
-                  background: '#6b7280', color: '#fff', fontSize: 10, fontWeight: 400,
+                  background: BADGE_BG_COLOR, color: '#374151', fontSize: 10, fontWeight: 400,
                 }}>
                   日時
                 </span>
@@ -309,7 +309,7 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
               }}>
                 <span style={{
                   display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
-                  background: '#6b7280', color: '#fff', fontSize: 10, fontWeight: 400,
+                  background: BADGE_BG_COLOR, color: '#374151', fontSize: 10, fontWeight: 400,
                 }}>
                   会場
                 </span>

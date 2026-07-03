@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { CATEGORY_LIGHT_COLORS, type Category, type Spot } from '@/lib/spots'
+import { BADGE_BG_COLOR, type Category, type Spot } from '@/lib/spots'
 import { getDateDisplay, getEventStatus, STATUS_CONFIG } from '@/lib/date-utils'
 
 const POSTER_TYPE_LABELS: Record<string, string> = {
@@ -104,7 +104,7 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
   const dateRange   = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
   const statusCfg   = status ? STATUS_CONFIG[status] : null
   const image       = spot.imageUrl || ogpImage || CATEGORY_IMAGES[spot.category]
-  const badgeBg     = CATEGORY_LIGHT_COLORS[spot.category]
+  const badgeBg     = BADGE_BG_COLOR
   const badgeColor  = '#374151'
 
   const isManualImage = !!spot.imageUrl
