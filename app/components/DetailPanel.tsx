@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { CATEGORY_LIGHT_COLORS, type Category, type Spot } from '@/lib/spots'
 import { getDateDisplay, getEventStatus, STATUS_CONFIG } from '@/lib/date-utils'
 
@@ -304,7 +305,7 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
       </div>
     </aside>
 
-    {lightboxOpen && isManualImage && (
+    {lightboxOpen && isManualImage && typeof document !== 'undefined' && createPortal(
       <div
         onClick={() => setLightboxOpen(false)}
         style={{
@@ -334,7 +335,8 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
           alt=""
           style={{ maxWidth: '90vw', maxHeight: '90vh', objectFit: 'contain' }}
         />
-      </div>
+      </div>,
+      document.body
     )}
     </>
   )
