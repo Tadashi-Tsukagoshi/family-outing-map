@@ -54,6 +54,7 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
   const [ogpImage, setOgpImage] = useState<string | null>(null)
   const [likes, setLikes] = useState(spot.likes ?? 0)
   const [liked, setLiked] = useState(false)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
 
   useEffect(() => {
     setOgpImage(null)
@@ -63,6 +64,10 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
       .then(d => setOgpImage((d.imageUrl as string | null) ?? null))
       .catch(() => {})
   }, [spot.id, spot.url, spot.imageUrl])
+
+  useEffect(() => {
+    setLightboxOpen(false)
+  }, [spot.id])
 
   useEffect(() => {
     setLikes(spot.likes ?? 0)
@@ -89,14 +94,30 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
   const badgeBg     = CATEGORY_LIGHT_COLORS[spot.category]
   const badgeColor  = '#374151'
 
+  const isManualImage = !!spot.imageUrl
+  const isOgpImage    = !spot.imageUrl && !!ogpImage && !!spot.url
+
+  const handleImageClick = () => {
+    if (isManualImage) {
+      setLightboxOpen(true)
+    } else if (isOgpImage) {
+      window.open(spot.url, '_blank', 'noopener,noreferrer')
+    }
+  }
+
   return (
+    <>
     <aside className={`bg-white flex flex-col overflow-hidden ${mobile ? 'w-full h-full' : 'w-72 h-full shadow-lg'}`}>
       {/* ヘッダー画像 */}
       <div className="relative shrink-0">
         <img
           src={image}
           alt=""
-          style={{ display: 'block', width: '100%', height: 160, objectFit: 'cover' }}
+          onClick={(isManualImage || isOgpImage) ? handleImageClick : undefined}
+          style={{
+            display: 'block', width: '100%', height: 160, objectFit: 'cover',
+            cursor: (isManualImage || isOgpImage) ? 'pointer' : undefined,
+          }}
           onError={(e) => { (e.currentTarget as HTMLImageElement).src = CATEGORY_IMAGES[spot.category] }}
         />
         <button
@@ -270,5 +291,39 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
         </div>
       </div>
     </aside>
+
+    {lightboxOpen && isManualImage && (
+      <div
+        onClick={() => setLightboxOpen(false)}
+        style={{
+          position: 'fixed', inset: 0, zIndex: 9999,
+          background: 'rgba(0,0,0,0.85)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer',
+        }}
+      >
+        <button
+          onClick={() => setLightboxOpen(false)}
+          aria-label="閉じる"
+          style={{
+            position: 'absolute', top: 16, right: 16,
+            width: 36, height: 36, borderRadius: '50%',
+            background: 'white', color: '#111',
+            border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 20, lineHeight: 1,
+            boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+          }}
+        >
+          ×
+        </button>
+        <img
+          src={spot.imageUrl}
+          alt=""
+          style={{ maxWidth: '90vw', maxHeight: '90vh', objectFit: 'contain' }}
+        />
+      </div>
+    )}
+    </>
   )
 }
