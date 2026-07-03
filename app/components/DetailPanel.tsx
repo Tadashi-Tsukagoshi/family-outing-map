@@ -70,8 +70,15 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
   }, [spot.id])
 
   useEffect(() => {
-    document.body.classList.toggle('lightbox-open', lightboxOpen)
-    return () => { document.body.classList.remove('lightbox-open') }
+    const zoomControl = document.querySelector('.leaflet-control-zoom') as HTMLElement | null
+    if (zoomControl) {
+      zoomControl.style.display = lightboxOpen ? 'none' : ''
+    }
+    return () => {
+      if (zoomControl) {
+        zoomControl.style.display = ''
+      }
+    }
   }, [lightboxOpen])
 
   useEffect(() => {
