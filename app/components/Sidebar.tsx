@@ -237,7 +237,7 @@ export default function Sidebar({
             href="https://docs.google.com/forms/d/e/1FAIpQLSfjd2ErqEMLI7gDMk4O5iutIRSUMI6AD0hkJSnN3tAT5UjIXA/viewform?usp=publish-editor"
             target="_blank"
             rel="noopener noreferrer"
-            className="block text-xs text-blue-500 underline pl-[22px] pr-3 py-3"
+            className="block text-sm text-blue-500 underline pl-[22px] pr-3 py-3"
           >
             イベント情報をお寄せください
           </a>
