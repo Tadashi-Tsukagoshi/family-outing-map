@@ -1,10 +1,11 @@
 'use client'
 
-import { CATEGORY_LABELS, getCategoryIconSrc, isDarkPin, type Category, type Spot } from '@/lib/spots'
+import { CATEGORY_LABELS, PERIOD_LABELS, getCategoryIconSrc, isDarkPin, type Category, type PeriodFilter, type Spot } from '@/lib/spots'
+import { getDateDisplay } from '@/lib/date-utils'
 
 type Props = {
-  weekendOnly: boolean
-  onWeekendToggle: () => void
+  periodFilter: PeriodFilter
+  onPeriodChange: (p: PeriodFilter) => void
   activeCategories: Set<Category>
   onCategoryToggle: (cat: Category) => void
   spots: Spot[]
@@ -70,8 +71,8 @@ export function CategoryIcon({ category, active = true, size = 20, id }: { categ
 }
 
 export default function Sidebar({
-  weekendOnly,
-  onWeekendToggle,
+  periodFilter,
+  onPeriodChange,
   activeCategories,
   onCategoryToggle,
   spots,
@@ -106,8 +107,16 @@ export default function Sidebar({
       {/* フィルター */}
       <div className="p-4 pl-[22px] space-y-5 border-b border-gray-100">
         <div className="flex items-center justify-between">
-          <span className="text-sm" style={{ color: '#1F1F1F' }}>今週末のみ表示</span>
-          <Toggle checked={weekendOnly} onChange={onWeekendToggle} />
+          <span className="text-sm" style={{ color: '#1F1F1F' }}>表示期間</span>
+          <select
+            value={periodFilter}
+            onChange={(e) => onPeriodChange(e.target.value as PeriodFilter)}
+            className="text-sm border border-gray-300 rounded-md px-2 py-1 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-400"
+          >
+            {(Object.keys(PERIOD_LABELS) as PeriodFilter[]).map((key) => (
+              <option key={key} value={key}>{PERIOD_LABELS[key]}</option>
+            ))}
+          </select>
         </div>
 
         <div>
@@ -178,31 +187,37 @@ export default function Sidebar({
             </p>
           )}
           <div className="space-y-1">
-            {spots.map((spot) => (
-              <button
-                key={spot.id}
-                onClick={() => {
-                  if (isSheet && onSpotSelect) {
-                    onSpotSelect(selectedSpot?.id === spot.id ? null : spot)
-                  } else {
-                    selectedSpot?.id === spot.id ? onDetailClose() : onDetailOpen(spot)
-                  }
-                }}
-                className={`w-full text-left py-2.5 pr-3 rounded-lg text-sm transition-colors cursor-pointer ${
-                  selectedSpot?.id === spot.id
-                    ? 'bg-blue-50 border border-blue-200'
-                    : 'hover:bg-gray-50 border border-transparent'
-                }`}
-                style={{ paddingLeft: 24 }}
-              >
-                <div className="flex items-center gap-2">
-                  <CategoryIcon category={spot.category} size={20} id={spot.id} />
-                  <span className="text-sm leading-tight flex-1 min-w-0 truncate" style={{ color: '#1F1F1F' }}>
-                    {spot.name}
-                  </span>
-                </div>
-              </button>
-            ))}
+            {spots.map((spot) => {
+              const dateDisplay = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
+              return (
+                <button
+                  key={spot.id}
+                  onClick={() => {
+                    if (isSheet && onSpotSelect) {
+                      onSpotSelect(selectedSpot?.id === spot.id ? null : spot)
+                    } else {
+                      selectedSpot?.id === spot.id ? onDetailClose() : onDetailOpen(spot)
+                    }
+                  }}
+                  className={`w-full text-left py-2.5 pr-3 rounded-lg text-sm transition-colors cursor-pointer ${
+                    selectedSpot?.id === spot.id
+                      ? 'bg-blue-50 border border-blue-200'
+                      : 'hover:bg-gray-50 border border-transparent'
+                  }`}
+                  style={{ paddingLeft: 24 }}
+                >
+                  <div className="flex items-center gap-2">
+                    <CategoryIcon category={spot.category} size={20} id={spot.id} />
+                    <span className="text-sm leading-tight flex-1 min-w-0 truncate" style={{ color: '#1F1F1F' }}>
+                      {spot.name}
+                    </span>
+                  </div>
+                  {dateDisplay && (
+                    <p className="text-[11px] text-gray-400 truncate mt-0.5 pl-7">{dateDisplay}</p>
+                  )}
+                </button>
+              )
+            })}
             {spots.length === 0 && (
               <p className="text-xs text-gray-400 text-center py-8">
                 条件に合うスポットがありません
