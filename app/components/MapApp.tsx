@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic'
 import Sidebar from './Sidebar'
 import DetailPanel from './DetailPanel'
 import BottomSheet, { type SheetState } from './BottomSheet'
-import { CATEGORY_LABELS, type Category, type Spot } from '@/lib/spots'
+import { CATEGORY_LABELS, type Category, type PeriodFilter, type Spot } from '@/lib/spots'
 import { eventToSpot, type EventsDatabase } from '@/lib/events'
 import { getEventStatus } from '@/lib/date-utils'
 
@@ -13,14 +13,19 @@ import { getEventStatus } from '@/lib/date-utils'
 const STORAGE_KEY = 'outing-map-settings'
 
 type SavedSettings = {
-  weekendOnly: boolean
+  periodFilter: PeriodFilter
   activeCategories: Category[]
 }
 
 function loadSettings(): Partial<SavedSettings> {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? (JSON.parse(raw) as SavedSettings) : {}
+    if (!raw) return {}
+    const parsed = JSON.parse(raw) as Partial<SavedSettings> & { weekendOnly?: boolean }
+    if (parsed.periodFilter === undefined && parsed.weekendOnly !== undefined) {
+      parsed.periodFilter = parsed.weekendOnly ? '2w' : 'all'
+    }
+    return parsed
   } catch {
     return {}
   }
@@ -41,28 +46,6 @@ const MapView = dynamic(() => import('./MapView'), {
   ),
 })
 
-function getThisWeekendDates(): string[] {
-  const today = new Date()
-  const day = today.getDay()
-  const fmt = (d: Date) => d.toISOString().split('T')[0]
-
-  if (day === 6) {
-    const sun = new Date(today)
-    sun.setDate(today.getDate() + 1)
-    return [fmt(today), fmt(sun)]
-  }
-  if (day === 0) {
-    const sat = new Date(today)
-    sat.setDate(today.getDate() - 1)
-    return [fmt(sat), fmt(today)]
-  }
-  const sat = new Date(today)
-  sat.setDate(today.getDate() + (6 - day))
-  const sun = new Date(sat)
-  sun.setDate(sat.getDate() + 1)
-  return [fmt(sat), fmt(sun)]
-}
-
 export default function MapApp() {
   const [isMobile, setIsMobile] = useState(false)
   const [headerExpanded, setHeaderExpanded] = useState(true)
@@ -75,7 +58,7 @@ export default function MapApp() {
     return () => window.removeEventListener('resize', check)
   }, [])
 
-  const [weekendOnly, setWeekendOnly] = useState(false)
+  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('all')
   const [activeCategories, setActiveCategories] = useState<Set<Category>>(
     () => new Set(Object.keys(CATEGORY_LABELS) as Category[])
   )
@@ -91,7 +74,7 @@ export default function MapApp() {
   // ハイドレーション後にlocalStorageから設定を復元
   useEffect(() => {
     const saved = loadSettings()
-    if (saved.weekendOnly !== undefined)    setWeekendOnly(saved.weekendOnly)
+    if (saved.periodFilter !== undefined)    setPeriodFilter(saved.periodFilter)
     if (saved.activeCategories) {
       // 旧カテゴリ構成（park/museum/playground/food/event/music/exhibition）からの移行措置:
       // 新設カテゴリ（fireworks/festival）は保存データに存在しなくてもデフォルトでオンにする
@@ -142,12 +125,10 @@ export default function MapApp() {
 
   useEffect(() => {
     saveSettings({
-      weekendOnly,
+      periodFilter,
       activeCategories: Array.from(activeCategories),
     })
-  }, [weekendOnly, activeCategories, locationRadius])
-
-  const weekendDates = useMemo(() => getThisWeekendDates(), [])
+  }, [periodFilter, activeCategories, locationRadius])
 
   const loadEvents = useCallback(async () => {
     try {
@@ -188,19 +169,33 @@ export default function MapApp() {
     return allSpots.filter((spot) => {
       if (!activeCategories.has(spot.category)) return false
       if (getEventStatus(spot.startDate, spot.endDate) === 'ended') return false
-      if (weekendOnly) {
-        // 期間情報があるイベント: 週末がその期間内に含まれるか確認
-        if (spot.startDate && spot.endDate) {
-          return weekendDates.some(
-            (d) => spot.startDate! <= d && d <= spot.endDate!,
-          )
+      if (periodFilter !== 'all') {
+        // 期間の終了日を計算
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        const cutoff = new Date(today)
+        switch (periodFilter) {
+          case '2w': cutoff.setDate(cutoff.getDate() + 14); break
+          case '1m': cutoff.setMonth(cutoff.getMonth() + 1); break
+          case '2m': cutoff.setMonth(cutoff.getMonth() + 2); break
+          case '3m': cutoff.setMonth(cutoff.getMonth() + 3); break
+          case '6m': cutoff.setMonth(cutoff.getMonth() + 6); break
         }
-        // 固定スポット: 事前設定の weekendDates で判定
-        return spot.weekendDates.some((d) => weekendDates.includes(d))
+        const cutoffStr = cutoff.toISOString().split('T')[0]
+        const todayStr = today.toISOString().split('T')[0]
+        // 日付のあるイベント: 開始日が期間内、または期間内に開催中
+        if (spot.startDate || spot.endDate) {
+          const start = spot.startDate ?? spot.endDate!
+          const end = spot.endDate ?? spot.startDate!
+          // イベント期間と選択期間が重なるか判定
+          return start <= cutoffStr && end >= todayStr
+        }
+        // 日程未定（schedule_noteのみ）のイベントは常に表示
+        return true
       }
       return true
     })
-  }, [allSpots, weekendOnly, activeCategories, weekendDates])
+  }, [allSpots, periodFilter, activeCategories])
 
   const toggleCategory = (cat: Category) => {
     setActiveCategories((prev) => {
@@ -212,8 +207,8 @@ export default function MapApp() {
   }
 
   const sidebarProps = {
-    weekendOnly,
-    onWeekendToggle: () => setWeekendOnly((v) => !v),
+    periodFilter,
+    onPeriodChange: setPeriodFilter,
     activeCategories,
     onCategoryToggle: toggleCategory,
     spots: filteredSpots,

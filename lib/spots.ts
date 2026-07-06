@@ -51,6 +51,17 @@ export const CATEGORY_COLORS: Record<Category, string> = {
 
 export const BADGE_BG_COLOR = '#dbeafe'
 
+export type PeriodFilter = 'all' | '2w' | '1m' | '2m' | '3m' | '6m'
+
+export const PERIOD_LABELS: Record<PeriodFilter, string> = {
+  all: 'すべて',
+  '2w': '2週間以内',
+  '1m': '1ヶ月以内',
+  '2m': '2ヶ月以内',
+  '3m': '3ヶ月以内',
+  '6m': '6ヶ月以内',
+}
+
 export const ICON_PATHS: Record<Category, string> = {
   event:     'M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z',
   fireworks: 'M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z',
