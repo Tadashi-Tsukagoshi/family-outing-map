@@ -105,7 +105,7 @@ export default function Sidebar({
       )}
 
       {/* フィルター */}
-      <div className="p-4 pl-[22px] space-y-5 border-b border-gray-100">
+      <div className="p-4 pl-[22px] space-y-3 border-b border-gray-100">
         <div className="flex items-center justify-between">
           <span className="text-sm" style={{ color: '#1F1F1F' }}>表示期間</span>
           <select
@@ -223,20 +223,15 @@ export default function Sidebar({
                 条件に合うスポットがありません
               </p>
             )}
+            <a href="/ended-events" className="block text-xs text-gray-400 text-center py-4">
+              終了イベントを見る
+            </a>
           </div>
         </div>
       </div>
 
       {/* フッターリンク */}
       <div className="border-t border-gray-200 flex flex-col mb-10">
-        <a
-          href="/ended-events"
-          className="text-xs text-black flex items-center pl-[22px] pr-3"
-          style={{ height: 36 }}
-        >
-          終了イベントを見る
-        </a>
-        {!isSheet && <div className="border-t border-gray-200" />}
         {!isSheet && (
           <a
             href="https://docs.google.com/forms/d/e/1FAIpQLSfjd2ErqEMLI7gDMk4O5iutIRSUMI6AD0hkJSnN3tAT5UjIXA/viewform?usp=publish-editor"
