@@ -213,7 +213,7 @@ export default function Sidebar({
                     </span>
                   </div>
                   {dateDisplay && (
-                    <p className="text-[11px] text-gray-400 truncate mt-0.5 pl-7">{dateDisplay}</p>
+                    <p className="text-[11px] text-gray-500 truncate mt-0.5 pl-7">{dateDisplay}</p>
                   )}
                 </button>
               )
