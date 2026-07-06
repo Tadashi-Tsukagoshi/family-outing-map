@@ -186,7 +186,7 @@ export default function Sidebar({
               イベント一覧　<span className="text-xs text-gray-700">{spots.length}件表示中</span>
             </p>
           )}
-          <div className="space-y-1">
+          <div className="space-y-0">
             {spots.map((spot) => {
               const dateDisplay = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
               return (
@@ -199,7 +199,7 @@ export default function Sidebar({
                       selectedSpot?.id === spot.id ? onDetailClose() : onDetailOpen(spot)
                     }
                   }}
-                  className={`w-full text-left py-1.5 pr-3 rounded-lg text-sm transition-colors cursor-pointer ${
+                  className={`w-full text-left py-1 pr-3 rounded-lg text-sm transition-colors cursor-pointer ${
                     selectedSpot?.id === spot.id
                       ? 'bg-blue-50 border border-blue-200'
                       : 'hover:bg-gray-50 border border-transparent'
