@@ -108,15 +108,20 @@ export default function Sidebar({
       <div className="p-4 pl-[22px] space-y-5 border-b border-gray-100">
         <div className="flex items-center justify-between">
           <span className="text-sm" style={{ color: '#1F1F1F' }}>表示期間</span>
-          <select
-            value={periodFilter}
-            onChange={(e) => onPeriodChange(e.target.value as PeriodFilter)}
-            className="text-sm border border-gray-300 rounded-md px-2 py-1 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-400"
-          >
-            {(Object.keys(PERIOD_LABELS) as PeriodFilter[]).map((key) => (
-              <option key={key} value={key}>{PERIOD_LABELS[key]}</option>
-            ))}
-          </select>
+          <div className="flex items-center gap-1">
+            <select
+              value={periodFilter}
+              onChange={(e) => onPeriodChange(e.target.value as PeriodFilter)}
+              className="text-sm border border-gray-300 rounded-md px-2 py-1 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-400"
+            >
+              {(Object.keys(PERIOD_LABELS) as PeriodFilter[]).map((key) => (
+                <option key={key} value={key}>{PERIOD_LABELS[key]}</option>
+              ))}
+            </select>
+            {periodFilter !== 'all' && (
+              <span className="text-sm text-gray-700">以内</span>
+            )}
+          </div>
         </div>
 
         <div>

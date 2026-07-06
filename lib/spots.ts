@@ -55,11 +55,11 @@ export type PeriodFilter = 'all' | '2w' | '1m' | '2m' | '3m' | '6m'
 
 export const PERIOD_LABELS: Record<PeriodFilter, string> = {
   all: 'すべて',
-  '2w': '2週間以内',
-  '1m': '1ヶ月以内',
-  '2m': '2ヶ月以内',
-  '3m': '3ヶ月以内',
-  '6m': '6ヶ月以内',
+  '2w': '2週間',
+  '1m': '1ヶ月',
+  '2m': '2ヶ月',
+  '3m': '3ヶ月',
+  '6m': '6ヶ月',
 }
 
 export const ICON_PATHS: Record<Category, string> = {
