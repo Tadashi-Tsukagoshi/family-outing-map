@@ -48,7 +48,7 @@ export async function POST(req: Request) {
     url:           ((b.url as string | undefined) ?? '').trim() || null,
     collected_at:  new Date().toISOString(),
     posted_by:     ((b.postedBy as string | undefined) ?? '匿名').trim() || '匿名',
-    poster_type:   (b.posterType as string) ?? 'general',
+    poster_type:   (b.posterType as string) || 'general',
     edit_token:    editToken,
   }
 

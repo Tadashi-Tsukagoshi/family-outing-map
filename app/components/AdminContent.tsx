@@ -125,10 +125,8 @@ function appendMyEvent(id: string, token: string): MyEvent[] {
 
 // ─── 管理画面本体 ──────────────────────────────────────────────────
 export default function AdminContent({ posterTypeOptions, fixedPosterType, onLogout, restrictEditToOwn }: Props) {
-  const [form, setForm]                   = useState<FormState>({
-    ...INITIAL,
-    posterType: fixedPosterType ?? 'general',
-  })
+  const getInitialPosterType = () => fixedPosterType ?? posterTypeOptions?.[0]?.value ?? 'general'
+  const [form, setForm]                   = useState<FormState>({ ...INITIAL, posterType: getInitialPosterType() })
   const [geoStatus,    setGeoStatus]      = useState<GeoStatus>('idle')
   const [geoMessage,   setGeoMessage]     = useState('')
   const [submitStatus, setSubmitStatus]   = useState<SubmitStatus>('idle')
@@ -255,7 +253,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
 
   const handleCancelEdit = () => {
     setEditingId(null)
-    setForm({ ...INITIAL, posterType: fixedPosterType ?? 'general' })
+    setForm({ ...INITIAL, posterType: getInitialPosterType() })
     setGeoStatus('idle')
     setGeoMessage('')
     setImageStatus('idle')
@@ -311,6 +309,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
         headers,
         body:    JSON.stringify({
         ...form,
+        posterType:   fixedPosterType ?? form.posterType,
         scheduleNote: form.dateConfirmed ? '' : form.scheduleNote,
         startDate:    form.dateConfirmed ? form.startDate : '',
         endDate:      form.dateConfirmed ? form.endDate   : '',
@@ -340,7 +339,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
       setSubmitMessage(editingId
         ? `「${eventName}」を更新しました！`
         : `「${eventName}」を登録しました！`)
-      setForm(INITIAL)
+      setForm({ ...INITIAL, posterType: getInitialPosterType() })
       setEditingId(null)
       setGeoStatus('idle')
       setGeoMessage('')
