@@ -146,6 +146,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
   const [pendingEvents,   setPendingEvents]   = useState<CollectedEvent[]>([])
   const [pendingLoading,  setPendingLoading]  = useState(true)
   const [pendingActionId, setPendingActionId] = useState<string | null>(null)
+  const [expandedPendingId, setExpandedPendingId] = useState<string | null>(null)
   const geoTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const formRef  = useRef<HTMLFormElement>(null)
 
@@ -792,43 +793,112 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
               <p className="text-sm text-gray-400">承認待ちのイベントはありません。</p>
             ) : (
               <ul className="space-y-2">
-                {pendingEvents.map(ev => (
-                  <li
-                    key={ev.id}
-                    className="bg-white rounded-xl border border-amber-200 px-4 py-3 flex items-start gap-3"
-                  >
-                    <span className="mt-0.5 flex-shrink-0">
-                      <CategoryIcon category={ev.category ?? 'event'} size={20} />
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-800 truncate">{ev.name}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">{formatDateRange(ev)} · {ev.venue}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        投稿者：{ev.postedBy ?? '匿名'}（{POSTER_TYPE_LABELS[ev.posterType ?? 'general'] ?? ev.posterType}）
-                      </p>
-                    </div>
-                    <div className="flex gap-1.5 flex-shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => handleModerate(ev, 'approved')}
-                        disabled={pendingActionId === ev.id}
-                        className="px-2.5 py-1 text-xs rounded-lg border border-green-200 text-green-600
-                          hover:bg-green-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                {pendingEvents.map(ev => {
+                  const expanded = expandedPendingId === ev.id
+                  return (
+                    <li
+                      key={ev.id}
+                      className="bg-white rounded-xl border border-amber-200 overflow-hidden"
+                    >
+                      <div
+                        onClick={() => setExpandedPendingId(expanded ? null : ev.id)}
+                        className="px-4 py-3 flex items-start gap-3 cursor-pointer"
                       >
-                        承認
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleModerate(ev, 'rejected')}
-                        disabled={pendingActionId === ev.id}
-                        className="px-2.5 py-1 text-xs rounded-lg border border-red-200 text-red-500
-                          hover:bg-red-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
-                      >
-                        却下
-                      </button>
-                    </div>
-                  </li>
-                ))}
+                        <span className="mt-0.5 flex-shrink-0">
+                          <CategoryIcon category={ev.category ?? 'event'} size={20} />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-800 truncate">{ev.name}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">{formatDateRange(ev)} · {ev.venue}</p>
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            投稿者：{ev.postedBy ?? '匿名'}（{POSTER_TYPE_LABELS[ev.posterType ?? 'general'] ?? ev.posterType}）
+                          </p>
+                        </div>
+                        <div
+                          onClick={e => e.stopPropagation()}
+                          className="flex gap-1.5 flex-shrink-0"
+                        >
+                          <button
+                            type="button"
+                            onClick={() => handleModerate(ev, 'approved')}
+                            disabled={pendingActionId === ev.id}
+                            className="px-2.5 py-1 text-xs rounded-lg border border-green-200 text-green-600
+                              hover:bg-green-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                          >
+                            承認
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleModerate(ev, 'rejected')}
+                            disabled={pendingActionId === ev.id}
+                            className="px-2.5 py-1 text-xs rounded-lg border border-red-200 text-red-500
+                              hover:bg-red-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                          >
+                            却下
+                          </button>
+                        </div>
+                        <span className="mt-1 flex-shrink-0 text-gray-300 text-[10px] select-none">
+                          {expanded ? '▲' : '▼'}
+                        </span>
+                      </div>
+
+                      {expanded && (
+                        <div className="px-4 pb-3 pt-2 border-t border-amber-100 space-y-2">
+                          {ev.description && (
+                            <p className="text-xs text-gray-600 whitespace-pre-wrap leading-relaxed">
+                              {ev.description}
+                            </p>
+                          )}
+                          <dl className="text-xs text-gray-500 space-y-1">
+                            <div className="flex gap-1">
+                              <dt className="flex-shrink-0 text-gray-400">カテゴリ：</dt>
+                              <dd>{CATEGORY_LABELS[ev.category ?? 'event']}</dd>
+                            </div>
+                            {ev.scheduleNote && (
+                              <div className="flex gap-1">
+                                <dt className="flex-shrink-0 text-gray-400">日程メモ：</dt>
+                                <dd>{ev.scheduleNote}</dd>
+                              </div>
+                            )}
+                            {ev.fee && (
+                              <div className="flex gap-1">
+                                <dt className="flex-shrink-0 text-gray-400">料金：</dt>
+                                <dd>{ev.fee}</dd>
+                              </div>
+                            )}
+                            <div className="flex gap-1">
+                              <dt className="flex-shrink-0 text-gray-400">位置：</dt>
+                              <dd className="tabular-nums">{ev.lat.toFixed(6)}, {ev.lng.toFixed(6)}</dd>
+                            </div>
+                            {ev.url && (
+                              <div className="flex gap-1 min-w-0">
+                                <dt className="flex-shrink-0 text-gray-400">URL：</dt>
+                                <dd className="min-w-0">
+                                  <a
+                                    href={ev.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-500 underline break-all"
+                                  >
+                                    {ev.url}
+                                  </a>
+                                </dd>
+                              </div>
+                            )}
+                          </dl>
+                          {ev.imageUrl && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={ev.imageUrl}
+                              alt=""
+                              className="max-h-40 rounded-lg border border-gray-200 object-cover"
+                            />
+                          )}
+                        </div>
+                      )}
+                    </li>
+                  )
+                })}
               </ul>
             )}
           </section>
