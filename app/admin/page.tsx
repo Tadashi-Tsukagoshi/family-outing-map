@@ -6,6 +6,7 @@ export default function AdminPage() {
   return (
     <AdminContent
       restrictEditToOwn
+      hideEventList
       posterTypeOptions={[
         { value: 'general',   label: '一般ユーザー' },
         { value: 'organizer', label: '主催者' },

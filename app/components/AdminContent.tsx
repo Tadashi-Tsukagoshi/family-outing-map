@@ -61,6 +61,8 @@ type Props = {
   restrictEditToOwn?: boolean
   /** true の場合、承認待ちイベントの承認・却下セクションを表示する（運営用の /ota-admin 用） */
   showApprovalSection?: boolean
+  /** true の場合、「登録済みイベント一覧」セクションを非表示にする（一般公開の /admin 用） */
+  hideEventList?: boolean
 }
 
 // ─── ユーティリティ ────────────────────────────────────────────────
@@ -126,7 +128,7 @@ function appendMyEvent(id: string, token: string): MyEvent[] {
 }
 
 // ─── 管理画面本体 ──────────────────────────────────────────────────
-export default function AdminContent({ posterTypeOptions, fixedPosterType, onLogout, restrictEditToOwn, showApprovalSection }: Props) {
+export default function AdminContent({ posterTypeOptions, fixedPosterType, onLogout, restrictEditToOwn, showApprovalSection, hideEventList }: Props) {
   const getInitialPosterType = () => fixedPosterType ?? posterTypeOptions?.[0]?.value ?? 'general'
   const [form, setForm]                   = useState<FormState>({ ...INITIAL, posterType: getInitialPosterType() })
   const [geoStatus,    setGeoStatus]      = useState<GeoStatus>('idle')
@@ -833,6 +835,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
         )}
 
         {/* 登録済みイベント一覧 */}
+        {!hideEventList && (
         <section>
           <h2 className="text-sm font-semibold text-gray-700 mb-3">登録済みイベント</h2>
           {eventsLoading ? (
@@ -879,6 +882,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
             </ul>
           )}
         </section>
+        )}
 
       </main>
 
