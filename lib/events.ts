@@ -33,6 +33,15 @@ export type EventsDatabase = {
   lastCollected: string | null
 }
 
+export function formatDateRange(event: CollectedEvent): string {
+  if (event.scheduleNote) return event.scheduleNote
+  const start = event.startDate ?? event.date ?? ''
+  const end   = event.endDate   ?? event.date ?? ''
+  if (!start && !end) return '日程未定'
+  if (start === end)  return start
+  return `${start} 〜 ${end}`
+}
+
 export function eventToSpot(event: CollectedEvent): Spot {
   const start = event.startDate ?? event.date
   const end   = event.endDate   ?? event.date
