@@ -7,6 +7,7 @@ export default function AdminPage() {
     <AdminContent
       restrictEditToOwn
       hideEventList
+      showApprovalNotice
       posterTypeOptions={[
         { value: 'general',   label: '一般ユーザー' },
         { value: 'organizer', label: '主催者' },

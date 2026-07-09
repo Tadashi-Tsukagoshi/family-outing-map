@@ -63,6 +63,8 @@ type Props = {
   showApprovalSection?: boolean
   /** true の場合、「登録済みイベント一覧」セクションを非表示にする（一般公開の /admin 用） */
   hideEventList?: boolean
+  /** true の場合、投稿が承認制であることを投稿前・投稿後に案内する（一般公開の /admin 用） */
+  showApprovalNotice?: boolean
 }
 
 // ─── ユーティリティ ────────────────────────────────────────────────
@@ -128,7 +130,7 @@ function appendMyEvent(id: string, token: string): MyEvent[] {
 }
 
 // ─── 管理画面本体 ──────────────────────────────────────────────────
-export default function AdminContent({ posterTypeOptions, fixedPosterType, onLogout, restrictEditToOwn, showApprovalSection, hideEventList }: Props) {
+export default function AdminContent({ posterTypeOptions, fixedPosterType, onLogout, restrictEditToOwn, showApprovalSection, hideEventList, showApprovalNotice }: Props) {
   const getInitialPosterType = () => fixedPosterType ?? posterTypeOptions?.[0]?.value ?? 'general'
   const [form, setForm]                   = useState<FormState>({ ...INITIAL, posterType: getInitialPosterType() })
   const [geoStatus,    setGeoStatus]      = useState<GeoStatus>('idle')
@@ -384,7 +386,9 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
       const eventName = (data.event as { name?: string } | undefined)?.name ?? form.name
       setSubmitMessage(editingId
         ? `「${eventName}」を更新しました！`
-        : `「${eventName}」を登録しました！`)
+        : showApprovalNotice
+          ? `「${eventName}」の投稿を受け付けました。運営が確認後、地図に掲載されます。`
+          : `「${eventName}」を登録しました！`)
       setForm({ ...INITIAL, posterType: getInitialPosterType() })
       setEditingId(null)
       setGeoStatus('idle')
@@ -428,6 +432,11 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
           <h2 className="text-sm font-semibold text-gray-700 mb-3">
             {editingId ? 'イベントを編集' : 'イベントを新規登録'}
           </h2>
+          {showApprovalNotice && !editingId && (
+            <p className="mb-3 rounded-xl bg-gray-100 px-4 py-2.5 text-xs text-gray-500 leading-relaxed">
+              投稿いただいたイベントは、運営の確認後に地図に掲載されます
+            </p>
+          )}
           <form ref={formRef} onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-5">
 
             {editingId && (
