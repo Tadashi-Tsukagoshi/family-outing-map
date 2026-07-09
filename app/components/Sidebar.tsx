@@ -101,6 +101,12 @@ export default function Sidebar({
             今週末、家族でどこ行く？<br />
             群馬県のイベントを地図で発見！
           </p>
+          <a
+            href="/admin"
+            className="inline-flex items-center gap-1 mt-3 px-4 py-2 rounded-full text-sm font-semibold text-white bg-green-500 hover:bg-green-600 transition-colors"
+          >
+            ＋ イベントを投稿
+          </a>
         </div>
       )}
 
@@ -239,7 +245,7 @@ export default function Sidebar({
             rel="noopener noreferrer"
             className="block text-sm text-blue-500 underline pl-[22px] pr-3 py-3"
           >
-            イベント情報をお寄せください
+            お問い合わせ
           </a>
         )}
         <p className="text-[8px] text-gray-300 pl-[22px] pr-3 mt-auto pt-2">

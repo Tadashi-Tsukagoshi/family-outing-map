@@ -281,11 +281,20 @@ export default function MapApp() {
                 onClick={e => e.stopPropagation()}
                 className="inline-block mt-2 text-xs text-blue-500 underline"
               >
-                イベント情報をお寄せください
+                お問い合わせ
               </a>
             </div>
           )}
         </div>
+
+        {/* イベント投稿ボタン */}
+        <a
+          href="/admin"
+          className="fixed top-4 right-4 inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold text-white cursor-pointer select-none"
+          style={{ backgroundColor: '#22c55e', boxShadow: '0 2px 6px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.15)', zIndex: 999 }}
+        >
+          ＋ 投稿
+        </a>
 
         <BottomSheet
           spotCount={filteredSpots.length}
