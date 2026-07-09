@@ -31,6 +31,8 @@ export async function POST(req: Request) {
   }
 
   const editToken = crypto.randomUUID()
+  const posterType = (b.posterType as string) || 'general'
+  const status = posterType === 'staff' ? 'approved' : 'pending'
 
   const newEvent = {
     id:            `event-${crypto.randomUUID()}`,
@@ -48,8 +50,9 @@ export async function POST(req: Request) {
     url:           ((b.url as string | undefined) ?? '').trim() || null,
     collected_at:  new Date().toISOString(),
     posted_by:     ((b.postedBy as string | undefined) ?? '匿名').trim() || '匿名',
-    poster_type:   (b.posterType as string) || 'general',
+    poster_type:   posterType,
     edit_token:    editToken,
+    status,
   }
 
   const supabase = supabaseAdmin()
@@ -76,6 +79,7 @@ export async function POST(req: Request) {
     collectedAt: newEvent.collected_at,
     postedBy:    newEvent.posted_by,
     posterType:  newEvent.poster_type as CollectedEvent['posterType'],
+    status:      newEvent.status as CollectedEvent['status'],
   }
 
   return Response.json({ success: true, event: responseEvent, editToken }, { status: 201 })

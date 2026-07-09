@@ -25,6 +25,7 @@ export type CollectedEvent = {
   likes?: number
   editedBy?: string
   editedAt?: string
+  status?: 'pending' | 'approved' | 'rejected'
 }
 
 export type EventsDatabase = {

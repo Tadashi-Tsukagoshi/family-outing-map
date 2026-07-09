@@ -1,4 +1,5 @@
 import crypto from 'crypto'
+import type { NextRequest } from 'next/server'
 
 /**
  * /ota-admin の運営セッションを表す署名付きトークン。
@@ -36,4 +37,15 @@ export function verifyAdminSessionToken(token: string | undefined | null, secret
   } catch {
     return false
   }
+}
+
+/** 運営（ota-admin）としてのリクエストかどうかを、セッションCookieまたは x-admin-key ヘッダで判定する */
+export function isAdminRequest(req: NextRequest): boolean {
+  const adminPassword = process.env.ADMIN_PASSWORD
+  if (!adminPassword) return false
+
+  const adminKey     = req.headers.get('x-admin-key')
+  const sessionToken = req.cookies.get(ADMIN_SESSION_COOKIE)?.value
+
+  return adminKey === adminPassword || verifyAdminSessionToken(sessionToken, adminPassword)
 }

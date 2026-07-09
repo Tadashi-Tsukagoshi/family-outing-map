@@ -62,6 +62,7 @@ export default function OtaAdminPage() {
     return (
       <AdminContent
         fixedPosterType="staff"
+        showApprovalSection
         onLogout={handleLogout}
       />
     )

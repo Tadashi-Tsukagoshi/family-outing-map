@@ -5,6 +5,7 @@ export async function GET() {
   const { data, error } = await supabase
     .from('events')
     .select('id, name, description, start_date, end_date, schedule_note, venue, fee, image_url, lat, lng, category, url, collected_at, posted_by, poster_type, likes, edited_by, edited_at')
+    .eq('status', 'approved')
     .order('start_date', { ascending: true })
 
   if (error) {

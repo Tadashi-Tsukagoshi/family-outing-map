@@ -59,6 +59,8 @@ type Props = {
   /** true の場合、localStorage "myEvents" に記録された自分の投稿にのみ編集・削除ボタンを表示し、
    *  PUT/DELETE リクエストに x-edit-token ヘッダを付与する（一般公開の /admin 用） */
   restrictEditToOwn?: boolean
+  /** true の場合、承認待ちイベントの承認・却下セクションを表示する（運営用の /ota-admin 用） */
+  showApprovalSection?: boolean
 }
 
 // ─── ユーティリティ ────────────────────────────────────────────────
@@ -124,7 +126,7 @@ function appendMyEvent(id: string, token: string): MyEvent[] {
 }
 
 // ─── 管理画面本体 ──────────────────────────────────────────────────
-export default function AdminContent({ posterTypeOptions, fixedPosterType, onLogout, restrictEditToOwn }: Props) {
+export default function AdminContent({ posterTypeOptions, fixedPosterType, onLogout, restrictEditToOwn, showApprovalSection }: Props) {
   const getInitialPosterType = () => fixedPosterType ?? posterTypeOptions?.[0]?.value ?? 'general'
   const [form, setForm]                   = useState<FormState>({ ...INITIAL, posterType: getInitialPosterType() })
   const [geoStatus,    setGeoStatus]      = useState<GeoStatus>('idle')
@@ -139,6 +141,9 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
   const [events,        setEvents]        = useState<CollectedEvent[]>([])
   const [eventsLoading, setEventsLoading] = useState(true)
   const [myEvents,      setMyEvents]      = useState<MyEvent[]>([])
+  const [pendingEvents,   setPendingEvents]   = useState<CollectedEvent[]>([])
+  const [pendingLoading,  setPendingLoading]  = useState(true)
+  const [pendingActionId, setPendingActionId] = useState<string | null>(null)
   const geoTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const formRef  = useRef<HTMLFormElement>(null)
 
@@ -163,6 +168,44 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
   }
 
   useEffect(() => { loadEvents() }, [])
+
+  const loadPendingEvents = async () => {
+    setPendingLoading(true)
+    try {
+      const res  = await fetch('/api/events/pending')
+      const data = await res.json()
+      setPendingEvents(data.events ?? [])
+    } catch {
+      setPendingEvents([])
+    } finally {
+      setPendingLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (showApprovalSection) loadPendingEvents()
+  }, [showApprovalSection])
+
+  const handleModerate = async (ev: CollectedEvent, status: 'approved' | 'rejected') => {
+    setPendingActionId(ev.id)
+    try {
+      const res = await fetch(`/api/events/${ev.id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error((data.error as string | undefined) ?? '更新に失敗しました')
+      }
+      setPendingEvents(prev => prev.filter(e => e.id !== ev.id))
+      if (status === 'approved') await loadEvents()
+    } catch (e) {
+      alert(e instanceof Error ? e.message : '更新に失敗しました')
+    } finally {
+      setPendingActionId(null)
+    }
+  }
 
   const set = <K extends keyof FormState>(key: K, val: FormState[K]) =>
     setForm(f => ({ ...f, [key]: val }))
@@ -734,6 +777,60 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
             </button>
           </form>
         </section>
+
+        {/* 承認待ちイベント */}
+        {showApprovalSection && (
+          <section>
+            <h2 className="text-sm font-semibold text-gray-700 mb-3">
+              承認待ちイベント{pendingEvents.length > 0 ? `（${pendingEvents.length}件）` : ''}
+            </h2>
+            {pendingLoading ? (
+              <p className="text-sm text-gray-400">読み込み中...</p>
+            ) : pendingEvents.length === 0 ? (
+              <p className="text-sm text-gray-400">承認待ちのイベントはありません。</p>
+            ) : (
+              <ul className="space-y-2">
+                {pendingEvents.map(ev => (
+                  <li
+                    key={ev.id}
+                    className="bg-white rounded-xl border border-amber-200 px-4 py-3 flex items-start gap-3"
+                  >
+                    <span className="mt-0.5 flex-shrink-0">
+                      <CategoryIcon category={ev.category ?? 'event'} size={20} />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-800 truncate">{ev.name}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{formatDateRange(ev)} · {ev.venue}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        投稿者：{ev.postedBy ?? '匿名'}（{POSTER_TYPE_LABELS[ev.posterType ?? 'general'] ?? ev.posterType}）
+                      </p>
+                    </div>
+                    <div className="flex gap-1.5 flex-shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleModerate(ev, 'approved')}
+                        disabled={pendingActionId === ev.id}
+                        className="px-2.5 py-1 text-xs rounded-lg border border-green-200 text-green-600
+                          hover:bg-green-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                      >
+                        承認
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleModerate(ev, 'rejected')}
+                        disabled={pendingActionId === ev.id}
+                        className="px-2.5 py-1 text-xs rounded-lg border border-red-200 text-red-500
+                          hover:bg-red-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                      >
+                        却下
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
 
         {/* 登録済みイベント一覧 */}
         <section>
