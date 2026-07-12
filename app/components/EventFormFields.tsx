@@ -194,7 +194,7 @@ export default function EventFormFields({
     setImageMessage('')
   }
 
-  const categories = (isPermanent ? ['park'] : Object.keys(CATEGORY_LABELS)) as Category[]
+  const categories = Object.keys(CATEGORY_LABELS) as Category[]
 
   return (
     <>
@@ -240,22 +240,26 @@ export default function EventFormFields({
       {/* カテゴリ */}
       <div>
         <Label required>カテゴリ</Label>
-        <div className={`grid gap-2 ${categories.length === 1 ? 'grid-cols-1' : 'grid-cols-4'}`}>
-          {categories.map(cat => (
-            <button
-              key={cat}
-              type="button"
-              disabled={disabled}
-              onClick={() => set('category', cat)}
-              className={`flex flex-col items-center gap-1 py-2.5 rounded-xl border text-xs font-medium transition-colors cursor-pointer
-                ${form.category === cat
-                  ? 'border-green-400 bg-green-50 text-green-700'
-                  : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
-            >
-              <CategoryIcon category={cat} active={form.category === cat} size={28} />
-              {CATEGORY_LABELS[cat].replace('・', '・\n')}
-            </button>
-          ))}
+        <div className="grid grid-cols-4 gap-2">
+          {categories.map(cat => {
+            const categoryDisabled = disabled || (isPermanent && cat !== 'park')
+            return (
+              <button
+                key={cat}
+                type="button"
+                disabled={categoryDisabled}
+                onClick={() => set('category', cat)}
+                className={`flex flex-col items-center gap-1 py-2.5 rounded-xl border text-xs font-medium transition-colors
+                  ${categoryDisabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'}
+                  ${form.category === cat
+                    ? 'border-green-400 bg-green-50 text-green-700'
+                    : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
+              >
+                <CategoryIcon category={cat} active={form.category === cat} size={28} />
+                {CATEGORY_LABELS[cat].replace('・', '・\n')}
+              </button>
+            )
+          })}
         </div>
       </div>
 
