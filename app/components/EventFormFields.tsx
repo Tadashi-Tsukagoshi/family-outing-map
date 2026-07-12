@@ -194,7 +194,7 @@ export default function EventFormFields({
     setImageMessage('')
   }
 
-  const categories = Object.keys(CATEGORY_LABELS) as Category[]
+  const categories = (isPermanent ? ['park'] : Object.keys(CATEGORY_LABELS)) as Category[]
 
   return (
     <>
@@ -222,7 +222,10 @@ export default function EventFormFields({
               key={opt.value}
               type="button"
               disabled={disabled}
-              onClick={() => set('type', opt.value)}
+              onClick={() => {
+                set('type', opt.value)
+                if (opt.value === 'permanent' && form.category !== 'park') set('category', 'park')
+              }}
               className={`flex-1 py-2 rounded-xl border text-sm font-medium transition-colors cursor-pointer
                 ${form.type === opt.value
                   ? 'border-green-400 bg-green-50 text-green-700'
@@ -237,7 +240,7 @@ export default function EventFormFields({
       {/* カテゴリ */}
       <div>
         <Label required>カテゴリ</Label>
-        <div className="grid grid-cols-4 gap-2">
+        <div className={`grid gap-2 ${categories.length === 1 ? 'grid-cols-1' : 'grid-cols-4'}`}>
           {categories.map(cat => (
             <button
               key={cat}
