@@ -198,9 +198,9 @@ export default function EventFormFields({
 
   return (
     <>
-      {/* イベント名 */}
+      {/* イベント・施設名 */}
       <div>
-        <Label required>イベント名</Label>
+        <Label required>イベント・施設名</Label>
         <Input
           value={form.name}
           onChange={e => set('name', e.target.value)}

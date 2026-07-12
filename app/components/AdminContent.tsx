@@ -302,11 +302,11 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
         {/* 登録 / 編集フォーム */}
         <section>
           <h2 className="text-sm font-semibold text-gray-700 mb-3">
-            {editingId ? 'イベントを編集' : 'イベントを新規登録'}
+            {editingId ? 'イベントを編集' : '新規登録'}
           </h2>
           {showApprovalNotice && !editingId && (
             <p className="mb-3 text-xs text-gray-900 leading-relaxed">
-              ※ 投稿いただいたイベントは、運営の確認後に地図に掲載されます
+              ※ 投稿いただいた内容は、運営の確認後に地図に掲載されます
             </p>
           )}
           <form ref={formRef} onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-5">
