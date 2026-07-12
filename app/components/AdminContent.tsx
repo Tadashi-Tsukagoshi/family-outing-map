@@ -355,7 +355,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
             >
               {isSubmitting
                 ? (editingId ? '更新中...' : '登録中...')
-                : (editingId ? '上書き保存' : 'イベントを登録する')}
+                : (editingId ? '上書き保存' : '投稿する')}
             </button>
           </form>
         </section>
