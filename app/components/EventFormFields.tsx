@@ -334,14 +334,14 @@ export default function EventFormFields({
       </div>
 
       {/* 会場名 */}
-      <div>
-        <Label required>会場名</Label>
+      <div className={isPermanent ? 'opacity-40' : undefined}>
+        <Label required={!isPermanent}>会場名</Label>
         <Input
           value={form.venue}
           onChange={e => set('venue', e.target.value)}
           placeholder="例：太田市総合体育館"
-          required
-          disabled={disabled}
+          required={!isPermanent}
+          disabled={disabled || isPermanent}
         />
       </div>
 

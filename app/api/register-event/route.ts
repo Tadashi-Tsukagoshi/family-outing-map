@@ -14,7 +14,7 @@ export async function POST(req: Request) {
   const b = body as Record<string, unknown>
 
   const name         = (b.name         as string | undefined)?.trim()
-  const venue        = (b.venue        as string | undefined)?.trim()
+  const venue        = ((b.venue as string | undefined) ?? '').trim()
   const fee          = (b.fee          as string | undefined)?.trim() || null
   const imageUrl     = (b.imageUrl     as string | undefined)?.trim() || null
   const startDate    = (b.startDate    as string | undefined)?.trim()
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
   const isPermanent  = type === 'permanent'
 
   if (!name)  return Response.json({ error: 'イベント名は必須です' }, { status: 400 })
-  if (!venue) return Response.json({ error: '会場名は必須です' },     { status: 400 })
+  if (!isPermanent && !venue) return Response.json({ error: '会場名は必須です' },     { status: 400 })
   if (!isPermanent && !scheduleNote && !startDate) return Response.json({ error: '開始日は必須です' }, { status: 400 })
   if (!isPermanent && !scheduleNote && !endDate)   return Response.json({ error: '終了日は必須です' }, { status: 400 })
   if (lat === undefined || lng === undefined) {

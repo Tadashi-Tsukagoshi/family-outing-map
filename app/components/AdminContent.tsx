@@ -347,9 +347,9 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
             {/* 送信ボタン */}
             <button
               type="submit"
-              disabled={isSubmitting || imageUploading || !form.name || !form.venue ||
+              disabled={isSubmitting || imageUploading || !form.name ||
                 (form.type === 'permanent' ? false :
-                  (form.dateConfirmed ? (!form.startDate || !form.endDate) : !form.scheduleNote))}
+                  !form.venue || (form.dateConfirmed ? (!form.startDate || !form.endDate) : !form.scheduleNote))}
               className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-colors cursor-pointer
                 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
