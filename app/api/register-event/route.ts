@@ -1,5 +1,6 @@
 import crypto from 'crypto'
 import { supabaseAdmin } from '@/lib/supabase'
+import { normalizeEventType } from '@/lib/spots'
 import type { CollectedEvent } from '@/lib/events'
 
 export async function POST(req: Request) {
@@ -21,11 +22,13 @@ export async function POST(req: Request) {
   const scheduleNote = (b.scheduleNote as string | undefined)?.trim() || null
   const lat          = typeof b.lat === 'number' ? b.lat : undefined
   const lng          = typeof b.lng === 'number' ? b.lng : undefined
+  const type         = normalizeEventType(b.type)
+  const isPermanent  = type === 'permanent'
 
   if (!name)  return Response.json({ error: 'イベント名は必須です' }, { status: 400 })
   if (!venue) return Response.json({ error: '会場名は必須です' },     { status: 400 })
-  if (!scheduleNote && !startDate) return Response.json({ error: '開始日は必須です' }, { status: 400 })
-  if (!scheduleNote && !endDate)   return Response.json({ error: '終了日は必須です' }, { status: 400 })
+  if (!isPermanent && !scheduleNote && !startDate) return Response.json({ error: '開始日は必須です' }, { status: 400 })
+  if (!isPermanent && !scheduleNote && !endDate)   return Response.json({ error: '終了日は必須です' }, { status: 400 })
   if (lat === undefined || lng === undefined) {
     return Response.json({ error: '緯度経度を取得してください' }, { status: 400 })
   }
@@ -38,15 +41,16 @@ export async function POST(req: Request) {
     id:            `event-${crypto.randomUUID()}`,
     name,
     description:   ((b.description as string | undefined) ?? '').trim(),
-    start_date:    scheduleNote ? null : (startDate ?? null),
-    end_date:      scheduleNote ? null : (endDate   ?? null),
-    schedule_note: scheduleNote,
+    start_date:    isPermanent || scheduleNote ? null : (startDate ?? null),
+    end_date:      isPermanent || scheduleNote ? null : (endDate   ?? null),
+    schedule_note: isPermanent ? null : scheduleNote,
     venue,
     fee,
     image_url:     imageUrl,
     lat,
     lng,
     category:      (b.category as string) ?? 'event',
+    type,
     url:           ((b.url as string | undefined) ?? '').trim() || null,
     collected_at:  new Date().toISOString(),
     posted_by:     ((b.postedBy as string | undefined) ?? '匿名').trim() || '匿名',
@@ -75,6 +79,7 @@ export async function POST(req: Request) {
     lat:         newEvent.lat,
     lng:         newEvent.lng,
     category:    newEvent.category as CollectedEvent['category'],
+    type:        newEvent.type,
     url:         newEvent.url ?? undefined,
     collectedAt: newEvent.collected_at,
     postedBy:    newEvent.posted_by,

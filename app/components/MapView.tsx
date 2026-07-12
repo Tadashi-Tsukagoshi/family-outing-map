@@ -5,7 +5,7 @@ import L from 'leaflet'
 import { useRef, useState, useMemo, useCallback, useEffect, useLayoutEffect } from 'react'
 import { MapContainer, TileLayer, Marker, Circle, ZoomControl, useMap } from 'react-leaflet'
 import { getCategoryIconSrc, BADGE_BG_COLOR, type Category, type Spot } from '@/lib/spots'
-import { getDateDisplay, getEventStatus, STATUS_CONFIG } from '@/lib/date-utils'
+import { getDateDisplay, getEventStatus, STATUS_CONFIG, PERMANENT_STATUS } from '@/lib/date-utils'
 import { type SheetState } from './BottomSheet'
 
 // ─── Types ───────────────────────────────────────────────────────
@@ -45,6 +45,7 @@ const CATEGORY_IMAGES: Record<Category, string> = {
   event:     'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=200',
   fireworks: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=200',
   festival:  'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=200',
+  park:      'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=200',
 }
 
 // ─── User location icon ──────────────────────────────────────────
@@ -214,9 +215,10 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
   }, [hovered, wrapperRef])
 
   const { spot } = hovered
+  const isPermanent = spot.type === 'permanent'
   const status    = getEventStatus(spot.startDate, spot.endDate)
   const dateRange = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
-  const statusCfg = status ? STATUS_CONFIG[status] : null
+  const statusCfg = isPermanent ? PERMANENT_STATUS : (status ? STATUS_CONFIG[status] : null)
 
   return (
     <div
@@ -284,7 +286,7 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
                 日程未確定
               </p>
             )}
-            {dateRange && (
+            {(isPermanent || dateRange) && (
               <p style={{
                 display: 'flex', alignItems: 'center', gap: 6,
                 fontSize: 11, margin: '0 0 2px', color: '#6b7280',
@@ -297,7 +299,7 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
                   日時
                 </span>
                 <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {dateRange}
+                  {isPermanent ? '常設施設' : dateRange}
                 </span>
               </p>
             )}

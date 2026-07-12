@@ -1,5 +1,5 @@
-import type { Spot, Category } from './spots'
-import { normalizeCategory } from './spots'
+import type { Spot, Category, EventType } from './spots'
+import { normalizeCategory, normalizeEventType } from './spots'
 
 export type CollectedEvent = {
   id: string
@@ -18,6 +18,8 @@ export type CollectedEvent = {
   url?: string
   imageUrl?: string
   category?: Category
+  /** 'event'=期間限定イベント, 'permanent'=常設施設（未指定時は 'event' 扱い） */
+  type?: EventType
   collectedAt: string
   postedBy?: string
   posterType?: 'general' | 'organizer' | 'business' | 'staff'
@@ -34,6 +36,7 @@ export type EventsDatabase = {
 }
 
 export function formatDateRange(event: CollectedEvent): string {
+  if (event.type === 'permanent') return '常設施設'
   if (event.scheduleNote) return event.scheduleNote
   const start = event.startDate ?? event.date ?? ''
   const end   = event.endDate   ?? event.date ?? ''
@@ -50,6 +53,7 @@ export function eventToSpot(event: CollectedEvent): Spot {
     id: event.id,
     name: event.name,
     category: normalizeCategory(event.category),
+    type: normalizeEventType(event.type),
     lat: event.lat,
     lng: event.lng,
     description: event.description,

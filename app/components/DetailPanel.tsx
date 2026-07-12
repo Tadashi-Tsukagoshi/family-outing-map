@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { BADGE_BG_COLOR, type Category, type Spot } from '@/lib/spots'
-import { getDateDisplay, getEventStatus, STATUS_CONFIG } from '@/lib/date-utils'
+import { getDateDisplay, getEventStatus, STATUS_CONFIG, PERMANENT_STATUS } from '@/lib/date-utils'
 
 const POSTER_TYPE_LABELS: Record<string, string> = {
   general:   '一般ユーザー',
@@ -43,6 +43,7 @@ const CATEGORY_IMAGES: Record<Category, string> = {
   event:     'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400',
   fireworks: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400',
   festival:  'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400',
+  park:      'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400',
 }
 
 type Props = {
@@ -100,9 +101,10 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
     } catch {}
   }
 
+  const isPermanent = spot.type === 'permanent'
   const status      = getEventStatus(spot.startDate, spot.endDate)
   const dateRange   = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
-  const statusCfg   = status ? STATUS_CONFIG[status] : null
+  const statusCfg   = isPermanent ? PERMANENT_STATUS : (status ? STATUS_CONFIG[status] : null)
   const image       = spot.imageUrl || ogpImage || CATEGORY_IMAGES[spot.category]
   const badgeBg     = BADGE_BG_COLOR
   const badgeColor  = '#374151'
@@ -196,7 +198,7 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
                 {likes}
               </span>
             </button>
-            {dateRange && (
+            {(isPermanent || dateRange) && (
               <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#374151', margin: 0 }}>
                 <span style={{
                   display: 'inline-block', padding: '1px 4px', borderRadius: 4,
@@ -204,7 +206,7 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
                 }}>
                   日時
                 </span>
-                {dateRange}
+                {isPermanent ? '常設施設' : dateRange}
               </p>
             )}
           </div>

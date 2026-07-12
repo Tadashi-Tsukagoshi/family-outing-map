@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { CATEGORY_LABELS, type Category } from '@/lib/spots'
+import { CATEGORY_LABELS, type Category, type EventType } from '@/lib/spots'
 import { CategoryIcon } from './Sidebar'
 import type { CollectedEvent } from '@/lib/events'
 import { resizeImage } from '@/lib/image-utils'
@@ -14,6 +14,7 @@ export type PosterType = 'general' | 'organizer' | 'business' | 'staff'
 export type FormState = {
   name:          string
   category:      Category
+  type:          EventType
   dateConfirmed: boolean
   startDate:     string
   endDate:       string
@@ -42,6 +43,7 @@ export const POSTER_TYPE_LABELS: Record<string, string> = {
 
 export const INITIAL_FORM: FormState = {
   name: '', category: 'event',
+  type: 'event',
   dateConfirmed: true,
   startDate: '', endDate: '', scheduleNote: '',
   venue: '', fee: '', imageUrl: '', address: '',
@@ -56,6 +58,7 @@ export function eventToFormState(ev: CollectedEvent): FormState {
   return {
     name:          ev.name,
     category:      ev.category ?? 'event',
+    type:          ev.type ?? 'event',
     dateConfirmed: !hasScheduleNote,
     startDate:     ev.startDate ?? ev.date ?? '',
     endDate:       ev.endDate   ?? ev.date ?? '',
@@ -130,6 +133,7 @@ export default function EventFormFields({
   const geoTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const set = onChange
+  const isPermanent = form.type === 'permanent'
 
   const geocode = async (address: string) => {
     if (!address.trim()) return
@@ -206,10 +210,34 @@ export default function EventFormFields({
         />
       </div>
 
+      {/* 種別 */}
+      <div>
+        <Label required>種別</Label>
+        <div className="flex gap-2">
+          {([
+            { value: 'event' as const,     label: '期間限定イベント' },
+            { value: 'permanent' as const, label: '常設施設' },
+          ]).map(opt => (
+            <button
+              key={opt.value}
+              type="button"
+              disabled={disabled}
+              onClick={() => set('type', opt.value)}
+              className={`flex-1 py-2 rounded-xl border text-sm font-medium transition-colors cursor-pointer
+                ${form.type === opt.value
+                  ? 'border-green-400 bg-green-50 text-green-700'
+                  : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* カテゴリ */}
       <div>
         <Label required>カテゴリ</Label>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           {categories.map(cat => (
             <button
               key={cat}
@@ -229,14 +257,14 @@ export default function EventFormFields({
       </div>
 
       {/* 日程確定トグル */}
-      <div>
-        <Label required>日程</Label>
+      <div className={isPermanent ? 'opacity-40' : undefined}>
+        <Label required={!isPermanent}>日程</Label>
         <div className="flex gap-2 mb-3">
           {([true, false] as const).map(confirmed => (
             <button
               key={String(confirmed)}
               type="button"
-              disabled={disabled}
+              disabled={disabled || isPermanent}
               onClick={() => set('dateConfirmed', confirmed)}
               className={`flex-1 py-2 rounded-xl border text-sm font-medium transition-colors cursor-pointer
                 ${form.dateConfirmed === confirmed
@@ -251,24 +279,24 @@ export default function EventFormFields({
         {form.dateConfirmed ? (
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label required>開始日</Label>
+              <Label required={!isPermanent}>開始日</Label>
               <Input
                 type="date"
                 value={form.startDate}
                 onChange={e => set('startDate', e.target.value)}
-                required
-                disabled={disabled}
+                required={!isPermanent}
+                disabled={disabled || isPermanent}
               />
             </div>
             <div>
-              <Label required>終了日</Label>
+              <Label required={!isPermanent}>終了日</Label>
               <Input
                 type="date"
                 value={form.endDate}
                 min={form.startDate}
                 onChange={e => set('endDate', e.target.value)}
-                required
-                disabled={disabled}
+                required={!isPermanent}
+                disabled={disabled || isPermanent}
               />
             </div>
           </div>
@@ -285,13 +313,13 @@ export default function EventFormFields({
               </div>
             </div>
             <div>
-              <Label required>開催予定時期</Label>
+              <Label required={!isPermanent}>開催予定時期</Label>
               <Input
                 value={form.scheduleNote}
                 onChange={e => set('scheduleNote', e.target.value)}
                 placeholder="例：7月下旬頃"
-                required
-                disabled={disabled}
+                required={!isPermanent}
+                disabled={disabled || isPermanent}
               />
             </div>
           </>

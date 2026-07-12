@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { CATEGORY_LABELS, CATEGORY_COLORS, CATEGORY_EMOJIS, type Category, type Spot } from '@/lib/spots'
 import { eventToSpot } from '@/lib/events'
-import { getDateDisplay, getEventStatus, STATUS_CONFIG } from '@/lib/date-utils'
+import { getDateDisplay, getEventStatus, STATUS_CONFIG, PERMANENT_STATUS } from '@/lib/date-utils'
 import { supabaseAdmin } from '@/lib/supabase'
 import type { Metadata } from 'next'
 
@@ -10,6 +10,7 @@ const CATEGORY_IMAGES: Record<Category, string> = {
   event:     'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80',
   fireworks: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80',
   festival:  'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80',
+  park:      'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80',
 }
 
 async function getSpot(id: string): Promise<Spot | null> {
@@ -32,6 +33,7 @@ async function getSpot(id: string): Promise<Spot | null> {
     lat:         data.lat,
     lng:         data.lng,
     category:    data.category,
+    type:        data.type ?? undefined,
     url:          data.url ?? undefined,
     collectedAt:  data.collected_at,
     postedBy:     data.posted_by,
@@ -77,9 +79,10 @@ export default async function EventDetailPage({ params }: Props) {
     (spot.url ? await fetchOgpImage(spot.url) : null) ||
     CATEGORY_IMAGES[spot.category]
 
+  const isPermanent = spot.type === 'permanent'
   const status    = getEventStatus(spot.startDate, spot.endDate)
   const dateRange = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
-  const statusCfg = status ? STATUS_CONFIG[status] : null
+  const statusCfg = isPermanent ? PERMANENT_STATUS : (status ? STATUS_CONFIG[status] : null)
   const catColor  = CATEGORY_COLORS[spot.category]
 
   return (
@@ -131,12 +134,12 @@ export default async function EventDetailPage({ params }: Props) {
             <h1 className="text-2xl font-bold text-gray-900 leading-tight">{spot.name}</h1>
 
             {/* 日程・会場 */}
-            {(dateRange || spot.venue) && (
+            {(isPermanent || dateRange || spot.venue) && (
               <dl className="space-y-2">
-                {dateRange && (
+                {(isPermanent || dateRange) && (
                   <div className="flex items-start gap-2 text-sm text-gray-700">
                     <dt className="w-5 flex-shrink-0 text-base leading-snug">📅</dt>
-                    <dd>{dateRange}</dd>
+                    <dd>{isPermanent ? '常設施設' : dateRange}</dd>
                   </div>
                 )}
                 {spot.venue && (

@@ -51,7 +51,7 @@ function Toggle({
   )
 }
 
-const ICON_RATIO: Record<Category, number> = { event: 0.92, fireworks: 0.78, festival: 0.92 }
+const ICON_RATIO: Record<Category, number> = { event: 0.92, fireworks: 0.78, festival: 0.92, park: 0.92 }
 
 export function CategoryIcon({ category, active = true, size = 20, id }: { category: Category; active?: boolean; size?: number; id?: string }) {
   const imgSize = Math.round(size * ICON_RATIO[category])

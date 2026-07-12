@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   const supabase = supabaseAdmin()
   const { data, error } = await supabase
     .from('events')
-    .select('id, name, description, start_date, end_date, schedule_note, venue, fee, image_url, lat, lng, category, url, collected_at, posted_by, poster_type, status')
+    .select('id, name, description, start_date, end_date, schedule_note, venue, fee, image_url, lat, lng, category, type, url, collected_at, posted_by, poster_type, status')
     .eq('status', 'pending')
     .order('collected_at', { ascending: false })
 
@@ -33,6 +33,7 @@ export async function GET(req: NextRequest) {
     lat: e.lat,
     lng: e.lng,
     category: e.category,
+    type: e.type ?? 'event',
     url: e.url ?? undefined,
     collectedAt: e.collected_at,
     postedBy: e.posted_by,

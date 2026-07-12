@@ -2,6 +2,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 import type { CollectedEvent } from '@/lib/events'
 import type { NextRequest } from 'next/server'
 import { ADMIN_SESSION_COOKIE, verifyAdminSessionToken } from '@/lib/admin-session'
+import { normalizeEventType } from '@/lib/spots'
 
 async function authorizeEventAccess(req: NextRequest, id: string) {
   const supabase = supabaseAdmin()
@@ -56,11 +57,13 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
     const scheduleNote = (b.scheduleNote as string | undefined)?.trim() || null
     const lat          = typeof b.lat === 'number' ? b.lat : undefined
     const lng          = typeof b.lng === 'number' ? b.lng : undefined
+    const type         = normalizeEventType(b.type)
+    const isPermanent  = type === 'permanent'
 
     if (!name)  return Response.json({ error: 'イベント名は必須です' }, { status: 400 })
     if (!venue) return Response.json({ error: '会場名は必須です' },     { status: 400 })
-    if (!scheduleNote && !startDate) return Response.json({ error: '開始日は必須です' }, { status: 400 })
-    if (!scheduleNote && !endDate)   return Response.json({ error: '終了日は必須です' }, { status: 400 })
+    if (!isPermanent && !scheduleNote && !startDate) return Response.json({ error: '開始日は必須です' }, { status: 400 })
+    if (!isPermanent && !scheduleNote && !endDate)   return Response.json({ error: '終了日は必須です' }, { status: 400 })
     if (lat === undefined || lng === undefined) {
       return Response.json({ error: '緯度経度を取得してください' }, { status: 400 })
     }
@@ -68,15 +71,16 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
     const updateData: Record<string, unknown> = {
       name,
       description:   ((b.description as string | undefined) ?? '').trim(),
-      start_date:    scheduleNote ? null : (startDate ?? null),
-      end_date:      scheduleNote ? null : (endDate   ?? null),
-      schedule_note: scheduleNote,
+      start_date:    isPermanent || scheduleNote ? null : (startDate ?? null),
+      end_date:      isPermanent || scheduleNote ? null : (endDate   ?? null),
+      schedule_note: isPermanent ? null : scheduleNote,
       venue,
       fee,
       image_url: imageUrl,
       lat,
       lng,
       category:      (b.category   as string) ?? 'event',
+      type,
       url:           ((b.url      as string | undefined) ?? '').trim() || null,
     }
 
@@ -110,6 +114,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
       lat:         data.lat,
       lng:         data.lng,
       category:    data.category,
+      type:        data.type ?? undefined,
       url:         data.url ?? undefined,
       collectedAt: data.collected_at,
       postedBy:     data.posted_by,

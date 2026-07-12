@@ -168,6 +168,8 @@ export default function MapApp() {
   const filteredSpots = useMemo(() => {
     return allSpots.filter((spot) => {
       if (!activeCategories.has(spot.category)) return false
+      // 常設施設は期限切れ判定・期間フィルタの対象外で常に表示する
+      if (spot.type === 'permanent') return true
       if (getEventStatus(spot.startDate, spot.endDate) === 'ended') return false
       if (periodFilter !== 'all') {
         // 期間の終了日を計算

@@ -130,14 +130,15 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
     }
     setPendingActionId(ev.id)
     try {
+      const isPermanent = formValues.type === 'permanent'
       const putRes = await fetch(`/api/events/${ev.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formValues,
-          scheduleNote: formValues.dateConfirmed ? '' : formValues.scheduleNote,
-          startDate:    formValues.dateConfirmed ? formValues.startDate : '',
-          endDate:      formValues.dateConfirmed ? formValues.endDate   : '',
+          scheduleNote: isPermanent ? '' : (formValues.dateConfirmed ? '' : formValues.scheduleNote),
+          startDate:    isPermanent ? '' : (formValues.dateConfirmed ? formValues.startDate : ''),
+          endDate:      isPermanent ? '' : (formValues.dateConfirmed ? formValues.endDate   : ''),
         }),
       })
       if (!putRes.ok) {
@@ -227,15 +228,16 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
         const token = getEditToken(editingId)
         if (token) headers['x-edit-token'] = token
       }
+      const isPermanent = form.type === 'permanent'
       const res = await fetch(url, {
         method,
         headers,
         body:    JSON.stringify({
         ...form,
         posterType:   fixedPosterType ?? form.posterType,
-        scheduleNote: form.dateConfirmed ? '' : form.scheduleNote,
-        startDate:    form.dateConfirmed ? form.startDate : '',
-        endDate:      form.dateConfirmed ? form.endDate   : '',
+        scheduleNote: isPermanent ? '' : (form.dateConfirmed ? '' : form.scheduleNote),
+        startDate:    isPermanent ? '' : (form.dateConfirmed ? form.startDate : ''),
+        endDate:      isPermanent ? '' : (form.dateConfirmed ? form.endDate   : ''),
       }),
       })
       let data: Record<string, unknown> = {}
@@ -346,7 +348,8 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
             <button
               type="submit"
               disabled={isSubmitting || imageUploading || !form.name || !form.venue ||
-                (form.dateConfirmed ? (!form.startDate || !form.endDate) : !form.scheduleNote)}
+                (form.type === 'permanent' ? false :
+                  (form.dateConfirmed ? (!form.startDate || !form.endDate) : !form.scheduleNote))}
               className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-colors cursor-pointer
                 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
             >

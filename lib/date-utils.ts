@@ -41,6 +41,9 @@ export const STATUS_CONFIG: Record<EventStatus, StatusConfig> = {
   'scheduled': { label: '開催予定',     bg: '#faf5ff', color: '#9333ea' },
 }
 
+/** 常設施設用のステータス表示（ended/active/upcoming 等は使わない） */
+export const PERMANENT_STATUS: StatusConfig = { label: '常設施設', bg: '#dcfce7', color: '#16a34a' }
+
 /** 開催ステータスを判定 */
 export function getEventStatus(
   startDate?: string,
