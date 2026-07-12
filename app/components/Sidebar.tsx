@@ -91,7 +91,7 @@ export default function Sidebar({
   const isSheet = mode === 'sheet'
 
   return (
-    <aside className={`bg-white flex flex-col overflow-hidden ${isSheet ? 'w-full' : 'w-72 border-r border-gray-200'}`}>
+    <aside className={`bg-white flex flex-col overflow-hidden ${isSheet ? 'w-full' : 'w-80 border-r border-gray-200'}`}>
 
       {/* タイトル（サイドバーモードのみ） */}
       {!isSheet && (
