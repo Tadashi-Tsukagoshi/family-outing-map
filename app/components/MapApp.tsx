@@ -273,7 +273,7 @@ export default function MapApp() {
               }}
             >
               <p className="text-xs text-gray-500 leading-relaxed" style={{ whiteSpace: 'nowrap' }}>
-                今週末、家族でどこ行く？<br />群馬県のイベントを地図で発見！
+                今週末、家族でどこいく？<br />県民がつくる、群馬のおでかけプラットフォーム
               </p>
               <a
                 href="https://docs.google.com/forms/d/e/1FAIpQLSfjd2ErqEMLI7gDMk4O5iutIRSUMI6AD0hkJSnN3tAT5UjIXA/viewform?usp=publish-editor"
