@@ -105,7 +105,7 @@ export default function Sidebar({
             href="/admin"
             className="inline-flex items-center gap-1 mt-3 px-4 py-2 rounded-full text-sm font-semibold text-white bg-green-500 hover:bg-green-600 transition-colors"
           >
-            ＋ イベントを投稿
+            ＋ 投稿
           </a>
         </div>
       )}
