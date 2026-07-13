@@ -101,6 +101,16 @@ function hideRoadShields(map: mapboxgl.Map) {
   }
 }
 
+/** POI（施設）レイヤーのアイコンを非表示にし、テキストラベルだけ残す */
+function hidePoiIcons(map: mapboxgl.Map) {
+  const layers = map.getStyle()?.layers ?? []
+  for (const layer of layers) {
+    if (layer.id.includes('poi')) {
+      map.setPaintProperty(layer.id, 'icon-opacity', 0)
+    }
+  }
+}
+
 // ─── User location marker element ────────────────────────────────
 function buildUserLocationElement(): HTMLDivElement {
   const el = document.createElement('div')
@@ -447,6 +457,7 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
     mapRef.current = map
 
     map.on('style.load', () => hideRoadShields(map))
+    map.on('style.load', () => hidePoiIcons(map))
 
     map.on('load', () => {
       setMapLanguage(map)
