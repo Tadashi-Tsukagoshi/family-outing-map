@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { CATEGORY_LABELS, PIN_COLORS, DEFAULT_PIN_COLOR, type Category, type EventType } from '@/lib/spots'
+import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, PIN_COLORS, DEFAULT_PIN_COLOR, type Category, type EventType } from '@/lib/spots'
 import { CategoryIcon } from './Sidebar'
 import type { CollectedEvent } from '@/lib/events'
 import { resizeImage } from '@/lib/image-utils'
@@ -266,7 +266,7 @@ export default function EventFormFields({
                     : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
               >
                 <CategoryIcon category={cat} active={form.category === cat} size={28} />
-                {CATEGORY_LABELS[cat].replace('・', '・\n')}
+                {(CATEGORY_BUTTON_LABEL_OVERRIDES[cat] ?? CATEGORY_LABELS[cat]).replace('・', '・\n')}
               </button>
             )
 

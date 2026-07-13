@@ -1,6 +1,6 @@
 'use client'
 
-import { CATEGORY_LABELS, PERIOD_LABELS, getCategoryIconSrc, isDarkPin, type Category, type PeriodFilter, type Spot } from '@/lib/spots'
+import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, PERIOD_LABELS, getCategoryIconSrc, isDarkPin, type Category, type PeriodFilter, type Spot } from '@/lib/spots'
 import { getDateDisplay } from '@/lib/date-utils'
 
 type Props = {
@@ -190,7 +190,7 @@ export default function Sidebar({
                   style={{ fontSize: 13, lineHeight: 1 }}
                 >
                   <CategoryIcon category={cat} active={active} size={15} />
-                  {CATEGORY_LABELS[cat]}
+                  {CATEGORY_BUTTON_LABEL_OVERRIDES[cat] ?? CATEGORY_LABELS[cat]}
                 </button>
               )
             })}
