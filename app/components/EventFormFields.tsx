@@ -251,7 +251,7 @@ export default function EventFormFields({
         <Input
           value={form.name}
           onChange={e => set('name', e.target.value)}
-          placeholder="例：太田ものづくりフェア2026"
+          placeholder={isPermanent ? '例：金山総合公園、道の駅おおた' : '例：太田ものづくりフェア2026'}
           required
           disabled={disabled}
         />
