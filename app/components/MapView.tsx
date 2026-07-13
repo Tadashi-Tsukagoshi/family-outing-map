@@ -449,6 +449,8 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
     map.on('style.load', () => hideRoadShields(map))
 
     map.on('load', () => {
+      map.getCanvas().style.filter = 'saturate(0.5) brightness(1.05)'
+
       setMapLanguage(map)
 
       map.addSource('user-radius', { type: 'geojson', data: EMPTY_FC })
