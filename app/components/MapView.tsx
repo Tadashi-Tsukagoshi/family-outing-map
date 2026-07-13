@@ -134,7 +134,7 @@ type IconDef = { html: string; hit: number }
 
 function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef {
   const { src: icon, bg, glow, ratio } = pickIcon(spot.category, spot.id)
-  const borderColor = '#9ca3af'
+  const borderColor = spot.category === 'park' ? '#ffffff' : '#9ca3af'
 
   if (selected) {
     const hit  = 48
