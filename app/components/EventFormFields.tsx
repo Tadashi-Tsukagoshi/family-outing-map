@@ -381,6 +381,7 @@ export default function EventFormFields({
                   <Label>開始時刻</Label>
                   <Input
                     type="time"
+                    step={300}
                     value={form.startTime}
                     onChange={e => set('startTime', e.target.value)}
                     disabled={disabled}
@@ -390,6 +391,7 @@ export default function EventFormFields({
                   <Label>終了時刻</Label>
                   <Input
                     type="time"
+                    step={300}
                     value={form.endTime}
                     onChange={e => set('endTime', e.target.value)}
                     disabled={disabled}
