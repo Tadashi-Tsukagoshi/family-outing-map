@@ -126,7 +126,7 @@ function pickIcon(category: Category, id: string): { src: string; bg: string; gl
   const src = getCategoryIconSrc(category, id)
   if (category === 'fireworks') return { src, bg: '#1e1614', glow: '', ratio: 0.78 }
   if (category === 'festival')  return { src, bg: '#1e1614', glow: lanternGlow, ratio: 0.63 }
-  if (category === 'park')      return { src, bg: 'white', glow: '', ratio: 0.85 }
+  if (category === 'park')      return { src, bg: 'white', glow: '', ratio: 0.9 }
   return { src, bg: 'white', glow: '', ratio: 0.78 }
 }
 
