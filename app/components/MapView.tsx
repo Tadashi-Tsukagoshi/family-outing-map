@@ -91,11 +91,16 @@ function setMapLanguage(map: mapboxgl.Map) {
   }
 }
 
-/** POI（施設アイコン）レイヤーを非表示にする */
+/** POI（施設アイコン）・道路番号シールドレイヤーを非表示にする */
 function hidePoiLayers(map: mapboxgl.Map) {
   const layers = map.getStyle()?.layers ?? []
   for (const layer of layers) {
-    if (layer.id.includes('poi-label') || layer.id.includes('poi_label')) {
+    if (
+      layer.id.includes('poi-label') ||
+      layer.id.includes('poi_label') ||
+      layer.id.includes('shield') ||
+      layer.id.includes('road-number')
+    ) {
       map.setLayoutProperty(layer.id, 'visibility', 'none')
     }
   }
