@@ -208,11 +208,14 @@ type HoverCardProps = {
 
 function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, onDetailOpen }: HoverCardProps) {
   const cardRef = useRef<HTMLDivElement>(null)
+  // EVENT!吹き出しピンは anchor='bottom' で尻尾の先端が y 座標になり、ピン本体はそこから上方向に
+  // 丸ピンより大きく（約32px）張り出すため、上表示時の間隔を追加で確保する
+  const aboveGap = GAP + (hovered.spot.category === 'event' ? 12 : 0)
 
   // ready:false で初期化 → 測定前は opacity:0 で非表示
   const [pos, setPos] = useState<Pos>({
     left:  hovered.x,
-    top:   hovered.y - GAP,
+    top:   hovered.y - aboveGap,
     above: true,
     ready: false,
     cardH: 0,
@@ -229,13 +232,13 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
     const { x, y } = hovered
 
     // ─── 上下判定 ───────────────────────────────────────────────
-    // 「ピン中心 y から上に GAP 離れた位置にカード下端」を基準に空間を確認
-    const above = cardH <= y - GAP
+    // 「ピン中心 y から上に aboveGap 離れた位置にカード下端」を基準に空間を確認
+    const above = cardH <= y - aboveGap
 
     let top: number
     if (above) {
       // transform: translateY(-100%) でカード下端が top に来る
-      top = y - GAP
+      top = y - aboveGap
     } else {
       // ピンの下に表示: top = カード上端
       top = y + GAP
