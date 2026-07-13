@@ -91,6 +91,16 @@ function setMapLanguage(map: mapboxgl.Map) {
   }
 }
 
+/** POI（施設アイコン）レイヤーを非表示にする */
+function hidePoiLayers(map: mapboxgl.Map) {
+  const layers = map.getStyle()?.layers ?? []
+  for (const layer of layers) {
+    if (layer.id.includes('poi-label') || layer.id.includes('poi_label')) {
+      map.setLayoutProperty(layer.id, 'visibility', 'none')
+    }
+  }
+}
+
 // ─── User location marker element ────────────────────────────────
 function buildUserLocationElement(): HTMLDivElement {
   const el = document.createElement('div')
@@ -433,6 +443,8 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
       zoom: 12,
     })
     mapRef.current = map
+
+    map.on('style.load', () => hidePoiLayers(map))
 
     map.on('load', () => {
       setMapLanguage(map)
