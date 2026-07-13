@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { BADGE_BG_COLOR, type Category, type Spot } from '@/lib/spots'
-import { getDateDisplay, getEventStatus, STATUS_CONFIG, fmtTimeRange } from '@/lib/date-utils'
+import { getDateDisplay, getEventStatus, STATUS_CONFIG, PARK_STATUS, fmtTimeRange } from '@/lib/date-utils'
 
 const POSTER_TYPE_LABELS: Record<string, string> = {
   general:   '一般ユーザー',
@@ -119,7 +119,7 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
   const status      = getEventStatus(spot.startDate, spot.endDate)
   const dateRange   = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
   const timeRange   = fmtTimeRange(spot.startTime, spot.endTime)
-  const statusCfg   = isPark ? null : (status ? STATUS_CONFIG[status] : null)
+  const statusCfg   = isPark ? PARK_STATUS : (status ? STATUS_CONFIG[status] : null)
   const image       = spot.imageUrl || ogpImage || CATEGORY_IMAGES[spot.category]
   const badgeBg     = BADGE_BG_COLOR
   const badgeColor  = '#374151'
@@ -190,7 +190,7 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
           {spot.name}
         </h2>
 
-        {(statusCfg || spot.scheduleNote || dateRange || isPark) && (
+        {(statusCfg || spot.scheduleNote || dateRange) && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 8 }}>
             {statusCfg && (
               <span style={{ fontSize: 14, fontWeight: 600, color: statusCfg.color }}>

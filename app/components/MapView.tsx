@@ -4,7 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import mapboxgl from 'mapbox-gl'
 import { useRef, useState, useMemo, useCallback, useEffect, useLayoutEffect } from 'react'
 import { getCategoryIconSrc, BADGE_BG_COLOR, type Category, type Spot } from '@/lib/spots'
-import { getDateDisplay, getEventStatus, STATUS_CONFIG, fmtTimeRange } from '@/lib/date-utils'
+import { getDateDisplay, getEventStatus, STATUS_CONFIG, PARK_STATUS, fmtTimeRange } from '@/lib/date-utils'
 import { type SheetState } from './BottomSheet'
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? ''
@@ -261,7 +261,7 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
   const status    = getEventStatus(spot.startDate, spot.endDate)
   const dateRange = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
   const timeRange = fmtTimeRange(spot.startTime, spot.endTime)
-  const statusCfg = isPark ? null : (status ? STATUS_CONFIG[status] : null)
+  const statusCfg = isPark ? PARK_STATUS : (status ? STATUS_CONFIG[status] : null)
 
   return (
     <div
