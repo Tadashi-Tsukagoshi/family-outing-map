@@ -54,6 +54,23 @@ function Toggle({
 const ICON_RATIO: Record<Category, number> = { event: 0.92, fireworks: 0.78, festival: 0.92, park: 0.92 }
 
 export function CategoryIcon({ category, active = true, size = 20, id }: { category: Category; active?: boolean; size?: number; id?: string }) {
+  if (category === 'park') {
+    const h = Math.round(size * 0.4)
+    const w = h * 3
+    return (
+      <span style={{
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        width: size, height: size, flexShrink: 0,
+      }}>
+        <svg width={w} height={h} viewBox="0 0 36 12" style={{ display: 'block', opacity: active ? 1 : 0.35 }}>
+          <circle cx="6" cy="6" r="4" fill="black" />
+          <polygon points="14,10 18,2 22,10" fill="black" />
+          <rect x="25" y="2" width="8" height="8" fill="black" />
+        </svg>
+      </span>
+    )
+  }
+
   const imgSize = Math.round(size * ICON_RATIO[category])
   return (
     <span style={{

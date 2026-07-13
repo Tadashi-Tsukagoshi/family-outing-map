@@ -46,7 +46,7 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   event:     'イベント',
   fireworks: '花火',
   festival:  'まつり',
-  park:      '公園',
+  park:      '常設施設',
 }
 
 export const CATEGORY_EMOJIS: Record<Category, string> = {
@@ -88,7 +88,6 @@ const CANOPY_COLORS = ['red', 'blue', 'green'] as const
 export function getCategoryIconSrc(category: Category, id?: string): string {
   if (category === 'fireworks') return '/icons/fireworks.png'
   if (category === 'festival')  return '/icons/lantern.png'
-  if (category === 'park')      return '/icons/park.svg'
   if (!id) return '/icons/canopy_blue.svg'
   let sum = 0
   for (let i = 0; i < id.length; i++) sum += id.charCodeAt(i)

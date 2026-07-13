@@ -18,7 +18,7 @@
 - プロジェクトURL：https://altybbfrtmpzwpzkoxdd.supabase.co
 - eventsテーブルのカラム：id, name, description, start_date, end_date, venue, lat, lng, category, url, collected_at, posted_by, poster_type, created_at, schedule_note, likes, fee, image_url, address（addressは未使用）
 - Storageバケット：event-images（公開、画像アップロード用）
-- カテゴリ：event（イベント）/ fireworks（花火）/ festival（まつり）
+- カテゴリ：event（イベント）/ fireworks（花火）/ festival（まつり）/ park（常設施設）
 
 ## 実装済み機能
 - 地図上にカテゴリ別ピン表示（イベント/花火/まつり）、Noto/カスタムSVGアイコン
