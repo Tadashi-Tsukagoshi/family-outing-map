@@ -2,7 +2,7 @@
 
 import 'mapbox-gl/dist/mapbox-gl.css'
 import mapboxgl from 'mapbox-gl'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? ''
 
@@ -40,6 +40,7 @@ type Props = {
 }
 
 export default function MapPicker({ lat, lng, onChange }: Props) {
+  const [isExpanded, setIsExpanded] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef        = useRef<mapboxgl.Map | null>(null)
   const markerRef      = useRef<mapboxgl.Marker | null>(null)
@@ -95,9 +96,84 @@ export default function MapPicker({ lat, lng, onChange }: Props) {
     }
   }, [lat, lng])
 
+  // ─── 全画面切り替え時にサイズを再計算 ────────────────────────
+  useEffect(() => {
+    const id = requestAnimationFrame(() => mapRef.current?.resize())
+    return () => cancelAnimationFrame(id)
+  }, [isExpanded])
+
   return (
-    <div style={{ height: 240, borderRadius: 8, overflow: 'hidden', border: '1px solid #d1d5db' }}>
-      <div ref={containerRef} style={{ height: '100%', width: '100%' }} />
-    </div>
+    <>
+      {/* 全画面時の黒背景オーバーレイ */}
+      <div
+        style={{
+          display: isExpanded ? 'block' : 'none',
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+          background: '#000', zIndex: 9999,
+        }}
+      />
+
+      <div
+        style={
+          isExpanded
+            ? { position: 'fixed', top: 16, left: 16, right: 16, bottom: 16, zIndex: 9999, borderRadius: 8, overflow: 'hidden', border: '1px solid #d1d5db' }
+            : { height: 240, borderRadius: 8, overflow: 'hidden', border: '1px solid #d1d5db', position: 'relative' }
+        }
+      >
+        <div ref={containerRef} style={{ height: '100%', width: '100%' }} />
+
+        {/* 拡大ボタン */}
+        <button
+          type="button"
+          onClick={() => setIsExpanded(true)}
+          aria-label="地図を全画面表示"
+          style={{
+            display: isExpanded ? 'none' : 'flex',
+            position: 'absolute', top: 8, right: 8,
+            width: 32, height: 32, borderRadius: '50%',
+            background: 'white', border: 'none',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+            alignItems: 'center', justifyContent: 'center',
+            fontSize: 16, lineHeight: 1, color: '#374151', cursor: 'pointer',
+          }}
+        >
+          ⤢
+        </button>
+      </div>
+
+      {/* 閉じるボタン */}
+      <button
+        type="button"
+        onClick={() => setIsExpanded(false)}
+        aria-label="全画面表示を閉じる"
+        style={{
+          display: isExpanded ? 'flex' : 'none',
+          position: 'fixed', top: 24, right: 24, zIndex: 10000,
+          width: 36, height: 36, borderRadius: '50%',
+          background: 'white', border: 'none',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.35)',
+          alignItems: 'center', justifyContent: 'center',
+          fontSize: 18, lineHeight: 1, color: '#374151', cursor: 'pointer',
+        }}
+      >
+        ✕
+      </button>
+
+      {/* 決定ボタン */}
+      <button
+        type="button"
+        onClick={() => setIsExpanded(false)}
+        style={{
+          display: isExpanded ? 'block' : 'none',
+          position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)', zIndex: 10000,
+          padding: '10px 24px', borderRadius: 9999,
+          background: '#22c55e', color: 'white', border: 'none',
+          fontWeight: 600, fontSize: 14,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.35)', cursor: 'pointer',
+        }}
+      >
+        この位置に決定
+      </button>
+    </>
   )
 }
