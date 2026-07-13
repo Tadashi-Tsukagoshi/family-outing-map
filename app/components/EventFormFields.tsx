@@ -243,16 +243,16 @@ export default function EventFormFields({
       {/* カテゴリ */}
       <div>
         <Label required>カテゴリ</Label>
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-4 gap-2 items-start">
           {categories.map(cat => {
             const categoryDisabled = disabled || (isPermanent && cat !== 'park')
-            return (
+            const categoryButton = (
               <button
                 key={cat}
                 type="button"
                 disabled={categoryDisabled}
                 onClick={() => set('category', cat)}
-                className={`flex flex-col items-center gap-1 py-2.5 rounded-xl border text-xs font-medium transition-colors
+                className={`w-full flex flex-col items-center gap-1 py-2.5 rounded-xl border text-xs font-medium transition-colors
                   ${categoryDisabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'}
                   ${form.category === cat
                     ? 'border-green-400 bg-green-50 text-green-700'
@@ -262,43 +262,47 @@ export default function EventFormFields({
                 {CATEGORY_LABELS[cat].replace('・', '・\n')}
               </button>
             )
+
+            if (cat !== 'park') return categoryButton
+
+            return (
+              <div key={cat} className="flex flex-col gap-1.5">
+                {categoryButton}
+                {form.category === 'park' && (
+                  <div className="flex justify-around">
+                    {PIN_COLORS.map(color => {
+                      const isSelected = form.pinColor === color
+                      return (
+                        <button
+                          key={color}
+                          type="button"
+                          disabled={disabled}
+                          onClick={() => set('pinColor', color)}
+                          aria-label={color}
+                          style={{
+                            width: 24, height: 24, borderRadius: '50%',
+                            backgroundColor: color,
+                            border: isSelected ? '2px solid #1f2937' : '2px solid transparent',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            flexShrink: 0,
+                          }}
+                          className={disabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'}
+                        >
+                          {isSelected && (
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+                              <path d="M5 13l4 4L19 7" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )
           })}
         </div>
       </div>
-
-      {/* ピンの色（常設施設のみ） */}
-      {form.category === 'park' && (
-        <div>
-          <Label>ピンの色</Label>
-          <div className="flex gap-2">
-            {PIN_COLORS.map(color => {
-              const isSelected = form.pinColor === color
-              return (
-                <button
-                  key={color}
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => set('pinColor', color)}
-                  aria-label={color}
-                  style={{
-                    width: 32, height: 32, borderRadius: '50%',
-                    backgroundColor: color,
-                    border: isSelected ? '2.5px solid #1f2937' : '2.5px solid transparent',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}
-                  className={disabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'}
-                >
-                  {isSelected && (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                      <path d="M5 13l4 4L19 7" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  )}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      )}
 
       {/* 日程確定トグル */}
       <div className={isPermanent ? 'opacity-40' : undefined}>
