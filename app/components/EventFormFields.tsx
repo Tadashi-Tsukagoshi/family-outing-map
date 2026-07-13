@@ -117,6 +117,44 @@ function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   )
 }
 
+const TIME_HOURS   = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
+const TIME_MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'))
+
+/** "HH:MM" 文字列を時・分の select 2つで編集する。両方選択されて初めて親に反映する */
+function TimeSelect({ value, onChange, disabled }: { value: string; onChange: (v: string) => void; disabled?: boolean }) {
+  const [hour, setHour]     = useState(() => value.split(':')[0] ?? '')
+  const [minute, setMinute] = useState(() => value.split(':')[1] ?? '')
+
+  const commit = (h: string, m: string) => onChange(h && m ? `${h}:${m}` : '')
+
+  const selectClassName = `rounded-lg border border-gray-300 px-2 py-2 text-sm bg-white
+    focus:outline-none focus:ring-2 focus:ring-green-400 disabled:bg-gray-50 disabled:text-gray-500`
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <select
+        value={hour}
+        onChange={e => { setHour(e.target.value); commit(e.target.value, minute) }}
+        disabled={disabled}
+        className={selectClassName}
+      >
+        <option value="">--</option>
+        {TIME_HOURS.map(h => <option key={h} value={h}>{Number(h)}</option>)}
+      </select>
+      <span className="text-gray-400">:</span>
+      <select
+        value={minute}
+        onChange={e => { setMinute(e.target.value); commit(hour, e.target.value) }}
+        disabled={disabled}
+        className={selectClassName}
+      >
+        <option value="">--</option>
+        {TIME_MINUTES.map(m => <option key={m} value={m}>{m}</option>)}
+      </select>
+    </div>
+  )
+}
+
 type Props = {
   form:     FormState
   onChange: <K extends keyof FormState>(key: K, val: FormState[K]) => void
@@ -379,21 +417,17 @@ export default function EventFormFields({
               <div className="grid grid-cols-2 gap-3 mt-3">
                 <div>
                   <Label>開始時刻</Label>
-                  <Input
-                    type="time"
-                    step={300}
+                  <TimeSelect
                     value={form.startTime}
-                    onChange={e => set('startTime', e.target.value)}
+                    onChange={v => set('startTime', v)}
                     disabled={disabled}
                   />
                 </div>
                 <div>
                   <Label>終了時刻</Label>
-                  <Input
-                    type="time"
-                    step={300}
+                  <TimeSelect
                     value={form.endTime}
-                    onChange={e => set('endTime', e.target.value)}
+                    onChange={v => set('endTime', v)}
                     disabled={disabled}
                   />
                 </div>
