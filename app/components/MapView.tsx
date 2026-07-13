@@ -129,9 +129,9 @@ function locationPinSvg(width: number, height: number, selected: boolean, color:
 function eventBubbleSvg(selected: boolean, color: string): string {
   const cls = selected ? ' class="pin-selected"' : ''
   if (selected) {
-    return `<svg${cls} width="60" height="46" viewBox="-30 0 60 46" style="display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));"><ellipse cx="0" cy="18" rx="30" ry="18" fill="${color}"/><polygon points="-3,35 3,35 0,45" fill="${color}"/><text x="0" y="24" font-family="Arial,sans-serif" font-size="13" fill="white" text-anchor="middle" font-weight="700">EVENT!</text></svg>`
+    return `<svg${cls} width="50" height="38" viewBox="-25 0 50 38" style="display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));"><ellipse cx="0" cy="15" rx="25" ry="15" fill="${color}"/><polygon points="-3,29 3,29 0,37" fill="${color}"/><text x="0" y="20" font-family="Arial,sans-serif" font-size="11" fill="white" text-anchor="middle" font-weight="700">EVENT!</text></svg>`
   }
-  return `<svg${cls} width="50" height="38" viewBox="-25 0 50 38" style="display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));"><ellipse cx="0" cy="15" rx="25" ry="15" fill="${color}"/><polygon points="-3,29 3,29 0,37" fill="${color}"/><text x="0" y="20" font-family="Arial,sans-serif" font-size="11" fill="white" text-anchor="middle" font-weight="700">EVENT!</text></svg>`
+  return `<svg${cls} width="42" height="32" viewBox="-21 0 42 32" style="display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));"><ellipse cx="0" cy="13" rx="21" ry="13" fill="${color}"/><polygon points="-3,25 3,25 0,31" fill="${color}"/><text x="0" y="17" font-family="Arial,sans-serif" font-size="9" fill="white" text-anchor="middle" font-weight="700">EVENT!</text></svg>`
 }
 
 function pickIcon(category: Category): { src: string; bg: string; glow: string; ratio: number } {
@@ -156,7 +156,7 @@ function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef
   }
 
   if (spot.category === 'event') {
-    const [w, h] = selected ? [60, 46] : [50, 38]
+    const [w, h] = selected ? [50, 38] : [42, 32]
     const color = spot.pinColor ?? '#333333'
     return {
       hit: w,
