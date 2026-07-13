@@ -88,7 +88,7 @@ const CANOPY_COLORS = ['red', 'blue', 'green'] as const
 export function getCategoryIconSrc(category: Category, id?: string): string {
   if (category === 'fireworks') return '/icons/fireworks.png'
   if (category === 'festival')  return '/icons/lantern.png'
-  if (category === 'park')      return '/icons/tree.svg'
+  if (category === 'park')      return '/icons/tree_openmoji.svg'
   if (!id) return '/icons/canopy_blue.svg'
   let sum = 0
   for (let i = 0; i < id.length; i++) sum += id.charCodeAt(i)
