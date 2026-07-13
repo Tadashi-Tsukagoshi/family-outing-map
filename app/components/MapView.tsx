@@ -141,7 +141,7 @@ function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef
     const img  = Math.round(size * ratio)
     return {
       hit,
-      html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><div class="pin-selected" style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:3.5px solid ${borderColor};box-shadow:0 4px 12px rgba(0,0,0,.4);overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}"></div></div>`,
+      html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><div class="pin-selected" style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2.5px solid ${borderColor};box-shadow:0 4px 12px rgba(0,0,0,.4);overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}"></div></div>`,
     }
   }
 
@@ -150,7 +150,7 @@ function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef
   const img  = Math.round(size * ratio)
   return {
     hit,
-    html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:3.5px solid ${borderColor};box-shadow:0 2px 6px rgba(0,0,0,.25);overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}"></div></div>`,
+    html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2.5px solid ${borderColor};box-shadow:0 2px 6px rgba(0,0,0,.25);overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}"></div></div>`,
   }
 }
 
