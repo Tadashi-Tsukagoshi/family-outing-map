@@ -317,7 +317,7 @@ export default function EventFormFields({
                     : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
               >
                 <CategoryIcon category={cat} active={form.category === cat} size={28} />
-                {(CATEGORY_BUTTON_LABEL_OVERRIDES[cat] ?? CATEGORY_LABELS[cat]).replace('・', '・\n')}
+                {CATEGORY_BUTTON_LABEL_OVERRIDES[cat] ?? CATEGORY_LABELS[cat]}
               </button>
             )
 
@@ -327,37 +327,31 @@ export default function EventFormFields({
               <div key={cat} className="flex flex-col gap-1.5">
                 {categoryButton}
                 {form.category === cat && (
-                  <div className="flex flex-col gap-1.5">
-                    {[PIN_COLORS.slice(0, 3), PIN_COLORS.slice(3)].map((row, i) => (
-                      <div key={i} className="flex justify-center gap-1">
-                        {row.map(color => {
-                          const isSelected = form.pinColor === color
-                          return (
-                            <button
-                              key={color}
-                              type="button"
-                              disabled={disabled}
-                              onClick={() => set('pinColor', color)}
-                              aria-label={color}
-                              style={{
-                                width: 18, height: 18, borderRadius: '50%',
-                                backgroundColor: color,
-                                border: isSelected ? '2px solid #1f2937' : '2px solid transparent',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                flexShrink: 0,
-                              }}
-                              className={disabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'}
-                            >
-                              {isSelected && (
-                                <svg width="8" height="8" viewBox="0 0 24 24" fill="none">
-                                  <path d="M5 13l4 4L19 7" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                              )}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    ))}
+                  <div className="flex flex-wrap md:flex-nowrap justify-center md:justify-around gap-x-1 gap-y-1.5 md:gap-x-3">
+                    {PIN_COLORS.map(color => {
+                      const isSelected = form.pinColor === color
+                      return (
+                        <button
+                          key={color}
+                          type="button"
+                          disabled={disabled}
+                          onClick={() => set('pinColor', color)}
+                          aria-label={color}
+                          style={{
+                            backgroundColor: color,
+                            border: isSelected ? '2px solid #1f2937' : '2px solid transparent',
+                          }}
+                          className={`w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center flex-shrink-0
+                            ${disabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'}`}
+                        >
+                          {isSelected && (
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+                              <path d="M5 13l4 4L19 7" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          )}
+                        </button>
+                      )
+                    })}
                   </div>
                 )}
               </div>

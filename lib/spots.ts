@@ -55,7 +55,7 @@ export const CATEGORY_LABELS: Record<Category, string> = {
 
 /** カテゴリ選択ボタン表示用のラベル上書き（CATEGORY_LABELS は他箇所の表示に使うため変更しない） */
 export const CATEGORY_BUTTON_LABEL_OVERRIDES: Partial<Record<Category, string>> = {
-  park: '施設・公園など',
+  park: '施設・公園',
 }
 
 export const CATEGORY_EMOJIS: Record<Category, string> = {
