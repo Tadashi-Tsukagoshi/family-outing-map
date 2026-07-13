@@ -134,18 +134,12 @@ type IconDef = { html: string; hit: number }
 
 function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef {
   const { src: icon, bg, glow, ratio } = pickIcon(spot.category, spot.id)
-  const borderColor = spot.category === 'park' ? '#ffffff' : '#9ca3af'
+  const borderColor = spot.category === 'park' ? '#0a6e1e' : '#9ca3af'
 
   if (selected) {
     const hit  = 48
     const size = 44
     const img  = Math.round(size * ratio)
-    if (spot.category === 'park') {
-      return {
-        hit,
-        html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><div class="pin-selected" style="width:${size}px;height:${size}px;border-radius:50%;background:conic-gradient(from 0deg, #0a6e1e, #4ade80, #0a6e1e);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.4);"><div style="width:${size - 7}px;height:${size - 7}px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;overflow:hidden;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;"></div></div></div>`,
-      }
-    }
     return {
       hit,
       html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><div class="pin-selected" style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2.5px solid ${borderColor};box-shadow:0 4px 12px rgba(0,0,0,.4);overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}"></div></div>`,
@@ -155,12 +149,6 @@ function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef
   const hit  = isMobile ? 48 : 40
   const size = 36
   const img  = Math.round(size * ratio)
-  if (spot.category === 'park') {
-    return {
-      hit,
-      html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><div style="width:${size}px;height:${size}px;border-radius:50%;background:conic-gradient(from 0deg, #0a6e1e, #4ade80, #0a6e1e);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.25);"><div style="width:${size - 7}px;height:${size - 7}px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;overflow:hidden;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;"></div></div></div>`,
-    }
-  }
   return {
     hit,
     html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2.5px solid ${borderColor};box-shadow:0 2px 6px rgba(0,0,0,.25);overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}"></div></div>`,
