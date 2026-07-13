@@ -126,6 +126,7 @@ function pickIcon(category: Category, id: string): { src: string; bg: string; gl
   const src = getCategoryIconSrc(category, id)
   if (category === 'fireworks') return { src, bg: '#1e1614', glow: '', ratio: 0.78 }
   if (category === 'festival')  return { src, bg: '#1e1614', glow: lanternGlow, ratio: 0.63 }
+  if (category === 'park')      return { src: '/icons/park-white.svg', bg: '#1ca538', glow: '', ratio: 0.78 }
   return { src, bg: 'white', glow: '', ratio: 0.78 }
 }
 
@@ -133,6 +134,7 @@ type IconDef = { html: string; hit: number }
 
 function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef {
   const { src: icon, bg, glow, ratio } = pickIcon(spot.category, spot.id)
+  const borderColor = spot.category === 'park' ? '#ffffff' : '#9ca3af'
 
   if (selected) {
     const hit  = 48
@@ -140,7 +142,7 @@ function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef
     const img  = Math.round(size * ratio)
     return {
       hit,
-      html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><div class="pin-selected" style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2.5px solid #9ca3af;box-shadow:0 4px 12px rgba(0,0,0,.4);overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}"></div></div>`,
+      html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><div class="pin-selected" style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2.5px solid ${borderColor};box-shadow:0 4px 12px rgba(0,0,0,.4);overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}"></div></div>`,
     }
   }
 
@@ -149,7 +151,7 @@ function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef
   const img  = Math.round(size * ratio)
   return {
     hit,
-    html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2.5px solid #9ca3af;box-shadow:0 2px 6px rgba(0,0,0,.25);overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}"></div></div>`,
+    html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2.5px solid ${borderColor};box-shadow:0 2px 6px rgba(0,0,0,.25);overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}"></div></div>`,
   }
 }
 
