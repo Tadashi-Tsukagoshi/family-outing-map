@@ -13,10 +13,16 @@ const POSTER_TYPE_LABELS: Record<string, string> = {
 }
 
 const CONTACT_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfjd2ErqEMLI7gDMk4O5iutIRSUMI6AD0hkJSnN3tAT5UjIXA/viewform'
-const EVENT_NAME_ENTRY_ID = 'entry.662119723'
+const INQUIRY_TYPE_ENTRY_ID   = 'entry.811558340'
+const INQUIRY_DETAIL_ENTRY_ID = 'entry.662119723'
 
 function buildCorrectionFormUrl(eventName: string): string {
-  return `${CONTACT_FORM_URL}?usp=pp_url&${EVENT_NAME_ENTRY_ID}=${encodeURIComponent(eventName)}`
+  const params = new URLSearchParams({
+    usp: 'pp_url',
+    [INQUIRY_TYPE_ENTRY_ID]:   '情報の修正依頼',
+    [INQUIRY_DETAIL_ENTRY_ID]: `【${eventName}】の修正依頼：`,
+  })
+  return `${CONTACT_FORM_URL}?${params.toString()}`
 }
 
 const LIKED_EVENTS_KEY = 'outing-map-liked-events'
@@ -363,7 +369,7 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
           style={{
             display: 'inline-block', marginTop: 16, paddingTop: 10,
             borderTop: '1px solid #f3f4f6',
-            fontSize: 11, color: '#9ca3af', textDecoration: 'none',
+            fontSize: 12, color: '#3b82f6', textDecoration: 'none',
           }}
         >
           情報の修正を依頼する
