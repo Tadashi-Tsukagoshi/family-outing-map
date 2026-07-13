@@ -4,7 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import mapboxgl from 'mapbox-gl'
 import { useRef, useState, useMemo, useCallback, useEffect, useLayoutEffect } from 'react'
 import { getCategoryIconSrc, BADGE_BG_COLOR, type Category, type Spot } from '@/lib/spots'
-import { getDateDisplay, getEventStatus, STATUS_CONFIG, PERMANENT_STATUS } from '@/lib/date-utils'
+import { getDateDisplay, getEventStatus, STATUS_CONFIG, fmtTimeRange } from '@/lib/date-utils'
 import { type SheetState } from './BottomSheet'
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? ''
@@ -260,7 +260,8 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
   const isPermanent = spot.type === 'permanent'
   const status    = getEventStatus(spot.startDate, spot.endDate)
   const dateRange = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
-  const statusCfg = isPermanent ? PERMANENT_STATUS : (status ? STATUS_CONFIG[status] : null)
+  const timeRange = fmtTimeRange(spot.startTime, spot.endTime)
+  const statusCfg = isPermanent ? null : (status ? STATUS_CONFIG[status] : null)
 
   return (
     <div
@@ -328,22 +329,42 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
                 日程未確定
               </p>
             )}
-            {(isPermanent || dateRange) && (
-              <p style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                fontSize: 11, margin: '0 0 2px', color: '#6b7280',
-                overflow: 'hidden',
-              }}>
-                <span style={{
-                  display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
-                  background: BADGE_BG_COLOR, color: '#374151', fontSize: 10, fontWeight: 400,
+            {isPermanent ? (
+              spot.businessHours && (
+                <p style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  fontSize: 11, margin: '0 0 2px', color: '#6b7280',
+                  overflow: 'hidden',
                 }}>
-                  日時
-                </span>
-                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {isPermanent ? '常設施設' : dateRange}
-                </span>
-              </p>
+                  <span style={{
+                    display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
+                    background: BADGE_BG_COLOR, color: '#374151', fontSize: 10, fontWeight: 400,
+                  }}>
+                    営業時間
+                  </span>
+                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {spot.businessHours}
+                  </span>
+                </p>
+              )
+            ) : (
+              dateRange && (
+                <p style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  fontSize: 11, margin: '0 0 2px', color: '#6b7280',
+                  overflow: 'hidden',
+                }}>
+                  <span style={{
+                    display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
+                    background: BADGE_BG_COLOR, color: '#374151', fontSize: 10, fontWeight: 400,
+                  }}>
+                    日時
+                  </span>
+                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {dateRange}{timeRange ? ` ${timeRange}` : ''}
+                  </span>
+                </p>
+              )
             )}
             {spot.venue && (
               <p style={{

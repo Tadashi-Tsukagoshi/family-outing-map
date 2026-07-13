@@ -26,6 +26,12 @@ export function getDateDisplay(scheduleNote?: string, startDate?: string, endDat
   return fmtDateRange(startDate, endDate)
 }
 
+/** 開始時刻〜終了時刻を "HH:MM〜HH:MM" 形式にフォーマット（片方のみでもそのまま表示） */
+export function fmtTimeRange(startTime?: string | null, endTime?: string | null): string | null {
+  if (startTime && endTime) return `${startTime}〜${endTime}`
+  return startTime || endTime || null
+}
+
 export type EventStatus = 'active' | 'ended' | 'upcoming' | 'scheduled'
 
 export interface StatusConfig {

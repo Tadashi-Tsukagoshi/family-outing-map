@@ -29,6 +29,9 @@ export type CollectedEvent = {
   editedAt?: string
   status?: 'pending' | 'approved' | 'rejected'
   pinColor?: string
+  startTime?: string
+  endTime?: string
+  businessHours?: string
 }
 
 export type EventsDatabase = {
@@ -75,5 +78,8 @@ export function eventToSpot(event: CollectedEvent): Spot {
     editedBy:     event.editedBy,
     editedAt:     event.editedAt,
     pinColor:     event.pinColor,
+    startTime:    event.startTime,
+    endTime:      event.endTime,
+    businessHours: event.businessHours,
   }
 }

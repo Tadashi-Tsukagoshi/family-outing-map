@@ -4,7 +4,7 @@ export async function GET() {
   const supabase = supabaseAdmin()
   const { data, error } = await supabase
     .from('events')
-    .select('id, name, description, start_date, end_date, schedule_note, venue, fee, image_url, lat, lng, category, type, url, collected_at, posted_by, poster_type, likes, edited_by, edited_at, pin_color')
+    .select('id, name, description, start_date, end_date, start_time, end_time, business_hours, schedule_note, venue, fee, image_url, lat, lng, category, type, url, collected_at, posted_by, poster_type, likes, edited_by, edited_at, pin_color')
     .eq('status', 'approved')
     .order('start_date', { ascending: true })
 
@@ -35,6 +35,9 @@ export async function GET() {
     editedBy:     e.edited_by ?? undefined,
     editedAt:     e.edited_at ?? undefined,
     pinColor:     e.pin_color ?? undefined,
+    startTime:    e.start_time ?? undefined,
+    endTime:      e.end_time ?? undefined,
+    businessHours: e.business_hours ?? undefined,
   }))
 
   return Response.json({ events, lastCollected: null })

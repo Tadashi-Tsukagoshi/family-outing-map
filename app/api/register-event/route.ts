@@ -20,6 +20,9 @@ export async function POST(req: Request) {
   const startDate    = (b.startDate    as string | undefined)?.trim()
   const endDate      = (b.endDate      as string | undefined)?.trim()
   const scheduleNote = (b.scheduleNote as string | undefined)?.trim() || null
+  const startTime     = (b.startTime     as string | undefined)?.trim() || null
+  const endTime       = (b.endTime       as string | undefined)?.trim() || null
+  const businessHours = (b.businessHours as string | undefined)?.trim() || null
   const lat          = typeof b.lat === 'number' ? b.lat : undefined
   const lng          = typeof b.lng === 'number' ? b.lng : undefined
   const type         = normalizeEventType(b.type)
@@ -45,6 +48,9 @@ export async function POST(req: Request) {
     description:   ((b.description as string | undefined) ?? '').trim(),
     start_date:    isPermanent || scheduleNote ? null : (startDate ?? null),
     end_date:      isPermanent || scheduleNote ? null : (endDate   ?? null),
+    start_time:    isPermanent ? null : startTime,
+    end_time:      isPermanent ? null : endTime,
+    business_hours: isPermanent ? businessHours : null,
     schedule_note: isPermanent ? null : scheduleNote,
     venue,
     fee,
@@ -84,6 +90,9 @@ export async function POST(req: Request) {
     category:    newEvent.category as CollectedEvent['category'],
     type:        newEvent.type,
     pinColor:    newEvent.pin_color,
+    startTime:   newEvent.start_time ?? undefined,
+    endTime:     newEvent.end_time ?? undefined,
+    businessHours: newEvent.business_hours ?? undefined,
     url:         newEvent.url ?? undefined,
     collectedAt: newEvent.collected_at,
     postedBy:    newEvent.posted_by,

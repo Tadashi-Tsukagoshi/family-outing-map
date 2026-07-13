@@ -55,6 +55,9 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
     const startDate    = (b.startDate    as string | undefined)?.trim()
     const endDate      = (b.endDate      as string | undefined)?.trim()
     const scheduleNote = (b.scheduleNote as string | undefined)?.trim() || null
+    const startTime     = (b.startTime     as string | undefined)?.trim() || null
+    const endTime       = (b.endTime       as string | undefined)?.trim() || null
+    const businessHours = (b.businessHours as string | undefined)?.trim() || null
     const lat          = typeof b.lat === 'number' ? b.lat : undefined
     const lng          = typeof b.lng === 'number' ? b.lng : undefined
     const type         = normalizeEventType(b.type)
@@ -75,6 +78,9 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
       description:   ((b.description as string | undefined) ?? '').trim(),
       start_date:    isPermanent || scheduleNote ? null : (startDate ?? null),
       end_date:      isPermanent || scheduleNote ? null : (endDate   ?? null),
+      start_time:    isPermanent ? null : startTime,
+      end_time:      isPermanent ? null : endTime,
+      business_hours: isPermanent ? businessHours : null,
       schedule_note: isPermanent ? null : scheduleNote,
       venue,
       fee,
@@ -119,6 +125,9 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
       category:    data.category,
       type:        data.type ?? undefined,
       pinColor:    data.pin_color ?? undefined,
+      startTime:   data.start_time ?? undefined,
+      endTime:     data.end_time ?? undefined,
+      businessHours: data.business_hours ?? undefined,
       url:         data.url ?? undefined,
       collectedAt: data.collected_at,
       postedBy:     data.posted_by,

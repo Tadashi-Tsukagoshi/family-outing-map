@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { BADGE_BG_COLOR, type Category, type Spot } from '@/lib/spots'
-import { getDateDisplay, getEventStatus, STATUS_CONFIG, PERMANENT_STATUS } from '@/lib/date-utils'
+import { getDateDisplay, getEventStatus, STATUS_CONFIG, PERMANENT_STATUS, fmtTimeRange } from '@/lib/date-utils'
 
 const POSTER_TYPE_LABELS: Record<string, string> = {
   general:   '一般ユーザー',
@@ -118,6 +118,7 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
   const isPermanent = spot.type === 'permanent'
   const status      = getEventStatus(spot.startDate, spot.endDate)
   const dateRange   = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
+  const timeRange   = fmtTimeRange(spot.startTime, spot.endTime)
   const statusCfg   = isPermanent ? PERMANENT_STATUS : (status ? STATUS_CONFIG[status] : null)
   const image       = spot.imageUrl || ogpImage || CATEGORY_IMAGES[spot.category]
   const badgeBg     = BADGE_BG_COLOR
@@ -229,16 +230,30 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
                 {likes}
               </span>
             </button>
-            {(isPermanent || dateRange) && (
-              <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#374151', margin: 0 }}>
-                <span style={{
-                  display: 'inline-block', padding: '1px 4px', borderRadius: 4,
-                  background: badgeBg, color: badgeColor, fontSize: 10, fontWeight: 400,
-                }}>
-                  日時
-                </span>
-                {isPermanent ? '常設施設' : dateRange}
-              </p>
+            {isPermanent ? (
+              spot.businessHours && (
+                <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#374151', margin: 0 }}>
+                  <span style={{
+                    display: 'inline-block', padding: '1px 4px', borderRadius: 4,
+                    background: badgeBg, color: badgeColor, fontSize: 10, fontWeight: 400,
+                  }}>
+                    営業時間
+                  </span>
+                  {spot.businessHours}
+                </p>
+              )
+            ) : (
+              dateRange && (
+                <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#374151', margin: 0 }}>
+                  <span style={{
+                    display: 'inline-block', padding: '1px 4px', borderRadius: 4,
+                    background: badgeBg, color: badgeColor, fontSize: 10, fontWeight: 400,
+                  }}>
+                    日時
+                  </span>
+                  {dateRange}{timeRange ? ` ${timeRange}` : ''}
+                </p>
+              )
             )}
           </div>
         )}

@@ -19,6 +19,9 @@ export type FormState = {
   dateConfirmed: boolean
   startDate:     string
   endDate:       string
+  startTime:     string
+  endTime:       string
+  businessHours: string
   scheduleNote:  string
   venue:         string
   fee:           string
@@ -47,7 +50,7 @@ export const INITIAL_FORM: FormState = {
   type: 'event',
   pinColor: DEFAULT_PIN_COLOR,
   dateConfirmed: true,
-  startDate: '', endDate: '', scheduleNote: '',
+  startDate: '', endDate: '', startTime: '', endTime: '', businessHours: '', scheduleNote: '',
   venue: '', fee: '', imageUrl: '', address: '',
   lat: null, lng: null,
   description: '', url: '',
@@ -65,6 +68,9 @@ export function eventToFormState(ev: CollectedEvent): FormState {
     dateConfirmed: !hasScheduleNote,
     startDate:     ev.startDate ?? ev.date ?? '',
     endDate:       ev.endDate   ?? ev.date ?? '',
+    startTime:     ev.startTime ?? '',
+    endTime:       ev.endTime ?? '',
+    businessHours: ev.businessHours ?? '',
     scheduleNote:  ev.scheduleNote ?? '',
     venue:         ev.venue,
     fee:           ev.fee ?? '',
@@ -229,8 +235,11 @@ export default function EventFormFields({
                 set('type', opt.value)
                 if (opt.value === 'permanent') {
                   if (form.category !== 'park') set('category', 'park')
-                } else if (form.category === 'park') {
-                  set('category', 'event')
+                  set('startTime', '')
+                  set('endTime', '')
+                } else {
+                  if (form.category === 'park') set('category', 'event')
+                  set('businessHours', '')
                 }
               }}
               className={`flex-1 py-2 rounded-xl border text-sm font-medium transition-colors cursor-pointer
@@ -311,75 +320,109 @@ export default function EventFormFields({
         </div>
       </div>
 
-      {/* 日程確定トグル */}
-      <div className={isPermanent ? 'opacity-40' : undefined}>
-        <Label required={!isPermanent}>日程</Label>
-        <div className="flex gap-2 mb-3">
-          {([true, false] as const).map(confirmed => (
-            <button
-              key={String(confirmed)}
-              type="button"
-              disabled={disabled || isPermanent}
-              onClick={() => set('dateConfirmed', confirmed)}
-              className={`flex-1 py-2 rounded-xl border text-sm font-medium transition-colors cursor-pointer
-                ${form.dateConfirmed === confirmed
-                  ? 'border-green-400 bg-green-50 text-green-700'
-                  : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
-            >
-              {confirmed ? '日程確定' : '日程未定'}
-            </button>
-          ))}
+      {/* 日程（期間限定イベント）/ 営業時間（常設施設） */}
+      {isPermanent ? (
+        <div>
+          <Label>営業時間</Label>
+          <Input
+            value={form.businessHours}
+            onChange={e => set('businessHours', e.target.value)}
+            placeholder="例：9:00〜17:00 / 月曜定休"
+            disabled={disabled}
+          />
         </div>
-
-        {form.dateConfirmed ? (
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label required={!isPermanent}>開始日</Label>
-              <Input
-                type="date"
-                value={form.startDate}
-                onChange={e => set('startDate', e.target.value)}
-                required={!isPermanent}
-                disabled={disabled || isPermanent}
-              />
-            </div>
-            <div>
-              <Label required={!isPermanent}>終了日</Label>
-              <Input
-                type="date"
-                value={form.endDate}
-                min={form.startDate}
-                onChange={e => set('endDate', e.target.value)}
-                required={!isPermanent}
-                disabled={disabled || isPermanent}
-              />
-            </div>
+      ) : (
+        <div>
+          <Label required>日程</Label>
+          <div className="flex gap-2 mb-3">
+            {([true, false] as const).map(confirmed => (
+              <button
+                key={String(confirmed)}
+                type="button"
+                disabled={disabled}
+                onClick={() => set('dateConfirmed', confirmed)}
+                className={`flex-1 py-2 rounded-xl border text-sm font-medium transition-colors cursor-pointer
+                  ${form.dateConfirmed === confirmed
+                    ? 'border-green-400 bg-green-50 text-green-700'
+                    : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
+              >
+                {confirmed ? '日程確定' : '日程未定'}
+              </button>
+            ))}
           </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-2 gap-3 mb-3">
-              <div>
-                <Label>開始日</Label>
-                <Input type="date" value="" disabled className="opacity-40" />
+
+          {form.dateConfirmed ? (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label required>開始日</Label>
+                  <Input
+                    type="date"
+                    value={form.startDate}
+                    onChange={e => set('startDate', e.target.value)}
+                    required
+                    disabled={disabled}
+                  />
+                </div>
+                <div>
+                  <Label required>終了日</Label>
+                  <Input
+                    type="date"
+                    value={form.endDate}
+                    min={form.startDate}
+                    onChange={e => set('endDate', e.target.value)}
+                    required
+                    disabled={disabled}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3 mt-3">
+                <div>
+                  <Label>開始時刻</Label>
+                  <Input
+                    type="time"
+                    value={form.startTime}
+                    onChange={e => set('startTime', e.target.value)}
+                    disabled={disabled}
+                  />
+                </div>
+                <div>
+                  <Label>終了時刻</Label>
+                  <Input
+                    type="time"
+                    value={form.endTime}
+                    onChange={e => set('endTime', e.target.value)}
+                    disabled={disabled}
+                  />
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-3 mb-3">
+                <div>
+                  <Label>開始日</Label>
+                  <Input type="date" value="" disabled className="opacity-40" />
+                </div>
+                <div>
+                  <Label>終了日</Label>
+                  <Input type="date" value="" disabled className="opacity-40" />
+                </div>
               </div>
               <div>
-                <Label>終了日</Label>
-                <Input type="date" value="" disabled className="opacity-40" />
+                <Label required>開催予定時期</Label>
+                <Input
+                  value={form.scheduleNote}
+                  onChange={e => set('scheduleNote', e.target.value)}
+                  placeholder="例：7月下旬頃"
+                  required
+                  disabled={disabled}
+                />
               </div>
-            </div>
-            <div>
-              <Label required={!isPermanent}>開催予定時期</Label>
-              <Input
-                value={form.scheduleNote}
-                onChange={e => set('scheduleNote', e.target.value)}
-                placeholder="例：7月下旬頃"
-                required={!isPermanent}
-                disabled={disabled || isPermanent}
-              />
-            </div>
-          </>
-        )}
-      </div>
+            </>
+          )}
+        </div>
+      )}
 
       {/* 会場名 */}
       <div className={isPermanent ? 'opacity-40' : undefined}>
