@@ -257,11 +257,11 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
   }, [hovered, wrapperRef])
 
   const { spot } = hovered
-  const isPermanent = spot.type === 'permanent'
+  const isPark    = spot.category === 'park'
   const status    = getEventStatus(spot.startDate, spot.endDate)
   const dateRange = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
   const timeRange = fmtTimeRange(spot.startTime, spot.endTime)
-  const statusCfg = isPermanent ? null : (status ? STATUS_CONFIG[status] : null)
+  const statusCfg = isPark ? null : (status ? STATUS_CONFIG[status] : null)
 
   return (
     <div
@@ -329,24 +329,22 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
                 日程未確定
               </p>
             )}
-            {isPermanent ? (
-              spot.businessHours && (
-                <p style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  fontSize: 11, margin: '0 0 2px', color: '#6b7280',
-                  overflow: 'hidden',
+            {isPark ? (
+              <p style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                fontSize: 11, margin: '0 0 2px', color: '#6b7280',
+                overflow: 'hidden',
+              }}>
+                <span style={{
+                  display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
+                  background: BADGE_BG_COLOR, color: '#374151', fontSize: 10, fontWeight: 400,
                 }}>
-                  <span style={{
-                    display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
-                    background: BADGE_BG_COLOR, color: '#374151', fontSize: 10, fontWeight: 400,
-                  }}>
-                    営業時間
-                  </span>
-                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {spot.businessHours}
-                  </span>
-                </p>
-              )
+                  営業時間
+                </span>
+                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {spot.businessHours || '未登録'}
+                </span>
+              </p>
             ) : (
               dateRange && (
                 <p style={{

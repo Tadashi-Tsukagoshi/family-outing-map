@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { BADGE_BG_COLOR, type Category, type Spot } from '@/lib/spots'
-import { getDateDisplay, getEventStatus, STATUS_CONFIG, PERMANENT_STATUS, fmtTimeRange } from '@/lib/date-utils'
+import { getDateDisplay, getEventStatus, STATUS_CONFIG, fmtTimeRange } from '@/lib/date-utils'
 
 const POSTER_TYPE_LABELS: Record<string, string> = {
   general:   '一般ユーザー',
@@ -115,11 +115,11 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
     } catch {}
   }
 
-  const isPermanent = spot.type === 'permanent'
+  const isPark      = spot.category === 'park'
   const status      = getEventStatus(spot.startDate, spot.endDate)
   const dateRange   = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
   const timeRange   = fmtTimeRange(spot.startTime, spot.endTime)
-  const statusCfg   = isPermanent ? PERMANENT_STATUS : (status ? STATUS_CONFIG[status] : null)
+  const statusCfg   = isPark ? null : (status ? STATUS_CONFIG[status] : null)
   const image       = spot.imageUrl || ogpImage || CATEGORY_IMAGES[spot.category]
   const badgeBg     = BADGE_BG_COLOR
   const badgeColor  = '#374151'
@@ -190,7 +190,7 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
           {spot.name}
         </h2>
 
-        {(statusCfg || spot.scheduleNote || dateRange) && (
+        {(statusCfg || spot.scheduleNote || dateRange || isPark) && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 8 }}>
             {statusCfg && (
               <span style={{ fontSize: 14, fontWeight: 600, color: statusCfg.color }}>
@@ -230,18 +230,16 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
                 {likes}
               </span>
             </button>
-            {isPermanent ? (
-              spot.businessHours && (
-                <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#374151', margin: 0 }}>
-                  <span style={{
-                    display: 'inline-block', padding: '1px 4px', borderRadius: 4,
-                    background: badgeBg, color: badgeColor, fontSize: 10, fontWeight: 400,
-                  }}>
-                    営業時間
-                  </span>
-                  {spot.businessHours}
-                </p>
-              )
+            {isPark ? (
+              <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#374151', margin: 0 }}>
+                <span style={{
+                  display: 'inline-block', padding: '1px 4px', borderRadius: 4,
+                  background: badgeBg, color: badgeColor, fontSize: 10, fontWeight: 400,
+                }}>
+                  営業時間
+                </span>
+                {spot.businessHours || '未登録'}
+              </p>
             ) : (
               dateRange && (
                 <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#374151', margin: 0 }}>
