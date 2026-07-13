@@ -137,22 +137,6 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
   return (
     <>
     <aside className={`bg-white flex flex-col overflow-hidden ${mobile ? 'w-full h-full' : 'w-72 h-full shadow-lg'}`}>
-      {/* 下スワイプ・タップで閉じるハンドル（モバイルのみ） */}
-      {mobile && (
-        <div
-          onTouchStart={onHandleTouchStart}
-          onTouchMove={onHandleTouchMove}
-          onTouchEnd={onHandleTouchEnd}
-          onClick={onClose}
-          className="flex-shrink-0 select-none bg-white cursor-pointer"
-          style={{ touchAction: 'none' }}
-        >
-          <div className="flex justify-center pt-2.5 pb-1.5">
-            <div className="w-9 h-1 rounded-full bg-gray-300" />
-          </div>
-        </div>
-      )}
-
       {/* ヘッダー画像 */}
       <div className="relative shrink-0">
         <img
@@ -160,12 +144,27 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
           alt=""
           onClick={(isManualImage || isOgpImage) ? handleImageClick : undefined}
           style={{
-            display: 'block', width: '100%', height: 160, objectFit: 'cover',
+            display: 'block', width: '100%', height: mobile ? 180 : 160, objectFit: 'cover',
+            ...(mobile ? { borderRadius: '16px 16px 0 0' } : {}),
             cursor: (isManualImage || isOgpImage) ? 'pointer' : undefined,
           }}
           onError={(e) => { (e.currentTarget as HTMLImageElement).src = CATEGORY_IMAGES[spot.category] }}
         />
-        {!mobile && (
+        {mobile ? (
+          /* 下スワイプ・タップで閉じるハンドル（画像に重ねる） */
+          <div
+            onTouchStart={onHandleTouchStart}
+            onTouchMove={onHandleTouchMove}
+            onTouchEnd={onHandleTouchEnd}
+            onClick={onClose}
+            className="select-none cursor-pointer"
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, touchAction: 'none' }}
+          >
+            <div className="flex justify-center pt-2.5 pb-1.5">
+              <div className="w-9 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.7)' }} />
+            </div>
+          </div>
+        ) : (
           <button
             onClick={onClose}
             aria-label="閉じる"
