@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { BADGE_BG_COLOR, type Category, type Spot } from '@/lib/spots'
 import { getDateDisplay, getEventStatus, STATUS_CONFIG, PERMANENT_STATUS } from '@/lib/date-utils'
@@ -57,6 +57,20 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
   const [likes, setLikes] = useState(spot.likes ?? 0)
   const [liked, setLiked] = useState(false)
   const [lightboxOpen, setLightboxOpen] = useState(false)
+  const startY   = useRef(0)
+  const currentY = useRef(0)
+
+  const onHandleTouchStart = (e: React.TouchEvent) => {
+    startY.current   = e.touches[0].clientY
+    currentY.current = e.touches[0].clientY
+  }
+  const onHandleTouchMove = (e: React.TouchEvent) => {
+    currentY.current = e.touches[0].clientY
+  }
+  const onHandleTouchEnd = () => {
+    const delta = currentY.current - startY.current
+    if (delta > 50) onClose()
+  }
 
   useEffect(() => {
     setOgpImage(null)
@@ -123,6 +137,21 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
   return (
     <>
     <aside className={`bg-white flex flex-col overflow-hidden ${mobile ? 'w-full h-full' : 'w-72 h-full shadow-lg'}`}>
+      {/* 下スワイプで閉じるハンドル（モバイルのみ） */}
+      {mobile && (
+        <div
+          onTouchStart={onHandleTouchStart}
+          onTouchMove={onHandleTouchMove}
+          onTouchEnd={onHandleTouchEnd}
+          className="flex-shrink-0 select-none bg-white"
+          style={{ touchAction: 'none' }}
+        >
+          <div className="flex justify-center pt-2.5 pb-1.5">
+            <div className="w-9 h-1 rounded-full bg-gray-300" />
+          </div>
+        </div>
+      )}
+
       {/* ヘッダー画像 */}
       <div className="relative shrink-0">
         <img
