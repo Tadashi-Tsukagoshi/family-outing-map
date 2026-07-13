@@ -121,25 +121,12 @@ function buildUserLocationElement(): HTMLDivElement {
 }
 
 // ─── Pin icon helpers ────────────────────────────────────────────
-const PARK_SHAPES = ['circle', 'triangle', 'square'] as const
-
-function pickParkShape(id: string): typeof PARK_SHAPES[number] {
-  let sum = 0
-  for (let i = 0; i < id.length; i++) sum += id.charCodeAt(i)
-  return PARK_SHAPES[sum % 3]
-}
-
-function parkShapeSvg(shape: typeof PARK_SHAPES[number], size: number): string {
-  const inner =
-    shape === 'circle'   ? '<circle cx="12" cy="12" r="8" fill="black"/>' :
-    shape === 'triangle' ? '<polygon points="12,4 20,20 4,20" fill="black"/>' :
-                            '<rect x="4" y="4" width="16" height="16" fill="black"/>'
-  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" style="display:block;">${inner}</svg>`
+function locationPinSvg(width: number, height: number): string {
+  return `<svg width="${width}" height="${height}" viewBox="0 0 48 48" style="display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));"><path d="M24 4C16.26 4 10 10.26 10 18C10 28.5 24 44 24 44C24 44 38 28.5 38 18C38 10.26 31.74 4 24 4ZM24 23C21.24 23 19 20.76 19 18C19 15.24 21.24 13 24 13C26.76 13 29 15.24 29 18C29 20.76 26.76 23 24 23Z" fill="#333333"/></svg>`
 }
 
 function pickIcon(category: Category, id: string): { src: string; bg: string; glow: string; ratio: number } {
   const lanternGlow = 'filter:drop-shadow(0 0 1.5px rgba(255,255,255,1)) drop-shadow(0 0 1.5px rgba(255,255,255,1));'
-  if (category === 'park') return { src: '', bg: 'white', glow: '', ratio: 0.7 }
   const src = getCategoryIconSrc(category, id)
   if (category === 'fireworks') return { src, bg: '#1e1614', glow: '', ratio: 0.78 }
   if (category === 'festival')  return { src, bg: '#1e1614', glow: lanternGlow, ratio: 0.63 }
@@ -149,32 +136,34 @@ function pickIcon(category: Category, id: string): { src: string; bg: string; gl
 type IconDef = { html: string; hit: number }
 
 function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef {
+  if (spot.category === 'park') {
+    const hit = selected ? 48 : (isMobile ? 48 : 40)
+    const [w, h] = selected ? [38, 50] : [32, 42]
+    return {
+      hit,
+      html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;">${locationPinSvg(w, h)}</div>`,
+    }
+  }
+
   const { src: icon, bg, glow, ratio } = pickIcon(spot.category, spot.id)
   const borderColor = '#9ca3af'
-  const isPark = spot.category === 'park'
 
   if (selected) {
     const hit  = 48
     const size = 44
     const img  = Math.round(size * ratio)
-    const content = isPark
-      ? parkShapeSvg(pickParkShape(spot.id), img)
-      : `<img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}">`
     return {
       hit,
-      html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><div class="pin-selected" style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2.5px solid ${borderColor};box-shadow:0 4px 12px rgba(0,0,0,.4);overflow:hidden;display:flex;align-items:center;justify-content:center;">${content}</div></div>`,
+      html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><div class="pin-selected" style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2.5px solid ${borderColor};box-shadow:0 4px 12px rgba(0,0,0,.4);overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}"></div></div>`,
     }
   }
 
   const hit  = isMobile ? 48 : 40
   const size = 36
   const img  = Math.round(size * ratio)
-  const content = isPark
-    ? parkShapeSvg(pickParkShape(spot.id), img)
-    : `<img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}">`
   return {
     hit,
-    html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2.5px solid ${borderColor};box-shadow:0 2px 6px rgba(0,0,0,.25);overflow:hidden;display:flex;align-items:center;justify-content:center;">${content}</div></div>`,
+    html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2.5px solid ${borderColor};box-shadow:0 2px 6px rgba(0,0,0,.25);overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}"></div></div>`,
   }
 }
 
