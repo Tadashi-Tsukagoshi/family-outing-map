@@ -5,7 +5,7 @@
 
 ## 技術構成
 - フレームワーク：Next.js（App Router）+ TypeScript + Tailwind CSS
-- 地図：OpenStreetMap + Leaflet（Mapboxアカウントあり、将来のスタイリング用）
+- 地図：Mapbox GL JS（Streets v12、日本語表示）。アクセストークンは環境変数 `NEXT_PUBLIC_MAPBOX_TOKEN`
 - データ永続化：Supabase（PostgreSQL + RLS + Storage）
 - デプロイ：Vercel（GitHub連携で自動デプロイ）+ Vercel Analytics導入済み
 - 本番URL：https://family-outing-map.vercel.app/
@@ -39,7 +39,7 @@
 - お問い合わせ（Googleフォーム連携、スマホポップアップ内リンク）
 - スマホUX（左上「群馬県おでかけまっぷ」ピルボタン、ボトムシート、イベント一覧タップで地図中央表示）
 - PWA対応
-- Leafletズームコントロールのライトボックス時非表示（直接DOM操作）
+- Mapboxズームコントロールのライトボックス時非表示（直接DOM操作）
 - 終了イベントページ（/ended-events）、サイドバーからスクロール最下部にリンク
 - Vercel Analytics
 

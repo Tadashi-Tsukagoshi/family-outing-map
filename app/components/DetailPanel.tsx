@@ -72,7 +72,7 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
   }, [spot.id])
 
   useEffect(() => {
-    const zoomControl = document.querySelector('.leaflet-control-zoom') as HTMLElement | null
+    const zoomControl = document.querySelector('.mapboxgl-ctrl-top-right .mapboxgl-ctrl-group') as HTMLElement | null
     if (zoomControl) {
       zoomControl.style.display = lightboxOpen ? 'none' : ''
     }

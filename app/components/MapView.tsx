@@ -1,12 +1,13 @@
 'use client'
 
-import 'leaflet/dist/leaflet.css'
-import L from 'leaflet'
+import 'mapbox-gl/dist/mapbox-gl.css'
+import mapboxgl from 'mapbox-gl'
 import { useRef, useState, useMemo, useCallback, useEffect, useLayoutEffect } from 'react'
-import { MapContainer, TileLayer, Marker, Circle, ZoomControl, useMap } from 'react-leaflet'
 import { getCategoryIconSrc, BADGE_BG_COLOR, type Category, type Spot } from '@/lib/spots'
 import { getDateDisplay, getEventStatus, STATUS_CONFIG, PERMANENT_STATUS } from '@/lib/date-utils'
 import { type SheetState } from './BottomSheet'
+
+mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? ''
 
 // ─── Types ───────────────────────────────────────────────────────
 type Props = {
@@ -29,6 +30,7 @@ type HoverState = { spot: Spot; x: number; y: number }
 type OgpEntry = string | null | 'loading'
 
 // ─── Constants ───────────────────────────────────────────────────
+/** [lat, lng] */
 const OTA_CENTER: [number, number] = [36.2913, 139.3758]
 
 /** カード幅（固定） */
@@ -48,10 +50,53 @@ const CATEGORY_IMAGES: Record<Category, string> = {
   park:      'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=200',
 }
 
-// ─── User location icon ──────────────────────────────────────────
-const USER_LOCATION_ICON = L.divIcon({
-  className: '',
-  html: `
+// ─── Geo helpers ─────────────────────────────────────────────────
+/** [lat, lng] → mapbox-gl の [lng, lat] */
+function toLngLat(lat: number, lng: number): [number, number] {
+  return [lng, lat]
+}
+
+/** Leaflet の LatLng#toBounds と同じ近似式（地球周長 40075017m を使用） */
+function boundsFromCenterRadius(lat: number, lng: number, sizeMeters: number): mapboxgl.LngLatBoundsLike {
+  const latAccuracy = (180 * sizeMeters) / 40075017
+  const lngAccuracy = latAccuracy / Math.cos((Math.PI / 180) * lat)
+  return [
+    [lng - lngAccuracy, lat - latAccuracy],
+    [lng + lngAccuracy, lat + latAccuracy],
+  ]
+}
+
+/** 円をGeoJSONポリゴンとして生成（turf非依存の簡易近似） */
+function createGeoCircle(lat: number, lng: number, radiusMeters: number, points = 64): GeoJSON.Feature<GeoJSON.Polygon> {
+  const coords: [number, number][] = []
+  const distanceX = radiusMeters / (111320 * Math.cos((lat * Math.PI) / 180))
+  const distanceY = radiusMeters / 110540
+  for (let i = 0; i <= points; i++) {
+    const theta = (i / points) * (2 * Math.PI)
+    coords.push([lng + distanceX * Math.cos(theta), lat + distanceY * Math.sin(theta)])
+  }
+  return { type: 'Feature', geometry: { type: 'Polygon', coordinates: [coords] }, properties: {} }
+}
+
+const EMPTY_FC: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] }
+
+/** Mapboxのスタイルレイヤーの表示言語を日本語優先に切り替える */
+function setMapLanguage(map: mapboxgl.Map) {
+  const layers = map.getStyle()?.layers ?? []
+  for (const layer of layers) {
+    if (layer.type !== 'symbol') continue
+    const layout = layer.layout as { 'text-field'?: unknown } | undefined
+    if (!layout || !('text-field' in layout)) continue
+    map.setLayoutProperty(layer.id, 'text-field', ['coalesce', ['get', 'name_ja'], ['get', 'name']])
+  }
+}
+
+// ─── User location marker element ────────────────────────────────
+function buildUserLocationElement(): HTMLDivElement {
+  const el = document.createElement('div')
+  el.style.width = '24px'
+  el.style.height = '24px'
+  el.innerHTML = `
     <style>
       @keyframes sonar-ring {
         0%   { transform: translate(-50%,-50%) scale(1); opacity: 0.5; }
@@ -61,12 +106,11 @@ const USER_LOCATION_ICON = L.divIcon({
     <div style="position:relative;width:24px;height:24px;">
       <div style="position:absolute;top:50%;left:50%;width:18px;height:18px;border-radius:50%;background:#3b82f6;animation:sonar-ring 3s ease-out infinite;"></div>
       <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:15px;height:15px;border-radius:50%;background:#2563eb;border:2px solid white;box-shadow:0 1px 4px rgba(37,99,235,.7);"></div>
-    </div>`,
-  iconSize:   [24, 24],
-  iconAnchor: [12, 12],
-})
+    </div>`
+  return el
+}
 
-// ─── Helpers ─────────────────────────────────────────────────────
+// ─── Pin icon helpers ────────────────────────────────────────────
 function pickIcon(category: Category, id: string): { src: string; bg: string; glow: string; ratio: number } {
   const lanternGlow = 'filter:drop-shadow(0 0 1.5px rgba(255,255,255,1)) drop-shadow(0 0 1.5px rgba(255,255,255,1));'
   const src = getCategoryIconSrc(category, id)
@@ -75,78 +119,28 @@ function pickIcon(category: Category, id: string): { src: string; bg: string; gl
   return { src, bg: 'white', glow: '', ratio: 0.78 }
 }
 
-function buildDivIcon(spot: Spot, selected: boolean, isMobile: boolean): L.DivIcon {
+type IconDef = { html: string; hit: number }
+
+function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef {
   const { src: icon, bg, glow, ratio } = pickIcon(spot.category, spot.id)
 
   if (selected) {
     const hit  = 48
     const size = 44
     const img  = Math.round(size * ratio)
-    return L.divIcon({
-      className: '',
+    return {
+      hit,
       html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><div class="pin-selected" style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2.5px solid #d1d5db;box-shadow:0 4px 12px rgba(0,0,0,.4);overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}"></div></div>`,
-      iconSize:   [hit, hit],
-      iconAnchor: [hit / 2, hit / 2],
-    })
+    }
   }
 
   const hit  = isMobile ? 48 : 40
   const size = 36
   const img  = Math.round(size * ratio)
-  return L.divIcon({
-    className: '',
+  return {
+    hit,
     html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2.5px solid #d1d5db;box-shadow:0 2px 6px rgba(0,0,0,.25);overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}"></div></div>`,
-    iconSize:   [hit, hit],
-    iconAnchor: [hit / 2, hit / 2],
-  })
-}
-
-// ─── MapMarkers ──────────────────────────────────────────────────
-type MarkersProps = {
-  spots: Spot[]
-  icons: Record<string, L.DivIcon>
-  selectedSpotId: string | null
-  onHoverIn: (spot: Spot, x: number, y: number) => void
-  onHoverOut: () => void
-  onMapMove: () => void
-  onPinClick: (spot: Spot) => void
-  onMapClick: () => void
-}
-
-function MapMarkers({ spots, icons, selectedSpotId, onHoverIn, onHoverOut, onMapMove, onPinClick, onMapClick }: MarkersProps) {
-  const map = useMap()
-
-  useEffect(() => {
-    map.on('movestart', onMapMove)
-    map.on('zoomstart', onMapMove)
-    map.on('click', onMapClick)
-    return () => {
-      map.off('movestart', onMapMove)
-      map.off('zoomstart', onMapMove)
-      map.off('click', onMapClick)
-    }
-  }, [map, onMapMove, onMapClick])
-
-  return (
-    <>
-      {spots.map((spot) => (
-        <Marker
-          key={spot.id}
-          position={[spot.lat, spot.lng]}
-          icon={icons[spot.id]}
-          zIndexOffset={spot.id === selectedSpotId ? 1000 : 0}
-          eventHandlers={{
-            mouseover: () => {
-              const pt = map.latLngToContainerPoint([spot.lat, spot.lng])
-              onHoverIn(spot, pt.x, pt.y)
-            },
-            mouseout: onHoverOut,
-            click: () => onPinClick(spot),
-          }}
-        />
-      ))}
-    </>
-  )
+  }
 }
 
 // ─── HoverCard ───────────────────────────────────────────────────
@@ -329,150 +323,19 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
   )
 }
 
-// ─── SelectedSpotTracker ─────────────────────────────────────────
-function SelectedSpotTracker({
-  selectedSpot,
-  userLocation,
-  onHoverChange,
-  isMobile,
-  detailPanelOpen,
-}: {
-  selectedSpot: Spot | null
-  userLocation: [number, number] | null
-  onHoverChange: (hover: HoverState | null) => void
-  isMobile: boolean
-  detailPanelOpen: boolean
-}) {
-  const map = useMap()
-  const userLocationRef = useRef(userLocation)
-  useEffect(() => { userLocationRef.current = userLocation }, [userLocation])
-
-  const updatePosition = useCallback(() => {
-    if (!selectedSpot) { onHoverChange(null); return }
-    const pt = map.latLngToContainerPoint([selectedSpot.lat, selectedSpot.lng])
-    onHoverChange({ spot: selectedSpot, x: pt.x, y: pt.y })
-  }, [selectedSpot, map, onHoverChange])
-
-  // selectedSpot 変更時
-  useEffect(() => {
-    if (!selectedSpot) { onHoverChange(null); return }
-    const spotLatLng = L.latLng(selectedSpot.lat, selectedSpot.lng)
-
-    if (isMobile) {
-      // ボトムシート（50vh）上の可視エリア中央にピンを配置する
-      // 可視エリア中央 y = containerH/4、マップ中心 y = containerH/2 なので
-      // 中心の projected y = spot の projected y + containerH/4
-      const zoom    = map.getZoom()
-      const spotPx  = map.project(spotLatLng, zoom)
-      const { y: containerH } = map.getSize()
-      const centerLatLng = map.unproject(L.point(spotPx.x, spotPx.y + containerH / 4), zoom)
-      map.panTo(centerLatLng, { animate: true, duration: 0.5 })
-    } else {
-      // PC: 範囲内でパネルに隠れる場合・範囲外の場合ともにオフセット付き panTo
-      const inBounds = map.getBounds().contains(spotLatLng)
-      const pt = inBounds ? map.latLngToContainerPoint(spotLatLng) : null
-      const hiddenByPanel = detailPanelOpen && (pt === null || pt.x < DETAIL_PANEL_W)
-
-      if (!inBounds || hiddenByPanel) {
-        // ズームを変えずにパネルを除いた可視エリア中央へ panTo
-        const zoom = map.getZoom()
-        const spotPx = map.project(spotLatLng, zoom)
-        const offsetX = detailPanelOpen ? DETAIL_PANEL_W / 2 : 0
-        const centerLatLng = map.unproject(L.point(spotPx.x - offsetX, spotPx.y), zoom)
-        map.panTo(centerLatLng, { animate: true, duration: 0.5 })
-      } else {
-        updatePosition()
-      }
-    }
-  }, [selectedSpot, map, onHoverChange, updatePosition, isMobile, detailPanelOpen])
-
-  // マップ移動イベント: 移動中は非表示、終了後に再表示
-  useEffect(() => {
-    const onMoveStart = () => onHoverChange(null)
-    map.on('moveend', updatePosition)
-    map.on('zoomend', updatePosition)
-    map.on('movestart', onMoveStart)
-    map.on('zoomstart', onMoveStart)
-    return () => {
-      map.off('moveend', updatePosition)
-      map.off('zoomend', updatePosition)
-      map.off('movestart', onMoveStart)
-      map.off('zoomstart', onMoveStart)
-    }
-  }, [map, updatePosition, onHoverChange])
-
-  return null
-}
-
-// ─── MapResizer ──────────────────────────────────────────────────
-// detailPanelOpen の変化（サイドバー幅変化）時にタイルを再描画する。
-// 位置・ズームは変えない。現在地への移動は FlyToLocation が担う。
-function MapResizer({ detailPanelOpen }: { detailPanelOpen: boolean }) {
-  const map = useMap()
-  const isFirst = useRef(true)
-
-  useEffect(() => {
-    if (isFirst.current) { isFirst.current = false; return }
-    map.invalidateSize()
-  }, [detailPanelOpen, map])
-
-  return null
-}
-
-// ─── RecenterToOta（現在地取得失敗時に太田市中心へ戻す） ───────────
-function RecenterToOta({ signal }: { signal: number }) {
-  const map = useMap()
-  const isFirst = useRef(true)
-
-  useEffect(() => {
-    if (isFirst.current) { isFirst.current = false; return }
-    map.setView(OTA_CENTER, 12, { animate: false })
-  }, [signal, map])
-  return null
-}
-
-// ─── FlyToLocation ───────────────────────────────────────────────
 const PEEK_HEIGHT = 72
-
-function FlyToLocation({ location, radius, isMobile, sheetState }: { location: [number, number] | null; radius: number; isMobile: boolean; sheetState: SheetState }) {
-  const map = useMap()
-  const prevLocationRef = useRef<[number, number] | null>(null)
-  const sheetStateRef = useRef<SheetState>(sheetState)
-  useEffect(() => { sheetStateRef.current = sheetState }, [sheetState])
-
-  useEffect(() => {
-    if (!location) return
-    const bounds = L.latLng(location[0], location[1]).toBounds(radius * 1000 * 2)
-    const prev = prevLocationRef.current
-    const locationChanged = prev?.[0] !== location[0] || prev?.[1] !== location[1]
-    prevLocationRef.current = location
-
-    let fitOpts: object
-    if (isMobile) {
-      const s = sheetStateRef.current
-      const bottomPad =
-        s === 'mid'  ? map.getSize().y / 2 :
-        s === 'full' ? map.getSize().y * 0.85 :
-        PEEK_HEIGHT
-      fitOpts = { paddingTopLeft: [12, 12] as [number, number], paddingBottomRight: [12, bottomPad] as [number, number] }
-    } else {
-      fitOpts = { padding: [12, 12] as [number, number] }
-    }
-
-    map.options.zoomSnap = 0
-    if (locationChanged) {
-      map.fitBounds(bounds, { animate: false, ...fitOpts })
-    } else {
-      map.fitBounds(bounds, { animate: true, duration: 0.3, ...fitOpts })
-    }
-    map.options.zoomSnap = 1
-  }, [location, radius, isMobile, map])
-  return null
-}
 
 // ─── MapView（メインコンポーネント） ─────────────────────────────
 export default function MapView({ spots, onSpotSelect, selectedSpot, userLocation = null, locationRadius = 60, recenterSignal = 0, onDetailOpen, onDetailClose, detailPanelOpen, isMobile = false, sheetState = 'closed' }: Props) {
-  const wrapperRef  = useRef<HTMLDivElement>(null)
+  const wrapperRef       = useRef<HTMLDivElement>(null)
+  const containerRef     = useRef<HTMLDivElement>(null)
+  const mapRef           = useRef<mapboxgl.Map | null>(null)
+  const [mapReady, setMapReady] = useState(false)
+
+  const markersRef       = useRef<Record<string, mapboxgl.Marker>>({})
+  const userMarkerRef    = useRef<mapboxgl.Marker | null>(null)
+  const navControlRef    = useRef<mapboxgl.NavigationControl | null>(null)
+
   const [hovered,      setHovered]      = useState<HoverState | null>(null)
   const [pinnedHover,  setPinnedHover]  = useState<HoverState | null>(null)
   const hideTimer            = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -536,58 +399,264 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
     clearHide()
   }, [clearHide])
 
+  const handleMapClick = useCallback(() => {
+    onDetailClose()
+    if (isMobile) onSpotSelect(null)
+    handleImmediateHide()
+  }, [onDetailClose, isMobile, onSpotSelect, handleImmediateHide])
+
+  // マーカーのDOMイベントハンドラ・地図イベントハンドラから常に最新のコールバック・spotを参照するためのref
+  const handlersRef = useRef({ handleHoverIn, scheduleHide, handlePinClick, handleMapClick, handleImmediateHide })
+  useEffect(() => {
+    handlersRef.current = { handleHoverIn, scheduleHide, handlePinClick, handleMapClick, handleImmediateHide }
+  })
+  const spotsByIdRef = useRef<Record<string, Spot>>({})
+  useEffect(() => {
+    spotsByIdRef.current = Object.fromEntries(spots.map(s => [s.id, s]))
+  }, [spots])
+
   const icons = useMemo(() => {
-    const result: Record<string, L.DivIcon> = {}
+    const result: Record<string, IconDef> = {}
     for (const s of spots) {
-      result[s.id] = buildDivIcon(s, s.id === selectedSpot?.id, isMobile)
+      result[s.id] = buildIconDef(s, s.id === selectedSpot?.id, isMobile)
     }
     return result
   }, [spots, selectedSpot, isMobile])
 
+  // ─── 地図の初期化 ────────────────────────────────────────────
+  useEffect(() => {
+    if (!containerRef.current || mapRef.current) return
+    const map = new mapboxgl.Map({
+      container: containerRef.current,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: toLngLat(OTA_CENTER[0], OTA_CENTER[1]),
+      zoom: 12,
+    })
+    mapRef.current = map
+
+    map.on('load', () => {
+      setMapLanguage(map)
+
+      map.addSource('user-radius', { type: 'geojson', data: EMPTY_FC })
+      map.addLayer({
+        id: 'user-radius-fill', type: 'fill', source: 'user-radius',
+        paint: { 'fill-color': '#3b82f6', 'fill-opacity': 0.09 },
+      })
+      map.addLayer({
+        id: 'user-radius-outline', type: 'line', source: 'user-radius',
+        paint: { 'line-color': '#3b82f6', 'line-width': 1.2, 'line-opacity': 0.7 },
+      })
+
+      setMapReady(true)
+    })
+
+    map.on('movestart', () => handlersRef.current.handleImmediateHide())
+    map.on('zoomstart', () => handlersRef.current.handleImmediateHide())
+    map.on('click', () => handlersRef.current.handleMapClick())
+
+    return () => {
+      map.remove()
+      mapRef.current = null
+      markersRef.current = {}
+      userMarkerRef.current = null
+      navControlRef.current = null
+      setMapReady(false)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // ─── ズームコントロール（PCのみ、右上） ───────────────────────
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+    if (!isMobile && !navControlRef.current) {
+      const ctrl = new mapboxgl.NavigationControl({ showCompass: false })
+      map.addControl(ctrl, 'top-right')
+      navControlRef.current = ctrl
+    } else if (isMobile && navControlRef.current) {
+      map.removeControl(navControlRef.current)
+      navControlRef.current = null
+    }
+  }, [isMobile, mapReady])
+
+  // ─── ピンマーカー同期 ────────────────────────────────────────
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+
+    const currentIds = new Set(spots.map(s => s.id))
+    for (const id of Object.keys(markersRef.current)) {
+      if (!currentIds.has(id)) {
+        markersRef.current[id].remove()
+        delete markersRef.current[id]
+      }
+    }
+
+    for (const spot of spots) {
+      const iconDef = icons[spot.id]
+      let marker = markersRef.current[spot.id]
+      if (!marker) {
+        const el = document.createElement('div')
+        el.style.cursor = 'pointer'
+        el.addEventListener('mouseenter', () => {
+          const cur = spotsByIdRef.current[spot.id]
+          const m = mapRef.current
+          if (!cur || !m) return
+          const pt = m.project(toLngLat(cur.lat, cur.lng))
+          handlersRef.current.handleHoverIn(cur, pt.x, pt.y)
+        })
+        el.addEventListener('mouseleave', () => handlersRef.current.scheduleHide())
+        el.addEventListener('click', (e) => {
+          e.stopPropagation()
+          const cur = spotsByIdRef.current[spot.id]
+          if (cur) handlersRef.current.handlePinClick(cur)
+        })
+        marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
+          .setLngLat(toLngLat(spot.lat, spot.lng))
+          .addTo(map)
+        markersRef.current[spot.id] = marker
+      }
+      const el = marker.getElement()
+      el.innerHTML  = iconDef.html
+      el.style.width  = `${iconDef.hit}px`
+      el.style.height = `${iconDef.hit}px`
+      el.style.zIndex = spot.id === selectedSpot?.id ? '1000' : '0'
+    }
+  }, [spots, icons, selectedSpot?.id, mapReady])
+
+  // ─── 現在地マーカー・円表示 ──────────────────────────────────
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+    const source = map.getSource('user-radius') as mapboxgl.GeoJSONSource | undefined
+
+    if (!userLocation) {
+      source?.setData(EMPTY_FC)
+      userMarkerRef.current?.remove()
+      userMarkerRef.current = null
+      return
+    }
+
+    const [lat, lng] = userLocation
+    source?.setData(createGeoCircle(lat, lng, locationRadius * 1000))
+
+    if (!userMarkerRef.current) {
+      userMarkerRef.current = new mapboxgl.Marker({ element: buildUserLocationElement(), anchor: 'center' })
+        .setLngLat(toLngLat(lat, lng))
+        .addTo(map)
+    } else {
+      userMarkerRef.current.setLngLat(toLngLat(lat, lng))
+    }
+  }, [userLocation, locationRadius, mapReady])
+
+  // ─── FlyToLocation相当 ───────────────────────────────────────
+  const prevLocationRef  = useRef<[number, number] | null>(null)
+  const sheetStateRef    = useRef<SheetState>(sheetState)
+  useEffect(() => { sheetStateRef.current = sheetState }, [sheetState])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady || !userLocation) return
+
+    const bounds = boundsFromCenterRadius(userLocation[0], userLocation[1], locationRadius * 1000 * 2)
+    const prev = prevLocationRef.current
+    const locationChanged = prev?.[0] !== userLocation[0] || prev?.[1] !== userLocation[1]
+    prevLocationRef.current = userLocation
+
+    let padding: mapboxgl.PaddingOptions
+    if (isMobile) {
+      const s = sheetStateRef.current
+      const bottomPad =
+        s === 'mid'  ? map.getContainer().clientHeight / 2 :
+        s === 'full' ? map.getContainer().clientHeight * 0.85 :
+        PEEK_HEIGHT
+      padding = { top: 12, left: 12, bottom: bottomPad, right: 12 }
+    } else {
+      padding = { top: 12, left: 12, bottom: 12, right: 12 }
+    }
+
+    if (locationChanged) {
+      map.fitBounds(bounds, { padding, animate: false })
+    } else {
+      map.fitBounds(bounds, { padding, animate: true, duration: 300 })
+    }
+  }, [userLocation, locationRadius, isMobile, mapReady])
+
+  // ─── RecenterToOta相当 ───────────────────────────────────────
+  const isFirstRecenter = useRef(true)
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+    if (isFirstRecenter.current) { isFirstRecenter.current = false; return }
+    map.jumpTo({ center: toLngLat(OTA_CENTER[0], OTA_CENTER[1]), zoom: 12 })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recenterSignal, mapReady])
+
+  // ─── MapResizer相当 ──────────────────────────────────────────
+  const isFirstResize = useRef(true)
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+    if (isFirstResize.current) { isFirstResize.current = false; return }
+    map.resize()
+  }, [detailPanelOpen, mapReady])
+
+  // ─── SelectedSpotTracker相当 ─────────────────────────────────
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+
+    const updatePosition = () => {
+      if (!selectedSpot) { handlePinnedHoverChange(null); return }
+      const pt = map.project(toLngLat(selectedSpot.lat, selectedSpot.lng))
+      handlePinnedHoverChange({ spot: selectedSpot, x: pt.x, y: pt.y })
+    }
+
+    if (!selectedSpot) {
+      handlePinnedHoverChange(null)
+    } else {
+      const lngLat = toLngLat(selectedSpot.lat, selectedSpot.lng)
+
+      if (isMobile) {
+        // ボトムシート（50vh）上の可視エリア中央にピンを配置する
+        const zoom = map.getZoom()
+        const spotPx = map.project(lngLat)
+        const containerH = map.getContainer().clientHeight
+        const center = map.unproject([spotPx.x, spotPx.y + containerH / 4])
+        map.panTo(center, { animate: true, duration: 500 })
+      } else {
+        // PC: 範囲内でパネルに隠れる場合・範囲外の場合ともにオフセット付き panTo
+        const inBounds = map.getBounds()?.contains(lngLat) ?? false
+        const pt = inBounds ? map.project(lngLat) : null
+        const hiddenByPanel = detailPanelOpen && (pt === null || pt.x < DETAIL_PANEL_W)
+
+        if (!inBounds || hiddenByPanel) {
+          const spotPx = map.project(lngLat)
+          const offsetX = detailPanelOpen ? DETAIL_PANEL_W / 2 : 0
+          const center = map.unproject([spotPx.x - offsetX, spotPx.y])
+          map.panTo(center, { animate: true, duration: 500 })
+        } else {
+          updatePosition()
+        }
+      }
+    }
+
+    const onMoveStart = () => handlePinnedHoverChange(null)
+    map.on('moveend', updatePosition)
+    map.on('zoomend', updatePosition)
+    map.on('movestart', onMoveStart)
+    map.on('zoomstart', onMoveStart)
+    return () => {
+      map.off('moveend', updatePosition)
+      map.off('zoomend', updatePosition)
+      map.off('movestart', onMoveStart)
+      map.off('zoomstart', onMoveStart)
+    }
+  }, [selectedSpot, isMobile, detailPanelOpen, mapReady, handlePinnedHoverChange])
+
   return (
     <div ref={wrapperRef} style={{ position: 'relative', height: '100%', width: '100%' }}>
-      <MapContainer
-        center={OTA_CENTER}
-        zoom={12}
-        style={{ height: '100%', width: '100%' }}
-        zoomControl={false}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <MapMarkers
-          spots={spots}
-          icons={icons}
-          selectedSpotId={selectedSpot?.id ?? null}
-          onHoverIn={handleHoverIn}
-          onHoverOut={scheduleHide}
-          onMapMove={handleImmediateHide}
-          onPinClick={handlePinClick}
-          onMapClick={isMobile ? () => { onDetailClose(); onSpotSelect(null); handleImmediateHide() } : () => { onDetailClose(); handleImmediateHide() }}
-        />
-        {!isMobile && <ZoomControl position="topright" />}
-        <FlyToLocation location={userLocation} radius={locationRadius} isMobile={isMobile} sheetState={sheetState} />
-        <RecenterToOta signal={recenterSignal} />
-        <MapResizer detailPanelOpen={detailPanelOpen} />
-        <SelectedSpotTracker selectedSpot={selectedSpot} userLocation={userLocation} onHoverChange={handlePinnedHoverChange} isMobile={isMobile} detailPanelOpen={detailPanelOpen} />
-        {userLocation && (
-          <>
-            <Circle
-              center={userLocation}
-              radius={locationRadius * 1000}
-              pathOptions={{
-                color: '#3b82f6',
-                fillColor: '#3b82f6',
-                fillOpacity: 0.09,
-                weight: 1.2,
-                opacity: 0.7,
-              }}
-            />
-            <Marker position={userLocation} icon={USER_LOCATION_ICON} />
-          </>
-        )}
-      </MapContainer>
+      <div ref={containerRef} style={{ height: '100%', width: '100%' }} />
 
       {/* モバイルはホバーカード不要。PC: hovered は常に表示、pinnedHover は詳細パネルが閉じている時のみ */}
       {(() => {
