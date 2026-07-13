@@ -126,7 +126,7 @@ function pickIcon(category: Category, id: string): { src: string; bg: string; gl
   const src = getCategoryIconSrc(category, id)
   if (category === 'fireworks') return { src, bg: '#1e1614', glow: '', ratio: 0.78 }
   if (category === 'festival')  return { src, bg: '#1e1614', glow: lanternGlow, ratio: 0.63 }
-  if (category === 'park')      return { src, bg: '#1ca538', glow: '', ratio: 0.6 }
+  if (category === 'park')      return { src, bg: 'white', glow: '', ratio: 0.6 }
   return { src, bg: 'white', glow: '', ratio: 0.78 }
 }
 
@@ -134,7 +134,7 @@ type IconDef = { html: string; hit: number }
 
 function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef {
   const { src: icon, bg, glow, ratio } = pickIcon(spot.category, spot.id)
-  const borderColor = spot.category === 'park' ? '#ffffff' : '#9ca3af'
+  const borderColor = '#9ca3af'
 
   if (selected) {
     const hit  = 48
