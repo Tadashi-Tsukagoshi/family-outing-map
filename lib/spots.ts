@@ -92,15 +92,8 @@ export const ICON_PATHS: Record<Category, string> = {
   park:      'M12 2C8 2 5 5.5 5 9c0 2.5 1.5 4.5 3.3 5.7L6 22h3l1-3h4l1 3h3l-2.3-7.3C17.5 13.5 19 11.5 19 9c0-3.5-3-7-7-7z',
 }
 
-const CANOPY_COLORS = ['red', 'blue', 'green'] as const
-
-export function getCategoryIconSrc(category: Category, id?: string): string {
-  if (category === 'fireworks') return '/icons/fireworks.png'
-  if (category === 'festival')  return '/icons/lantern.png'
-  if (!id) return '/icons/canopy_blue.svg'
-  let sum = 0
-  for (let i = 0; i < id.length; i++) sum += id.charCodeAt(i)
-  return `/icons/canopy_${CANOPY_COLORS[sum % 3]}.svg`
+export function getCategoryIconSrc(category: Category): string {
+  return category === 'fireworks' ? '/icons/fireworks.png' : '/icons/lantern.png'
 }
 
 export function isDarkPin(category: Category): boolean {

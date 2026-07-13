@@ -126,15 +126,23 @@ function locationPinSvg(width: number, height: number, selected: boolean, color:
   return `<svg${cls} width="${width}" height="${height}" viewBox="0 0 48 48" style="display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));"><path d="M24 4C16.26 4 10 10.26 10 18C10 28.5 24 44 24 44C24 44 38 28.5 38 18C38 10.26 31.74 4 24 4Z" fill="${color}" stroke="white" stroke-width="2.5"/><circle cx="24" cy="18" r="5" fill="white"/></svg>`
 }
 
-function pickIcon(category: Category, id: string): { src: string; bg: string; glow: string; ratio: number } {
+function eventBubbleSvg(selected: boolean, color: string): string {
+  const cls = selected ? ' class="pin-selected"' : ''
+  if (selected) {
+    return `<svg${cls} width="96" height="70" viewBox="-48 0 96 70" style="display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));"><ellipse cx="0" cy="28" rx="48" ry="28" fill="${color}"/><polygon points="-5,54 5,54 0,68" fill="${color}"/><text x="0" y="36" font-family="Arial,sans-serif" font-size="20" fill="white" text-anchor="middle" font-weight="700">EVENT!</text></svg>`
+  }
+  return `<svg${cls} width="80" height="58" viewBox="-40 0 80 58" style="display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));"><ellipse cx="0" cy="23" rx="40" ry="23" fill="${color}"/><polygon points="-4,45 4,45 0,57" fill="${color}"/><text x="0" y="30" font-family="Arial,sans-serif" font-size="17" fill="white" text-anchor="middle" font-weight="700">EVENT!</text></svg>`
+}
+
+function pickIcon(category: Category): { src: string; bg: string; glow: string; ratio: number } {
   const lanternGlow = 'filter:drop-shadow(0 0 1.5px rgba(255,255,255,1)) drop-shadow(0 0 1.5px rgba(255,255,255,1));'
-  const src = getCategoryIconSrc(category, id)
+  const src = getCategoryIconSrc(category)
   if (category === 'fireworks') return { src, bg: '#1e1614', glow: '', ratio: 0.78 }
   if (category === 'festival')  return { src, bg: '#1e1614', glow: lanternGlow, ratio: 0.63 }
   return { src, bg: 'white', glow: '', ratio: 0.78 }
 }
 
-type IconDef = { html: string; hit: number }
+type IconDef = { html: string; hit: number; hitH?: number; anchor?: 'center' | 'bottom' }
 
 function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef {
   if (spot.category === 'park') {
@@ -147,7 +155,18 @@ function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef
     }
   }
 
-  const { src: icon, bg, glow, ratio } = pickIcon(spot.category, spot.id)
+  if (spot.category === 'event') {
+    const [w, h] = selected ? [96, 70] : [80, 58]
+    const color = spot.pinColor ?? '#333333'
+    return {
+      hit: w,
+      hitH: h,
+      anchor: 'bottom',
+      html: eventBubbleSvg(selected, color),
+    }
+  }
+
+  const { src: icon, bg, glow, ratio } = pickIcon(spot.category)
   const borderColor = '#9ca3af'
 
   if (selected) {
@@ -541,7 +560,7 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
           const cur = spotsByIdRef.current[spot.id]
           if (cur) handlersRef.current.handlePinClick(cur)
         })
-        marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
+        marker = new mapboxgl.Marker({ element: el, anchor: iconDef.anchor ?? 'center' })
           .setLngLat(toLngLat(spot.lat, spot.lng))
           .addTo(map)
         markersRef.current[spot.id] = marker
@@ -549,7 +568,7 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
       const el = marker.getElement()
       el.innerHTML  = iconDef.html
       el.style.width  = `${iconDef.hit}px`
-      el.style.height = `${iconDef.hit}px`
+      el.style.height = `${iconDef.hitH ?? iconDef.hit}px`
       el.style.zIndex = spot.id === selectedSpot?.id ? '1000' : '0'
     }
   }, [spots, icons, selectedSpot?.id, mapReady])

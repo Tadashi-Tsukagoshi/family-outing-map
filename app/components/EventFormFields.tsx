@@ -270,12 +270,12 @@ export default function EventFormFields({
               </button>
             )
 
-            if (cat !== 'park') return categoryButton
+            if (cat !== 'park' && cat !== 'event') return categoryButton
 
             return (
               <div key={cat} className="flex flex-col gap-1.5">
                 {categoryButton}
-                {form.category === 'park' && (
+                {form.category === cat && (
                   <div className="flex justify-around">
                     {PIN_COLORS.map(color => {
                       const isSelected = form.pinColor === color

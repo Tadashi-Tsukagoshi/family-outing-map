@@ -53,7 +53,7 @@ function Toggle({
 
 const ICON_RATIO: Record<Category, number> = { event: 0.92, fireworks: 0.78, festival: 0.92, park: 0.92 }
 
-export function CategoryIcon({ category, active = true, size = 20, id }: { category: Category; active?: boolean; size?: number; id?: string }) {
+export function CategoryIcon({ category, active = true, size = 20 }: { category: Category; active?: boolean; size?: number }) {
   if (category === 'park') {
     const iconSize = Math.round(size * 0.85)
     return (
@@ -68,6 +68,23 @@ export function CategoryIcon({ category, active = true, size = 20, id }: { categ
     )
   }
 
+  if (category === 'event') {
+    const w = size
+    const h = Math.round(size * (58 / 80))
+    return (
+      <span style={{
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        width: size, height: size, flexShrink: 0,
+      }}>
+        <svg width={w} height={h} viewBox="-40 0 80 58" style={{ display: 'block', opacity: active ? 1 : 0.35 }}>
+          <ellipse cx="0" cy="23" rx="40" ry="23" fill="#333333" />
+          <polygon points="-4,45 4,45 0,57" fill="#333333" />
+          <text x="0" y="30" fontFamily="Arial, sans-serif" fontSize="17" fill="white" textAnchor="middle" fontWeight="700">EVENT!</text>
+        </svg>
+      </span>
+    )
+  }
+
   const imgSize = Math.round(size * ICON_RATIO[category])
   return (
     <span style={{
@@ -76,7 +93,7 @@ export function CategoryIcon({ category, active = true, size = 20, id }: { categ
       ...(category === 'fireworks' ? { backgroundColor: '#1e1614', borderRadius: '50%', overflow: 'hidden' } : {}),
     }}>
       <img
-        src={getCategoryIconSrc(category, active ? id : undefined)}
+        src={getCategoryIconSrc(category)}
         alt=""
         style={{ width: imgSize, height: imgSize, objectFit: 'contain', display: 'block', opacity: active ? 1 : 0.35 }}
       />
@@ -227,7 +244,7 @@ export default function Sidebar({
                   style={{ paddingLeft: 24 }}
                 >
                   <div className="flex items-center gap-2">
-                    <CategoryIcon category={spot.category} size={20} id={spot.id} />
+                    <CategoryIcon category={spot.category} size={20} />
                     <span className="text-sm leading-tight flex-1 min-w-0 truncate" style={{ color: '#1F1F1F' }}>
                       {spot.name}
                     </span>
