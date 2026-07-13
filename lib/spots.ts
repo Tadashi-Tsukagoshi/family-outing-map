@@ -26,6 +26,7 @@ export type Spot = {
   likes?: number
   editedBy?: string
   editedAt?: string
+  pinColor?: string // 常設施設ピンの色（HEX）
 }
 
 const VALID_CATEGORIES = new Set<string>(['event', 'fireworks', 'festival', 'park'])
@@ -64,6 +65,9 @@ export const CATEGORY_COLORS: Record<Category, string> = {
 }
 
 export const BADGE_BG_COLOR = '#dbeafe'
+
+export const PIN_COLORS = ['#333333', '#dc2626', '#2563eb', '#16a34a', '#9333ea'] as const
+export const DEFAULT_PIN_COLOR = '#333333'
 
 export type PeriodFilter = 'all' | '2w' | '1m' | '2m' | '3m' | '6m'
 

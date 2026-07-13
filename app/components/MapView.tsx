@@ -121,9 +121,9 @@ function buildUserLocationElement(): HTMLDivElement {
 }
 
 // ─── Pin icon helpers ────────────────────────────────────────────
-function locationPinSvg(width: number, height: number, selected: boolean): string {
+function locationPinSvg(width: number, height: number, selected: boolean, color: string): string {
   const cls = selected ? ' class="pin-selected"' : ''
-  return `<svg${cls} width="${width}" height="${height}" viewBox="0 0 48 48" style="display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));"><path d="M24 4C16.26 4 10 10.26 10 18C10 28.5 24 44 24 44C24 44 38 28.5 38 18C38 10.26 31.74 4 24 4Z" fill="#333333" stroke="white" stroke-width="2.5"/><circle cx="24" cy="18" r="5" fill="white"/></svg>`
+  return `<svg${cls} width="${width}" height="${height}" viewBox="0 0 48 48" style="display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));"><path d="M24 4C16.26 4 10 10.26 10 18C10 28.5 24 44 24 44C24 44 38 28.5 38 18C38 10.26 31.74 4 24 4Z" fill="${color}" stroke="white" stroke-width="2.5"/><circle cx="24" cy="18" r="5" fill="white"/></svg>`
 }
 
 function pickIcon(category: Category, id: string): { src: string; bg: string; glow: string; ratio: number } {
@@ -140,9 +140,10 @@ function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef
   if (spot.category === 'park') {
     const hit = selected ? 48 : (isMobile ? 48 : 40)
     const [w, h] = selected ? [46, 60] : [38, 50]
+    const color = spot.pinColor ?? '#333333'
     return {
       hit,
-      html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;">${locationPinSvg(w, h, selected)}</div>`,
+      html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;">${locationPinSvg(w, h, selected, color)}</div>`,
     }
   }
 

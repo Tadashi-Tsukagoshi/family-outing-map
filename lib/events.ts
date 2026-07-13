@@ -28,6 +28,7 @@ export type CollectedEvent = {
   editedBy?: string
   editedAt?: string
   status?: 'pending' | 'approved' | 'rejected'
+  pinColor?: string
 }
 
 export type EventsDatabase = {
@@ -73,5 +74,6 @@ export function eventToSpot(event: CollectedEvent): Spot {
     likes:        event.likes,
     editedBy:     event.editedBy,
     editedAt:     event.editedAt,
+    pinColor:     event.pinColor,
   }
 }

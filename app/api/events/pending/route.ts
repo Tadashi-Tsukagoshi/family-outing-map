@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   const supabase = supabaseAdmin()
   const { data, error } = await supabase
     .from('events')
-    .select('id, name, description, start_date, end_date, schedule_note, venue, fee, image_url, lat, lng, category, type, url, collected_at, posted_by, poster_type, status')
+    .select('id, name, description, start_date, end_date, schedule_note, venue, fee, image_url, lat, lng, category, type, url, collected_at, posted_by, poster_type, status, pin_color')
     .eq('status', 'pending')
     .order('collected_at', { ascending: false })
 
@@ -39,6 +39,7 @@ export async function GET(req: NextRequest) {
     postedBy: e.posted_by,
     posterType: e.poster_type,
     status: e.status,
+    pinColor: e.pin_color ?? undefined,
   }))
 
   return Response.json({ events })

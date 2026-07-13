@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { CATEGORY_LABELS, type Category, type EventType } from '@/lib/spots'
+import { CATEGORY_LABELS, PIN_COLORS, DEFAULT_PIN_COLOR, type Category, type EventType } from '@/lib/spots'
 import { CategoryIcon } from './Sidebar'
 import type { CollectedEvent } from '@/lib/events'
 import { resizeImage } from '@/lib/image-utils'
@@ -15,6 +15,7 @@ export type FormState = {
   name:          string
   category:      Category
   type:          EventType
+  pinColor:      string
   dateConfirmed: boolean
   startDate:     string
   endDate:       string
@@ -44,6 +45,7 @@ export const POSTER_TYPE_LABELS: Record<string, string> = {
 export const INITIAL_FORM: FormState = {
   name: '', category: 'event',
   type: 'event',
+  pinColor: DEFAULT_PIN_COLOR,
   dateConfirmed: true,
   startDate: '', endDate: '', scheduleNote: '',
   venue: '', fee: '', imageUrl: '', address: '',
@@ -59,6 +61,7 @@ export function eventToFormState(ev: CollectedEvent): FormState {
     name:          ev.name,
     category:      ev.category ?? 'event',
     type:          ev.type ?? 'event',
+    pinColor:      ev.pinColor ?? DEFAULT_PIN_COLOR,
     dateConfirmed: !hasScheduleNote,
     startDate:     ev.startDate ?? ev.date ?? '',
     endDate:       ev.endDate   ?? ev.date ?? '',
@@ -262,6 +265,40 @@ export default function EventFormFields({
           })}
         </div>
       </div>
+
+      {/* ピンの色（常設施設のみ） */}
+      {form.category === 'park' && (
+        <div>
+          <Label>ピンの色</Label>
+          <div className="flex gap-2">
+            {PIN_COLORS.map(color => {
+              const isSelected = form.pinColor === color
+              return (
+                <button
+                  key={color}
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => set('pinColor', color)}
+                  aria-label={color}
+                  style={{
+                    width: 32, height: 32, borderRadius: '50%',
+                    backgroundColor: color,
+                    border: isSelected ? '2.5px solid #1f2937' : '2.5px solid transparent',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
+                  className={disabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'}
+                >
+                  {isSelected && (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                      <path d="M5 13l4 4L19 7" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* 日程確定トグル */}
       <div className={isPermanent ? 'opacity-40' : undefined}>
