@@ -7,14 +7,14 @@ export function parseLocalDate(iso: string): Date {
 }
 
 /**
- * 日付範囲を "M/D（曜）〜M/D（曜）" 形式にフォーマット
+ * 日付範囲を "M/D(曜)〜M/D(曜)" 形式にフォーマット
  * 同日の場合は単一表示
  */
 export function fmtDateRange(start?: string, end?: string): string | null {
   if (!start && !end) return null
   const fmt = (iso: string) => {
     const d = parseLocalDate(iso)
-    return `${d.getMonth() + 1}/${d.getDate()}（${DOW_JA[d.getDay()]}）`
+    return `${d.getMonth() + 1}/${d.getDate()}(${DOW_JA[d.getDay()]})`
   }
   if (start && end && start !== end) return `${fmt(start)}〜${fmt(end)}`
   return fmt(start ?? end!)
@@ -26,10 +26,17 @@ export function getDateDisplay(scheduleNote?: string, startDate?: string, endDat
   return fmtDateRange(startDate, endDate)
 }
 
+/** DBのtime型（"HH:MM:SS"）が来ても "HH:MM" に切り詰める */
+function fmtTime(time: string): string {
+  return time.slice(0, 5)
+}
+
 /** 開始時刻〜終了時刻を "HH:MM〜HH:MM" 形式にフォーマット（片方のみでもそのまま表示） */
 export function fmtTimeRange(startTime?: string | null, endTime?: string | null): string | null {
-  if (startTime && endTime) return `${startTime}〜${endTime}`
-  return startTime || endTime || null
+  if (startTime && endTime) return `${fmtTime(startTime)}〜${fmtTime(endTime)}`
+  if (startTime) return fmtTime(startTime)
+  if (endTime) return fmtTime(endTime)
+  return null
 }
 
 export type EventStatus = 'active' | 'ended' | 'upcoming' | 'scheduled'
