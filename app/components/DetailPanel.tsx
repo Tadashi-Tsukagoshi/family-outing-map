@@ -137,13 +137,14 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
   return (
     <>
     <aside className={`bg-white flex flex-col overflow-hidden ${mobile ? 'w-full h-full' : 'w-72 h-full shadow-lg'}`}>
-      {/* 下スワイプで閉じるハンドル（モバイルのみ） */}
+      {/* 下スワイプ・タップで閉じるハンドル（モバイルのみ） */}
       {mobile && (
         <div
           onTouchStart={onHandleTouchStart}
           onTouchMove={onHandleTouchMove}
           onTouchEnd={onHandleTouchEnd}
-          className="flex-shrink-0 select-none bg-white"
+          onClick={onClose}
+          className="flex-shrink-0 select-none bg-white cursor-pointer"
           style={{ touchAction: 'none' }}
         >
           <div className="flex justify-center pt-2.5 pb-1.5">
@@ -164,21 +165,23 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
           }}
           onError={(e) => { (e.currentTarget as HTMLImageElement).src = CATEGORY_IMAGES[spot.category] }}
         />
-        <button
-          onClick={onClose}
-          aria-label="閉じる"
-          style={{
-            position: 'absolute', top: 8, right: 8,
-            width: 28, height: 28, borderRadius: '50%',
-            background: 'white', color: '#111',
-            border: 'none', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 16, lineHeight: 1,
-            boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
-          }}
-        >
-          ×
-        </button>
+        {!mobile && (
+          <button
+            onClick={onClose}
+            aria-label="閉じる"
+            style={{
+              position: 'absolute', top: 8, right: 8,
+              width: 28, height: 28, borderRadius: '50%',
+              background: 'white', color: '#111',
+              border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 16, lineHeight: 1,
+              boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
+            }}
+          >
+            ×
+          </button>
+        )}
       </div>
 
       {/* コンテンツ */}
