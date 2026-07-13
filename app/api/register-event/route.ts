@@ -17,6 +17,7 @@ export async function POST(req: Request) {
   const venue        = ((b.venue as string | undefined) ?? '').trim()
   const fee          = (b.fee          as string | undefined)?.trim() || null
   const imageUrl     = (b.imageUrl     as string | undefined)?.trim() || null
+  const email        = (b.email        as string | undefined)?.trim() || null
   const startDate    = (b.startDate    as string | undefined)?.trim()
   const endDate      = (b.endDate      as string | undefined)?.trim()
   const scheduleNote = (b.scheduleNote as string | undefined)?.trim() || null
@@ -63,6 +64,7 @@ export async function POST(req: Request) {
     url:           ((b.url as string | undefined) ?? '').trim() || null,
     collected_at:  new Date().toISOString(),
     posted_by:     ((b.postedBy as string | undefined) ?? '匿名').trim() || '匿名',
+    email,
     poster_type:   posterType,
     edit_token:    editToken,
     status,
@@ -96,6 +98,7 @@ export async function POST(req: Request) {
     url:         newEvent.url ?? undefined,
     collectedAt: newEvent.collected_at,
     postedBy:    newEvent.posted_by,
+    email:       newEvent.email ?? undefined,
     posterType:  newEvent.poster_type as CollectedEvent['posterType'],
     status:      newEvent.status as CollectedEvent['status'],
   }

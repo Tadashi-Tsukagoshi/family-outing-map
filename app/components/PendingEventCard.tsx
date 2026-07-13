@@ -37,6 +37,18 @@ export default function PendingEventCard({ event, expanded, onToggle, busy, onAp
             <p className="text-xs text-gray-400 mt-0.5">
               投稿者：{event.postedBy ?? '匿名'}（{POSTER_TYPE_LABELS[event.posterType ?? 'general'] ?? event.posterType}）
             </p>
+            {event.email && (
+              <p className="text-xs text-gray-400 mt-0.5">
+                メール：
+                <a
+                  href={`mailto:${event.email}`}
+                  onClick={e => e.stopPropagation()}
+                  className="text-blue-500 hover:text-blue-700 underline"
+                >
+                  {event.email}
+                </a>
+              </p>
+            )}
           </div>
           <div onClick={e => e.stopPropagation()} className="flex gap-1.5 flex-shrink-0">
             <button

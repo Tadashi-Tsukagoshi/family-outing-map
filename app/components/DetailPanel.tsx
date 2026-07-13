@@ -12,6 +12,13 @@ const POSTER_TYPE_LABELS: Record<string, string> = {
   staff:     '運営',
 }
 
+const CONTACT_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfjd2ErqEMLI7gDMk4O5iutIRSUMI6AD0hkJSnN3tAT5UjIXA/viewform'
+const EVENT_NAME_ENTRY_ID = 'entry.662119723'
+
+function buildCorrectionFormUrl(eventName: string): string {
+  return `${CONTACT_FORM_URL}?usp=pp_url&${EVENT_NAME_ENTRY_ID}=${encodeURIComponent(eventName)}`
+}
+
 const LIKED_EVENTS_KEY = 'outing-map-liked-events'
 
 function hasLiked(id: string): boolean {
@@ -348,6 +355,19 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
             Googleマップで開く
           </a>
         </div>
+
+        <a
+          href={buildCorrectionFormUrl(spot.name)}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'inline-block', marginTop: 16, paddingTop: 10,
+            borderTop: '1px solid #f3f4f6',
+            fontSize: 11, color: '#9ca3af', textDecoration: 'none',
+          }}
+        >
+          情報の修正を依頼する
+        </a>
       </div>
     </aside>
 

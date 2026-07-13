@@ -52,6 +52,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
     const venue        = ((b.venue as string | undefined) ?? '').trim()
     const fee          = (b.fee          as string | undefined)?.trim() || null
     const imageUrl     = (b.imageUrl     as string | undefined)?.trim() || null
+    const email        = (b.email        as string | undefined)?.trim() || null
     const startDate    = (b.startDate    as string | undefined)?.trim()
     const endDate      = (b.endDate      as string | undefined)?.trim()
     const scheduleNote = (b.scheduleNote as string | undefined)?.trim() || null
@@ -91,6 +92,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
       type,
       pin_color:     pinColor,
       url:           ((b.url      as string | undefined) ?? '').trim() || null,
+      email,
     }
 
     if (auth.isAdmin) {
@@ -131,6 +133,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
       url:         data.url ?? undefined,
       collectedAt: data.collected_at,
       postedBy:     data.posted_by,
+      email:        data.email ?? undefined,
       posterType:   data.poster_type,
       scheduleNote: data.schedule_note ?? undefined,
     }

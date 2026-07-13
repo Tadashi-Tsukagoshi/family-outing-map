@@ -32,6 +32,7 @@ export type FormState = {
   description:   string
   url:           string
   postedBy:      string
+  email:         string
   posterType:    PosterType
 }
 
@@ -54,7 +55,7 @@ export const INITIAL_FORM: FormState = {
   venue: '', fee: '', imageUrl: '', address: '',
   lat: null, lng: null,
   description: '', url: '',
-  postedBy: '', posterType: 'general',
+  postedBy: '', email: '', posterType: 'general',
 }
 
 /** 既存イベントをフォームの初期値に変換する（編集・承認待ちの編集の両方で使用） */
@@ -81,6 +82,7 @@ export function eventToFormState(ev: CollectedEvent): FormState {
     description:   ev.description,
     url:           ev.url ?? '',
     postedBy:      ev.postedBy ?? '',
+    email:         ev.email ?? '',
     posterType:    (ev.posterType as PosterType) ?? 'general',
   }
 }
@@ -165,10 +167,12 @@ type Props = {
   fixedPosterType?: PosterType
   /** 画像アップロード中かどうかを親に通知する（送信ボタンの無効化判定などに使用） */
   onUploadingChange?: (uploading: boolean) => void
+  /** true の場合、メールアドレス（任意）入力欄を表示する（一般公開の /admin 用） */
+  showEmail?: boolean
 }
 
 export default function EventFormFields({
-  form, onChange, disabled, editing, posterTypeOptions, fixedPosterType, onUploadingChange,
+  form, onChange, disabled, editing, posterTypeOptions, fixedPosterType, onUploadingChange, showEmail,
 }: Props) {
   const hasInitialLocation = form.lat !== null && form.lng !== null
   const [geoStatus,  setGeoStatus]  = useState<GeoStatus>(() => (editing && hasInitialLocation) ? 'ok' : 'idle')
@@ -639,6 +643,23 @@ export default function EventFormFields({
           disabled={disabled}
         />
       </div>
+
+      {/* メールアドレス */}
+      {showEmail && (
+        <div>
+          <Label>メールアドレス（任意）</Label>
+          <Input
+            type="email"
+            value={form.email}
+            onChange={e => set('email', e.target.value)}
+            placeholder="例：example@mail.com"
+            disabled={disabled}
+          />
+          <p className="mt-1 text-xs text-gray-400">
+            入力いただければ、投稿内容の確認メールをお送りします
+          </p>
+        </div>
+      )}
 
       {/* 投稿者種別 */}
       <div>

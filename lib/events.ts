@@ -22,6 +22,7 @@ export type CollectedEvent = {
   type?: EventType
   collectedAt: string
   postedBy?: string
+  email?: string
   posterType?: 'general' | 'organizer' | 'business' | 'staff'
   scheduleNote?: string
   likes?: number

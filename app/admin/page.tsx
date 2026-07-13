@@ -8,6 +8,7 @@ export default function AdminPage() {
       restrictEditToOwn
       hideEventList
       showApprovalNotice
+      showEmail
       posterTypeOptions={[
         { value: 'general',   label: '一般ユーザー' },
         { value: 'organizer', label: '主催者' },

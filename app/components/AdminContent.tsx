@@ -22,6 +22,8 @@ type Props = {
   hideEventList?: boolean
   /** true の場合、投稿が承認制であることを投稿前・投稿後に案内する（一般公開の /admin 用） */
   showApprovalNotice?: boolean
+  /** true の場合、メールアドレス（任意）入力欄を表示する（一般公開の /admin 用） */
+  showEmail?: boolean
 }
 
 // ─── 自分の投稿（編集トークン）の localStorage 管理 ──────────────────
@@ -45,7 +47,7 @@ function appendMyEvent(id: string, token: string): MyEvent[] {
 }
 
 // ─── 管理画面本体 ──────────────────────────────────────────────────
-export default function AdminContent({ posterTypeOptions, fixedPosterType, onLogout, restrictEditToOwn, showApprovalSection, hideEventList, showApprovalNotice }: Props) {
+export default function AdminContent({ posterTypeOptions, fixedPosterType, onLogout, restrictEditToOwn, showApprovalSection, hideEventList, showApprovalNotice, showEmail }: Props) {
   const getInitialPosterType = () => fixedPosterType ?? posterTypeOptions?.[0]?.value ?? 'general'
   const [form, setForm]                   = useState<FormState>({ ...INITIAL_FORM, posterType: getInitialPosterType() })
   const [submitStatus, setSubmitStatus]   = useState<SubmitStatus>('idle')
@@ -333,6 +335,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
               posterTypeOptions={posterTypeOptions}
               fixedPosterType={fixedPosterType}
               onUploadingChange={setImageUploading}
+              showEmail={showEmail}
             />
 
             {/* 送信結果 */}
