@@ -327,7 +327,7 @@ export default function EventFormFields({
               <div key={cat} className="flex flex-col gap-1.5">
                 {categoryButton}
                 {form.category === cat && (
-                  <div className="flex flex-wrap md:flex-nowrap justify-center md:justify-around gap-x-1 gap-y-1.5 md:gap-x-3">
+                  <div className="flex flex-wrap md:flex-nowrap justify-center md:justify-around gap-x-1 gap-y-1.5 md:gap-x-0">
                     {PIN_COLORS.map(color => {
                       const isSelected = form.pinColor === color
                       return (
