@@ -15,6 +15,7 @@ export async function POST(req: Request) {
 
   const name         = (b.name         as string | undefined)?.trim()
   const venue        = ((b.venue as string | undefined) ?? '').trim()
+  const address      = (b.address      as string | undefined)?.trim() || null
   const fee          = (b.fee          as string | undefined)?.trim() || null
   const imageUrl     = (b.imageUrl     as string | undefined)?.trim() || null
   const email        = (b.email        as string | undefined)?.trim() || null
@@ -56,6 +57,7 @@ export async function POST(req: Request) {
     spot_label:    isPermanent ? spotLabel : null,
     schedule_note: isPermanent ? null : scheduleNote,
     venue,
+    address,
     fee,
     image_url:     imageUrl,
     lat,
@@ -87,6 +89,7 @@ export async function POST(req: Request) {
     startDate:   newEvent.start_date ?? undefined,
     endDate:     newEvent.end_date   ?? undefined,
     venue:       newEvent.venue,
+    address:     newEvent.address ?? undefined,
     fee:         newEvent.fee ?? undefined,
     imageUrl:    newEvent.image_url ?? undefined,
     lat:         newEvent.lat,

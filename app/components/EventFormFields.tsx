@@ -78,7 +78,7 @@ export function eventToFormState(ev: CollectedEvent): FormState {
     venue:         ev.venue,
     fee:           ev.fee ?? '',
     imageUrl:      ev.imageUrl ?? '',
-    address:       '',
+    address:       ev.address ?? '',
     lat:           ev.lat,
     lng:           ev.lng,
     description:   ev.description,

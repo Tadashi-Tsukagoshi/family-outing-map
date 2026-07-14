@@ -290,6 +290,18 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
           </p>
         )}
 
+        {spot.address && (
+          <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#374151', margin: '0 0 8px' }}>
+            <span style={{
+              display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
+              background: badgeBg, color: badgeColor, fontSize: 10, fontWeight: 400,
+            }}>
+              住所
+            </span>
+            <span>{spot.address}</span>
+          </p>
+        )}
+
         <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#374151', margin: '0 0 8px' }}>
           <span style={{
             display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,

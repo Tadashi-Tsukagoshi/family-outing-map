@@ -50,6 +50,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
     const b = body as Record<string, unknown>
     const name         = (b.name         as string | undefined)?.trim()
     const venue        = ((b.venue as string | undefined) ?? '').trim()
+    const address      = (b.address      as string | undefined)?.trim() || null
     const fee          = (b.fee          as string | undefined)?.trim() || null
     const imageUrl     = (b.imageUrl     as string | undefined)?.trim() || null
     const email        = (b.email        as string | undefined)?.trim() || null
@@ -86,6 +87,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
       spot_label:    isPermanent ? spotLabel : null,
       schedule_note: isPermanent ? null : scheduleNote,
       venue,
+      address,
       fee,
       image_url: imageUrl,
       lat,
@@ -122,6 +124,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
       startDate:   data.start_date,
       endDate:     data.end_date,
       venue:       data.venue,
+      address:     data.address ?? undefined,
       fee:         data.fee ?? undefined,
       imageUrl:    data.image_url ?? undefined,
       lat:         data.lat,
