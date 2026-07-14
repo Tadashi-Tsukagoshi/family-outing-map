@@ -393,8 +393,8 @@ export default function EventFormFields({
 
           {form.dateConfirmed ? (
             <>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="min-w-0">
+              <div className="flex gap-3">
+                <div className="flex-1 min-w-0">
                   <Label required>開始日</Label>
                   <Input
                     type="date"
@@ -402,10 +402,10 @@ export default function EventFormFields({
                     onChange={e => set('startDate', e.target.value)}
                     required
                     disabled={disabled}
-                    className="w-full min-w-0"
+                    className="w-full min-w-0 box-border overflow-hidden"
                   />
                 </div>
-                <div className="min-w-0">
+                <div className="flex-1 min-w-0">
                   <Label required>終了日</Label>
                   <Input
                     type="date"
@@ -414,7 +414,7 @@ export default function EventFormFields({
                     onChange={e => set('endDate', e.target.value)}
                     required
                     disabled={disabled}
-                    className="w-full min-w-0"
+                    className="w-full min-w-0 box-border overflow-hidden"
                   />
                 </div>
               </div>
@@ -439,14 +439,14 @@ export default function EventFormFields({
             </>
           ) : (
             <>
-              <div className="grid grid-cols-2 gap-3 mb-3">
-                <div className="min-w-0">
+              <div className="flex gap-3 mb-3">
+                <div className="flex-1 min-w-0">
                   <Label>開始日</Label>
-                  <Input type="date" value="" disabled className="w-full min-w-0 opacity-40" />
+                  <Input type="date" value="" disabled className="w-full min-w-0 box-border overflow-hidden opacity-40" />
                 </div>
-                <div className="min-w-0">
+                <div className="flex-1 min-w-0">
                   <Label>終了日</Label>
-                  <Input type="date" value="" disabled className="w-full min-w-0 opacity-40" />
+                  <Input type="date" value="" disabled className="w-full min-w-0 box-border overflow-hidden opacity-40" />
                 </div>
               </div>
               <div>
