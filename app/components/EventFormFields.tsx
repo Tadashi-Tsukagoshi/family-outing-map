@@ -394,7 +394,7 @@ export default function EventFormFields({
           {form.dateConfirmed ? (
             <>
               <div className="flex gap-3">
-                <div className="flex-1 min-w-0">
+                <div style={{ width: 'calc(50% - 6px)' }}>
                   <Label required>開始日</Label>
                   <Input
                     type="date"
@@ -402,10 +402,10 @@ export default function EventFormFields({
                     onChange={e => set('startDate', e.target.value)}
                     required
                     disabled={disabled}
-                    className="w-full min-w-0 box-border overflow-hidden"
+                    style={{ WebkitAppearance: 'none', width: '100%', boxSizing: 'border-box' }}
                   />
                 </div>
-                <div className="flex-1 min-w-0">
+                <div style={{ width: 'calc(50% - 6px)' }}>
                   <Label required>終了日</Label>
                   <Input
                     type="date"
@@ -414,7 +414,7 @@ export default function EventFormFields({
                     onChange={e => set('endDate', e.target.value)}
                     required
                     disabled={disabled}
-                    className="w-full min-w-0 box-border overflow-hidden"
+                    style={{ WebkitAppearance: 'none', width: '100%', boxSizing: 'border-box' }}
                   />
                 </div>
               </div>
@@ -440,13 +440,25 @@ export default function EventFormFields({
           ) : (
             <>
               <div className="flex gap-3 mb-3">
-                <div className="flex-1 min-w-0">
+                <div style={{ width: 'calc(50% - 6px)' }}>
                   <Label>開始日</Label>
-                  <Input type="date" value="" disabled className="w-full min-w-0 box-border overflow-hidden opacity-40" />
+                  <Input
+                    type="date"
+                    value=""
+                    disabled
+                    className="opacity-40"
+                    style={{ WebkitAppearance: 'none', width: '100%', boxSizing: 'border-box' }}
+                  />
                 </div>
-                <div className="flex-1 min-w-0">
+                <div style={{ width: 'calc(50% - 6px)' }}>
                   <Label>終了日</Label>
-                  <Input type="date" value="" disabled className="w-full min-w-0 box-border overflow-hidden opacity-40" />
+                  <Input
+                    type="date"
+                    value=""
+                    disabled
+                    className="opacity-40"
+                    style={{ WebkitAppearance: 'none', width: '100%', boxSizing: 'border-box' }}
+                  />
                 </div>
               </div>
               <div>
