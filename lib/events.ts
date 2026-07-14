@@ -33,6 +33,7 @@ export type CollectedEvent = {
   startTime?: string
   endTime?: string
   businessHours?: string
+  spotLabel?: string
 }
 
 export type EventsDatabase = {
@@ -82,5 +83,6 @@ export function eventToSpot(event: CollectedEvent): Spot {
     startTime:    event.startTime,
     endTime:      event.endTime,
     businessHours: event.businessHours,
+    spotLabel:    event.spotLabel,
   }
 }

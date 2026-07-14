@@ -57,8 +57,8 @@ export const STATUS_CONFIG: Record<EventStatus, StatusConfig> = {
 /** 常設施設用のステータス表示（ended/active/upcoming 等は使わない） */
 export const PERMANENT_STATUS: StatusConfig = { label: '常設施設', bg: '#dcfce7', color: '#16a34a' }
 
-/** 常設施設（park）カテゴリ用のステータス表示。DetailPanel・ホバーカードで使用 */
-export const PARK_STATUS: StatusConfig = { label: '定番スポット', bg: '#dcfce7', color: '#16a34a' }
+/** 常設施設（park）カテゴリ用のステータス表示。DetailPanel・ホバーカードで使用。spot_label未入力時のフォールバック表示 */
+export const PARK_STATUS: StatusConfig = { label: '常設スポット', bg: '#dcfce7', color: '#16a34a' }
 
 /** 開催ステータスを判定 */
 export function getEventStatus(

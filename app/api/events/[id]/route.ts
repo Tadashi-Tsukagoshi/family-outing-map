@@ -59,6 +59,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
     const startTime     = (b.startTime     as string | undefined)?.trim() || null
     const endTime       = (b.endTime       as string | undefined)?.trim() || null
     const businessHours = (b.businessHours as string | undefined)?.trim() || null
+    const spotLabel      = (b.spotLabel     as string | undefined)?.trim() || null
     const lat          = typeof b.lat === 'number' ? b.lat : undefined
     const lng          = typeof b.lng === 'number' ? b.lng : undefined
     const type         = normalizeEventType(b.type)
@@ -82,6 +83,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
       start_time:    isPermanent ? null : startTime,
       end_time:      isPermanent ? null : endTime,
       business_hours: isPermanent ? businessHours : null,
+      spot_label:    isPermanent ? spotLabel : null,
       schedule_note: isPermanent ? null : scheduleNote,
       venue,
       fee,
@@ -130,6 +132,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
       startTime:   data.start_time ?? undefined,
       endTime:     data.end_time ?? undefined,
       businessHours: data.business_hours ?? undefined,
+      spotLabel:   data.spot_label ?? undefined,
       url:         data.url ?? undefined,
       collectedAt: data.collected_at,
       postedBy:     data.posted_by,

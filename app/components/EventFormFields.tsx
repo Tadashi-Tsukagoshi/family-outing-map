@@ -22,6 +22,7 @@ export type FormState = {
   startTime:     string
   endTime:       string
   businessHours: string
+  spotLabel:     string
   scheduleNote:  string
   venue:         string
   fee:           string
@@ -51,7 +52,7 @@ export const INITIAL_FORM: FormState = {
   type: 'event',
   pinColor: DEFAULT_PIN_COLOR,
   dateConfirmed: true,
-  startDate: '', endDate: '', startTime: '', endTime: '', businessHours: '', scheduleNote: '',
+  startDate: '', endDate: '', startTime: '', endTime: '', businessHours: '', spotLabel: '', scheduleNote: '',
   venue: '', fee: '', imageUrl: '', address: '',
   lat: null, lng: null,
   description: '', url: '',
@@ -72,6 +73,7 @@ export function eventToFormState(ev: CollectedEvent): FormState {
     startTime:     ev.startTime ?? '',
     endTime:       ev.endTime ?? '',
     businessHours: ev.businessHours ?? '',
+    spotLabel:     ev.spotLabel ?? '',
     scheduleNote:  ev.scheduleNote ?? '',
     venue:         ev.venue,
     fee:           ev.fee ?? '',
@@ -282,6 +284,7 @@ export default function EventFormFields({
                 } else {
                   if (form.category === 'park') set('category', 'event')
                   set('businessHours', '')
+                  set('spotLabel', '')
                 }
               }}
               className={`flex-1 py-2 rounded-xl border text-sm font-medium transition-colors cursor-pointer
@@ -360,17 +363,28 @@ export default function EventFormFields({
         </div>
       </div>
 
-      {/* 日程（期間限定イベント）/ 営業時間（常設施設） */}
+      {/* 日程（期間限定イベント）/ 営業時間・紹介文（常設施設） */}
       {isPermanent ? (
-        <div>
-          <Label>営業時間</Label>
-          <Input
-            value={form.businessHours}
-            onChange={e => set('businessHours', e.target.value)}
-            placeholder="例：9:00〜17:00 / 月曜定休"
-            disabled={disabled}
-          />
-        </div>
+        <>
+          <div>
+            <Label>営業時間</Label>
+            <Input
+              value={form.businessHours}
+              onChange={e => set('businessHours', e.target.value)}
+              placeholder="例：9:00〜17:00 / 月曜定休"
+              disabled={disabled}
+            />
+          </div>
+          <div>
+            <Label>スポットの紹介文</Label>
+            <Input
+              value={form.spotLabel}
+              onChange={e => set('spotLabel', e.target.value)}
+              placeholder="例：定番スポット、新規スポット"
+              disabled={disabled}
+            />
+          </div>
+        </>
       ) : (
         <div>
           <Label required>日程</Label>

@@ -23,6 +23,7 @@ export type Spot = {
   startTime?: string // イベント開始時刻（HH:MM）
   endTime?: string   // イベント終了時刻（HH:MM）
   businessHours?: string // 常設施設の営業時間
+  spotLabel?: string // 常設スポットの紹介文（未入力時は「常設スポット」と表示）
   postedBy?: string
   posterType?: 'general' | 'organizer' | 'business' | 'staff'
   scheduleNote?: string

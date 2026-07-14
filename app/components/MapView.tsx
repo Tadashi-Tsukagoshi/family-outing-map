@@ -261,7 +261,7 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
   const status    = getEventStatus(spot.startDate, spot.endDate)
   const dateRange = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
   const timeRange = fmtTimeRange(spot.startTime, spot.endTime)
-  const statusCfg = isPark ? PARK_STATUS : (status ? STATUS_CONFIG[status] : null)
+  const statusCfg = isPark ? { ...PARK_STATUS, label: spot.spotLabel || PARK_STATUS.label } : (status ? STATUS_CONFIG[status] : null)
 
   return (
     <div
