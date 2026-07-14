@@ -271,7 +271,7 @@ export default function Sidebar({
       <div className="border-t border-gray-200 flex flex-col mb-10">
         {!isSheet && (
           <a
-            href="https://docs.google.com/forms/d/e/1FAIpQLSfjd2ErqEMLI7gDMk4O5iutIRSUMI6AD0hkJSnN3tAT5UjIXA/viewform?usp=publish-editor"
+            href="https://docs.google.com/forms/d/e/1FAIpQLSfjd2ErqEMLI7gDMk4O5iutIRSUMI6AD0hkJSnN3tAT5UjIXA/viewform"
             target="_blank"
             rel="noopener noreferrer"
             className="block text-sm text-blue-500 underline pl-[22px] pr-3 py-3"
