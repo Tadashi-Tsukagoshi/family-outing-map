@@ -332,6 +332,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
               onChange={set}
               disabled={isSubmitting}
               editing={!!editingId}
+              eventId={editingId ?? undefined}
               posterTypeOptions={posterTypeOptions}
               fixedPosterType={fixedPosterType}
               onUploadingChange={setImageUploading}

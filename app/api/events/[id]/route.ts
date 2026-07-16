@@ -52,7 +52,13 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
     const venue        = ((b.venue as string | undefined) ?? '').trim()
     const address      = (b.address      as string | undefined)?.trim() || null
     const fee          = (b.fee          as string | undefined)?.trim() || null
-    const imageUrl     = (b.imageUrl     as string | undefined)?.trim() || null
+    const imageUrlsRaw = Array.isArray(b.imageUrls)
+      ? (b.imageUrls as unknown[]).filter((u): u is string => typeof u === 'string' && u.trim() !== '').slice(0, 5)
+      : null
+    const imageUrls    = imageUrlsRaw ?? []
+    const imageUrl     = imageUrlsRaw !== null
+      ? (imageUrls[0] ?? null)
+      : ((b.imageUrl as string | undefined)?.trim() || null)
     const email        = (b.email        as string | undefined)?.trim() || null
     const startDate    = (b.startDate    as string | undefined)?.trim()
     const endDate      = (b.endDate      as string | undefined)?.trim()
@@ -115,6 +121,23 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
     if (error) {
       console.error('[PUT /api/events/[id]]', error)
       return Response.json({ error: '更新に失敗しました' }, { status: 500 })
+    }
+
+    if (imageUrlsRaw !== null) {
+      const { error: delError } = await supabase.from('event_images').delete().eq('event_id', id)
+      if (delError) {
+        console.error('[PUT /api/events/[id]] event_images delete failed', delError)
+      } else if (imageUrls.length > 0) {
+        const imageRows = imageUrls.map((url, i) => ({
+          event_id:   id,
+          image_url:  url,
+          sort_order: i,
+        }))
+        const { error: insError } = await supabase.from('event_images').insert(imageRows)
+        if (insError) {
+          console.error('[PUT /api/events/[id]] event_images insert failed', insError)
+        }
+      }
     }
 
     const updated: CollectedEvent = {

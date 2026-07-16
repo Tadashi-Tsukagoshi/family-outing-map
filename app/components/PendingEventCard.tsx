@@ -84,6 +84,7 @@ export default function PendingEventCard({ event, expanded, onToggle, busy, onAp
               onChange={set}
               disabled={busy}
               editing
+              eventId={event.id}
               fixedPosterType={event.posterType ?? 'general'}
               onUploadingChange={setUploading}
             />
