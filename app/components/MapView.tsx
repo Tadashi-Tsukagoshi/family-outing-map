@@ -203,10 +203,11 @@ type HoverCardProps = {
   onMouseEnter: () => void
   onMouseLeave: () => void
   ogpImage:     string | null | undefined
+  galleryImage: string | null | undefined
   onDetailOpen: (spot: Spot) => void
 }
 
-function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, onDetailOpen }: HoverCardProps) {
+function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, galleryImage, onDetailOpen }: HoverCardProps) {
   const cardRef = useRef<HTMLDivElement>(null)
   // EVENT!吹き出しピンは anchor='bottom' で尻尾の先端が y 座標になり、ピン本体はそこから上方向に
   // 丸ピンより大きく（約32px）張り出すため、上表示時の間隔を追加で確保する
@@ -290,7 +291,7 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
       }}>
         {/* 画像（全体の約55%） */}
         <img
-          src={spot.imageUrl || ogpImage || CATEGORY_IMAGES[spot.category]}
+          src={galleryImage || spot.imageUrl || ogpImage || CATEGORY_IMAGES[spot.category]}
           alt=""
           style={{ display: 'block', width: '100%', height: 100, objectFit: 'cover' }}
           onError={(e) => { (e.currentTarget as HTMLImageElement).src = CATEGORY_IMAGES[spot.category] }}
@@ -413,6 +414,10 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
   const ogpCacheRef = useRef<Record<string, OgpEntry>>({})
   const [ogpCache, setOgpCache] = useState<Record<string, string | null>>({})
 
+  // event_images 1枚目キャッシュ: ref で二重fetch防止、state で再レンダートリガー
+  const galleryCacheRef = useRef<Record<string, OgpEntry>>({})
+  const [galleryCache, setGalleryCache] = useState<Record<string, string | null>>({})
+
   const clearHide = useCallback(() => {
     if (hideTimer.current) { clearTimeout(hideTimer.current); hideTimer.current = null }
   }, [])
@@ -437,17 +442,36 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
     }
   }, [])
 
+  const fetchGalleryFirst = useCallback(async (spotId: string) => {
+    if (spotId in galleryCacheRef.current) return
+    galleryCacheRef.current[spotId] = 'loading'
+    try {
+      const res  = await fetch(`/api/events/${spotId}/images`)
+      const data = await res.json()
+      const img  = (data.images?.[0]?.imageUrl as string | undefined) ?? null
+      galleryCacheRef.current[spotId] = img
+      setGalleryCache(c => ({ ...c, [spotId]: img }))
+    } catch {
+      galleryCacheRef.current[spotId] = null
+      setGalleryCache(c => ({ ...c, [spotId]: null }))
+    }
+  }, [])
+
   const handlePinnedHoverChange = useCallback((hover: HoverState | null) => {
     setPinnedHover(hover)
-    if (hover?.spot.url && !hover.spot.imageUrl) fetchOgp(hover.spot.id, hover.spot.url)
-  }, [fetchOgp])
+    if (hover) {
+      fetchGalleryFirst(hover.spot.id)
+      if (hover.spot.url && !hover.spot.imageUrl) fetchOgp(hover.spot.id, hover.spot.url)
+    }
+  }, [fetchOgp, fetchGalleryFirst])
 
   const handleHoverIn = useCallback((spot: Spot, x: number, y: number) => {
     if (Date.now() < suppressHoverUntil.current) return
     clearHide()
     setHovered({ spot, x, y })
+    fetchGalleryFirst(spot.id)
     if (spot.url && !spot.imageUrl) fetchOgp(spot.id, spot.url)
-  }, [clearHide, fetchOgp])
+  }, [clearHide, fetchOgp, fetchGalleryFirst])
 
   const handleImmediateHide = useCallback(() => {
     clearHide()
@@ -741,6 +765,7 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
             onMouseEnter={handleCardMouseEnter}
             onMouseLeave={scheduleHide}
             ogpImage={ogpCache[activeHover.spot.id] ?? undefined}
+            galleryImage={galleryCache[activeHover.spot.id] ?? undefined}
             onDetailOpen={onDetailOpen}
           />
         )
