@@ -17,7 +17,10 @@ export async function POST(req: Request) {
   const venue        = ((b.venue as string | undefined) ?? '').trim()
   const address      = (b.address      as string | undefined)?.trim() || null
   const fee          = (b.fee          as string | undefined)?.trim() || null
-  const imageUrl     = (b.imageUrl     as string | undefined)?.trim() || null
+  const imageUrls    = Array.isArray(b.imageUrls)
+    ? (b.imageUrls as unknown[]).filter((u): u is string => typeof u === 'string' && u.trim() !== '').slice(0, 5)
+    : []
+  const imageUrl     = imageUrls[0] ?? ((b.imageUrl as string | undefined)?.trim() || null)
   const email        = (b.email        as string | undefined)?.trim() || null
   const startDate    = (b.startDate    as string | undefined)?.trim()
   const endDate      = (b.endDate      as string | undefined)?.trim()
@@ -80,6 +83,18 @@ export async function POST(req: Request) {
   if (error) {
     console.error('[POST /api/register-event]', error)
     return Response.json({ error: '登録に失敗しました（サーバーエラー）' }, { status: 500 })
+  }
+
+  if (imageUrls.length > 0) {
+    const imageRows = imageUrls.map((url, i) => ({
+      event_id:   newEvent.id,
+      image_url:  url,
+      sort_order: i,
+    }))
+    const { error: imagesError } = await supabase.from('event_images').insert(imageRows)
+    if (imagesError) {
+      console.error('[POST /api/register-event] event_images insert failed', imagesError)
+    }
   }
 
   const responseEvent: CollectedEvent = {

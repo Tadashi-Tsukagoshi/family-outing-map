@@ -27,6 +27,8 @@ export type FormState = {
   venue:         string
   fee:           string
   imageUrl:      string
+  /** 新規登録時の複数画像（最大5枚、選択順）。編集フォームでは未使用 */
+  imageUrls:     string[]
   address:       string
   lat:           number | null
   lng:           number | null
@@ -39,6 +41,8 @@ export type FormState = {
 
 type GeoStatus   = 'idle' | 'loading' | 'ok' | 'error'
 type ImageStatus = 'idle' | 'uploading' | 'ok' | 'error'
+
+const MAX_IMAGES = 5
 
 export const POSTER_TYPE_LABELS: Record<string, string> = {
   general:   '一般ユーザー',
@@ -53,7 +57,7 @@ export const INITIAL_FORM: FormState = {
   pinColor: DEFAULT_PIN_COLOR,
   dateConfirmed: true,
   startDate: '', endDate: '', startTime: '', endTime: '', businessHours: '', spotLabel: '', scheduleNote: '',
-  venue: '', fee: '', imageUrl: '', address: '',
+  venue: '', fee: '', imageUrl: '', imageUrls: [], address: '',
   lat: null, lng: null,
   description: '', url: '',
   postedBy: '', email: '', posterType: 'general',
@@ -78,6 +82,7 @@ export function eventToFormState(ev: CollectedEvent): FormState {
     venue:         ev.venue,
     fee:           ev.fee ?? '',
     imageUrl:      ev.imageUrl ?? '',
+    imageUrls:     [],
     address:       ev.address ?? '',
     lat:           ev.lat,
     lng:           ev.lng,
@@ -245,6 +250,42 @@ export default function EventFormFields({
     set('imageUrl', '')
     setImageStatus('idle')
     setImageMessage('')
+  }
+
+  const handleImagesAdd = async (fileList: FileList | null) => {
+    if (!fileList || fileList.length === 0) return
+    const remaining = MAX_IMAGES - form.imageUrls.length
+    const files = Array.from(fileList).slice(0, remaining)
+    if (files.length === 0) return
+
+    setImageStatus('uploading')
+    onUploadingChange?.(true)
+    const uploaded: string[] = []
+    try {
+      for (let i = 0; i < files.length; i++) {
+        setImageMessage(`画像をアップロード中...（${i + 1}/${files.length}）`)
+        const blob = await resizeImage(files[i])
+        const fd   = new FormData()
+        fd.append('file', blob, 'image.jpg')
+        const res  = await fetch('/api/upload-image', { method: 'POST', body: fd })
+        const data = await res.json()
+        if (!res.ok) throw new Error((data.error as string | undefined) ?? 'アップロードに失敗しました')
+        uploaded.push(data.url as string)
+      }
+      set('imageUrls', [...form.imageUrls, ...uploaded])
+      setImageStatus('ok')
+      setImageMessage('アップロードしました')
+    } catch (e) {
+      if (uploaded.length > 0) set('imageUrls', [...form.imageUrls, ...uploaded])
+      setImageStatus('error')
+      setImageMessage(e instanceof Error ? e.message : 'アップロードに失敗しました')
+    } finally {
+      onUploadingChange?.(false)
+    }
+  }
+
+  const handleImageRemoveAt = (index: number) => {
+    set('imageUrls', form.imageUrls.filter((_, i) => i !== index))
   }
 
   const categories = Object.keys(CATEGORY_LABELS) as Category[]
@@ -616,37 +657,93 @@ export default function EventFormFields({
       {/* 画像 */}
       <div>
         <Label>画像</Label>
-        <p className="text-xs text-gray-400 mb-1">
-          任意。1枚までアップロードできます（自動でリサイズ・圧縮されます）。
-        </p>
-        {form.imageUrl ? (
-          <div className="flex items-center gap-3">
-            <img
-              src={form.imageUrl}
-              alt=""
-              className="w-24 h-16 object-cover rounded-lg border border-gray-200"
-            />
-            <button
-              type="button"
-              onClick={handleImageRemove}
-              disabled={disabled || imageStatus === 'uploading'}
-              className="flex-shrink-0 px-3 py-1.5 rounded-lg border border-gray-300 text-xs text-gray-600
-                hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-            >
-              画像を削除
-            </button>
-          </div>
+        {editing ? (
+          <>
+            <p className="text-xs text-gray-400 mb-1">
+              任意。1枚までアップロードできます（自動でリサイズ・圧縮されます）。
+            </p>
+            {form.imageUrl ? (
+              <div className="flex items-center gap-3">
+                <img
+                  src={form.imageUrl}
+                  alt=""
+                  className="w-24 h-16 object-cover rounded-lg border border-gray-200"
+                />
+                <button
+                  type="button"
+                  onClick={handleImageRemove}
+                  disabled={disabled || imageStatus === 'uploading'}
+                  className="flex-shrink-0 px-3 py-1.5 rounded-lg border border-gray-300 text-xs text-gray-600
+                    hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                >
+                  画像を削除
+                </button>
+              </div>
+            ) : (
+              <input
+                type="file"
+                accept="image/*"
+                onChange={e => handleImageChange(e.target.files?.[0] ?? null)}
+                disabled={disabled || imageStatus === 'uploading'}
+                className="block w-full text-sm text-gray-600
+                  file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border file:border-gray-300
+                  file:text-sm file:bg-white file:text-gray-600 hover:file:bg-gray-50
+                  file:cursor-pointer disabled:opacity-50"
+              />
+            )}
+          </>
         ) : (
-          <input
-            type="file"
-            accept="image/*"
-            onChange={e => handleImageChange(e.target.files?.[0] ?? null)}
-            disabled={disabled || imageStatus === 'uploading'}
-            className="block w-full text-sm text-gray-600
-              file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border file:border-gray-300
-              file:text-sm file:bg-white file:text-gray-600 hover:file:bg-gray-50
-              file:cursor-pointer disabled:opacity-50"
-          />
+          <>
+            <p className="text-xs text-gray-400 mb-1">
+              任意。最大{MAX_IMAGES}枚までアップロードできます（自動でリサイズ・圧縮されます）。1枚目が代表画像になります。
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {form.imageUrls.map((url, i) => (
+                <div key={url + i} className="relative w-20 h-20 flex-shrink-0">
+                  <img
+                    src={url}
+                    alt=""
+                    className="w-20 h-20 object-cover rounded-lg border border-gray-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleImageRemoveAt(i)}
+                    disabled={disabled || imageStatus === 'uploading'}
+                    aria-label="この画像を削除"
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white border border-gray-300
+                      text-gray-600 text-xs leading-none flex items-center justify-center shadow
+                      hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+              {form.imageUrls.length < MAX_IMAGES && (
+                <label
+                  className={`w-20 h-20 flex-shrink-0 rounded-lg border border-dashed border-gray-300
+                    flex items-center justify-center text-2xl text-gray-400 transition-colors
+                    ${disabled || imageStatus === 'uploading'
+                      ? 'opacity-40 cursor-not-allowed'
+                      : 'cursor-pointer hover:border-gray-400 hover:text-gray-500'}`}
+                >
+                  ＋
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={e => { handleImagesAdd(e.target.files); e.target.value = '' }}
+                    disabled={disabled || imageStatus === 'uploading'}
+                    className="hidden"
+                  />
+                </label>
+              )}
+            </div>
+            <p className="mt-1.5 text-xs text-gray-400">
+              {form.imageUrls.length < MAX_IMAGES
+                ? `残り${MAX_IMAGES - form.imageUrls.length}枚追加できます`
+                : `最大${MAX_IMAGES}枚まで追加済みです`}
+            </p>
+          </>
         )}
         {imageMessage && (
           <p className={`mt-1.5 text-xs leading-snug
