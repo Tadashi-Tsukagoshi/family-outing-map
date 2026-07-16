@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { BADGE_BG_COLOR, type Category, type Spot } from '@/lib/spots'
 import { getDateDisplay, getEventStatus, STATUS_CONFIG, PARK_STATUS, fmtTimeRange } from '@/lib/date-utils'
+import PhotoCarousel from './PhotoCarousel'
+import Lightbox from './Lightbox'
 
 const POSTER_TYPE_LABELS: Record<string, string> = {
   general:   '一般ユーザー',
@@ -78,7 +80,8 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
   const [ogpImage, setOgpImage] = useState<string | null>(null)
   const [likes, setLikes] = useState(spot.likes ?? 0)
   const [liked, setLiked] = useState(false)
-  const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  const [galleryImages, setGalleryImages] = useState<string[]>([])
   const startY   = useRef(0)
   const currentY = useRef(0)
 
@@ -104,20 +107,28 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
   }, [spot.id, spot.url, spot.imageUrl])
 
   useEffect(() => {
-    setLightboxOpen(false)
+    setLightboxIndex(null)
+  }, [spot.id])
+
+  useEffect(() => {
+    setGalleryImages([])
+    fetch(`/api/events/${spot.id}/images`)
+      .then(r => r.json())
+      .then(d => setGalleryImages(Array.isArray(d.images) ? d.images.map((img: { imageUrl: string }) => img.imageUrl) : []))
+      .catch(() => {})
   }, [spot.id])
 
   useEffect(() => {
     const zoomControl = document.querySelector('.mapboxgl-ctrl-top-right .mapboxgl-ctrl-group') as HTMLElement | null
     if (zoomControl) {
-      zoomControl.style.display = lightboxOpen ? 'none' : ''
+      zoomControl.style.display = lightboxIndex !== null ? 'none' : ''
     }
     return () => {
       if (zoomControl) {
         zoomControl.style.display = ''
       }
     }
-  }, [lightboxOpen])
+  }, [lightboxIndex])
 
   useEffect(() => {
     setLikes(spot.likes ?? 0)
@@ -146,12 +157,14 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
   const badgeBg     = BADGE_BG_COLOR
   const badgeColor  = '#374151'
 
+  const hasGallery    = galleryImages.length > 0
   const isManualImage = !!spot.imageUrl
   const isOgpImage    = !spot.imageUrl && !!ogpImage && !!spot.url
+  const lightboxImages = hasGallery ? galleryImages : (spot.imageUrl ? [spot.imageUrl] : [])
 
   const handleImageClick = () => {
     if (isManualImage) {
-      setLightboxOpen(true)
+      setLightboxIndex(0)
     } else if (isOgpImage) {
       window.open(spot.url, '_blank', 'noopener,noreferrer')
     }
@@ -162,17 +175,26 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
     <aside className={`bg-white flex flex-col overflow-hidden ${mobile ? 'w-full h-full' : 'w-72 h-full shadow-lg'}`}>
       {/* ヘッダー画像 */}
       <div className="relative shrink-0">
-        <img
-          src={image}
-          alt=""
-          onClick={(isManualImage || isOgpImage) ? handleImageClick : undefined}
-          style={{
-            display: 'block', width: '100%', height: mobile ? 180 : 160, objectFit: 'cover',
-            ...(mobile ? { borderRadius: '16px 16px 0 0' } : {}),
-            cursor: (isManualImage || isOgpImage) ? 'pointer' : undefined,
-          }}
-          onError={(e) => { (e.currentTarget as HTMLImageElement).src = CATEGORY_IMAGES[spot.category] }}
-        />
+        {hasGallery ? (
+          <PhotoCarousel
+            images={galleryImages}
+            height={200}
+            radius={mobile ? '16px 16px 0 0' : undefined}
+            onPhotoClick={setLightboxIndex}
+          />
+        ) : (
+          <img
+            src={image}
+            alt=""
+            onClick={(isManualImage || isOgpImage) ? handleImageClick : undefined}
+            style={{
+              display: 'block', width: '100%', height: mobile ? 180 : 160, objectFit: 'cover',
+              ...(mobile ? { borderRadius: '16px 16px 0 0' } : {}),
+              cursor: (isManualImage || isOgpImage) ? 'pointer' : undefined,
+            }}
+            onError={(e) => { (e.currentTarget as HTMLImageElement).src = CATEGORY_IMAGES[spot.category] }}
+          />
+        )}
         {mobile ? (
           /* 下スワイプ・タップで閉じるハンドル（画像に重ねる） */
           <div
@@ -410,37 +432,13 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
       </div>
     </aside>
 
-    {lightboxOpen && isManualImage && typeof document !== 'undefined' && createPortal(
-      <div
-        onClick={() => setLightboxOpen(false)}
-        style={{
-          position: 'fixed', inset: 0, zIndex: 9999,
-          background: 'rgba(0,0,0,0.85)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer',
-        }}
-      >
-        <button
-          onClick={() => setLightboxOpen(false)}
-          aria-label="閉じる"
-          style={{
-            position: 'absolute', top: 16, right: 16,
-            width: 36, height: 36, borderRadius: '50%',
-            background: 'white', color: '#111',
-            border: 'none', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 20, lineHeight: 1,
-            boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
-          }}
-        >
-          ×
-        </button>
-        <img
-          src={spot.imageUrl}
-          alt=""
-          style={{ maxWidth: '90vw', maxHeight: '90vh', objectFit: 'contain' }}
-        />
-      </div>,
+    {lightboxIndex !== null && typeof document !== 'undefined' && createPortal(
+      <Lightbox
+        images={lightboxImages}
+        index={lightboxIndex}
+        onIndexChange={setLightboxIndex}
+        onClose={() => setLightboxIndex(null)}
+      />,
       document.body
     )}
     </>

@@ -44,6 +44,15 @@ html, body {
   animation: sheet-slide-up 0.3s cubic-bezier(0.32, 0.72, 0, 1) both;
 }
 
+/* ── 横スクロール写真カルーセルのスクロールバー非表示 ── */
+.hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* ── ホバーカード内の説明文（2行クリップ） ── */
 .ltt-desc {
   display: -webkit-box;
