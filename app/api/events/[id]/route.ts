@@ -60,6 +60,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
       ? (imageUrls[0] ?? null)
       : ((b.imageUrl as string | undefined)?.trim() || null)
     const email        = (b.email        as string | undefined)?.trim() || null
+    const postedBy     = ((b.postedBy    as string | undefined) ?? '匿名').trim() || '匿名'
     const startDate    = (b.startDate    as string | undefined)?.trim()
     const endDate      = (b.endDate      as string | undefined)?.trim()
     const scheduleNote = (b.scheduleNote as string | undefined)?.trim() || null
@@ -103,6 +104,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
       pin_color:     pinColor,
       url:           ((b.url      as string | undefined) ?? '').trim() || null,
       email,
+      posted_by:     postedBy,
     }
 
     if (auth.isAdmin) {
