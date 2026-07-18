@@ -250,6 +250,7 @@ export default function MapApp() {
           recenterSignal={recenterSignal}
           isMobile
           sheetState={sheetState}
+          onMapTapClose={() => setSheetState('closed')}
         />
         {/* タイトルボタン＋ポップアップ */}
         <div ref={logoRef} className="fixed top-4 left-4" style={{ zIndex: 999 }}>

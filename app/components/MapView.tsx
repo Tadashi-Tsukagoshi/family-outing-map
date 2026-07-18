@@ -22,6 +22,7 @@ type Props = {
   detailPanelOpen: boolean
   isMobile?: boolean
   sheetState?: SheetState
+  onMapTapClose?: () => void
 }
 
 type HoverState = { spot: Spot; x: number; y: number }
@@ -393,8 +394,13 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
 
 const PEEK_HEIGHT = 72
 
+/** モバイル地図タップ判定：この距離を超えた移動はドラッグとみなす（px） */
+const TAP_MAX_DISTANCE = 10
+/** モバイル地図タップ判定：この時間を超えた接触はタップとみなさない（ms） */
+const TAP_MAX_DURATION = 300
+
 // ─── MapView（メインコンポーネント） ─────────────────────────────
-export default function MapView({ spots, onSpotSelect, selectedSpot, userLocation = null, locationRadius = 60, recenterSignal = 0, onDetailOpen, onDetailClose, detailPanelOpen, isMobile = false, sheetState = 'closed' }: Props) {
+export default function MapView({ spots, onSpotSelect, selectedSpot, userLocation = null, locationRadius = 60, recenterSignal = 0, onDetailOpen, onDetailClose, detailPanelOpen, isMobile = false, sheetState = 'closed', onMapTapClose }: Props) {
   const wrapperRef       = useRef<HTMLDivElement>(null)
   const containerRef     = useRef<HTMLDivElement>(null)
   const mapRef           = useRef<mapboxgl.Map | null>(null)
@@ -497,9 +503,9 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
   }, [onDetailClose, isMobile, onSpotSelect, handleImmediateHide])
 
   // マーカーのDOMイベントハンドラ・地図イベントハンドラから常に最新のコールバック・spotを参照するためのref
-  const handlersRef = useRef({ handleHoverIn, scheduleHide, handlePinClick, handleMapClick, handleImmediateHide })
+  const handlersRef = useRef({ handleHoverIn, scheduleHide, handlePinClick, handleMapClick, handleImmediateHide, isMobile, onMapTapClose })
   useEffect(() => {
-    handlersRef.current = { handleHoverIn, scheduleHide, handlePinClick, handleMapClick, handleImmediateHide }
+    handlersRef.current = { handleHoverIn, scheduleHide, handlePinClick, handleMapClick, handleImmediateHide, isMobile, onMapTapClose }
   })
   const spotsByIdRef = useRef<Record<string, Spot>>({})
   useEffect(() => {
@@ -648,6 +654,46 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
   const prevLocationRef  = useRef<[number, number] | null>(null)
   const sheetStateRef    = useRef<SheetState>(sheetState)
   useEffect(() => { sheetStateRef.current = sheetState }, [sheetState])
+
+  // ─── モバイル: 地図タップでボトムシート(mid)を閉じる ───────────
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    let tapStart: { x: number; y: number; time: number } | null = null
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (!handlersRef.current.isMobile || e.touches.length !== 1) { tapStart = null; return }
+      const target = e.target as Element | null
+      // ピン（マーカー）上でのタップはピン側のクリック処理を優先し無視する
+      if (target?.closest('.mapboxgl-marker')) { tapStart = null; return }
+      const t = e.touches[0]
+      tapStart = { x: t.clientX, y: t.clientY, time: Date.now() }
+    }
+
+    const onTouchEnd = (e: TouchEvent) => {
+      const start = tapStart
+      tapStart = null
+      if (!start || !handlersRef.current.isMobile) return
+      if (sheetStateRef.current !== 'mid') return
+      const touch = e.changedTouches[0]
+      if (!touch) return
+      const dx = touch.clientX - start.x
+      const dy = touch.clientY - start.y
+      const elapsed = Date.now() - start.time
+      // 座標差分・経過時間からドラッグ/ピンチ操作を除外し、純粋なタップのみ検知する
+      if (Math.sqrt(dx * dx + dy * dy) < TAP_MAX_DISTANCE && elapsed < TAP_MAX_DURATION) {
+        handlersRef.current.onMapTapClose?.()
+      }
+    }
+
+    container.addEventListener('touchstart', onTouchStart, { passive: true })
+    container.addEventListener('touchend', onTouchEnd, { passive: true })
+    return () => {
+      container.removeEventListener('touchstart', onTouchStart)
+      container.removeEventListener('touchend', onTouchEnd)
+    }
+  }, [])
 
   useEffect(() => {
     const map = mapRef.current
