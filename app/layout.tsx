@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   description: '今週末、子どもとどこ行く？\n家族で楽しめるイベントを地図で発見！',
   manifest: '/manifest.json',
   icons: {
-    icon: '/favicon.svg',
+    icon: '/favicon.ico',
     apple: '/apple-touch-icon.png',
   },
   appleWebApp: {
