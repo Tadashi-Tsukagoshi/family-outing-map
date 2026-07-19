@@ -134,7 +134,7 @@ export default function Sidebar({
           </p>
           <a
             href="/admin"
-            className="inline-flex items-center gap-1 mt-3 px-4 py-2 rounded-full text-sm font-semibold text-white bg-green-500 hover:bg-green-600 transition-colors"
+            className="inline-flex items-center gap-1 mt-3 px-4 py-2 rounded-full text-sm font-semibold text-white bg-[#3274b5] hover:bg-[#2b639a] transition-colors"
           >
             ＋ 投稿
           </a>
