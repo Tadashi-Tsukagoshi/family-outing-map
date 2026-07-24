@@ -19,6 +19,7 @@ const shipporiMincho = Shippori_Mincho({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://gunma-odekakemap.jp'),
   title: '群馬県おでかけまっぷ',
   description: '今週末、子どもとどこ行く？\n家族で楽しめるイベントを地図で発見！',
   manifest: '/manifest.json',
@@ -30,6 +31,19 @@ export const metadata: Metadata = {
     capable: true,
     title: '群馬県おでかけまっぷ',
     statusBarStyle: 'default',
+  },
+  openGraph: {
+    images: [
+      {
+        url: '/ogp.png',
+        width: 1200,
+        height: 630,
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: ['/ogp.png'],
   },
 }
 
