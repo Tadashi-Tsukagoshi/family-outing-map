@@ -90,7 +90,7 @@ export function CategoryIcon({ category, active = true, size = 20 }: { category:
     <span style={{
       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
       width: size, height: size, flexShrink: 0,
-      ...(category === 'fireworks' ? { backgroundColor: '#1e1614', borderRadius: '50%', overflow: 'hidden' } : {}),
+      ...(category === 'fireworks' ? { backgroundColor: '#0a0a3c', borderRadius: '50%', overflow: 'hidden' } : {}),
     }}>
       <img
         src={getCategoryIconSrc(category)}

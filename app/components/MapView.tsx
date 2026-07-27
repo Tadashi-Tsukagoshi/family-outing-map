@@ -138,7 +138,7 @@ function eventBubbleSvg(selected: boolean, color: string): string {
 function pickIcon(category: Category): { src: string; bg: string; glow: string; ratio: number } {
   const lanternGlow = 'filter:drop-shadow(0 0 1.5px rgba(255,255,255,1)) drop-shadow(0 0 1.5px rgba(255,255,255,1));'
   const src = getCategoryIconSrc(category)
-  if (category === 'fireworks') return { src, bg: '#1e1614', glow: '', ratio: 0.78 }
+  if (category === 'fireworks') return { src, bg: '#0a0a3c', glow: '', ratio: 1.6 }
   if (category === 'festival')  return { src, bg: '#1e1614', glow: lanternGlow, ratio: 0.63 }
   return { src, bg: 'white', glow: '', ratio: 0.78 }
 }
