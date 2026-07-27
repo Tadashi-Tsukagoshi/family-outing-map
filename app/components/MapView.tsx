@@ -169,23 +169,34 @@ function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef
 
   const { src: icon, bg, glow, ratio } = pickIcon(spot.category)
   const borderColor = '#9ca3af'
+  const isFireworks = spot.category === 'fireworks'
+  const gradientBorder = 'conic-gradient(from 0deg, #ffd600, #ff8a00, #ea4335, #bc2a8d, #ffd600)'
+  const gradientBorderWidth = 2.5 * 0.7
 
   if (selected) {
     const hit  = 48
     const size = 44
     const img  = Math.round(size * ratio)
+    const inner = size - gradientBorderWidth * 2
+    const circle = isFireworks
+      ? `<div class="pin-selected" style="width:${size}px;height:${size}px;border-radius:50%;background:${gradientBorder};box-shadow:0 4px 12px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;"><div style="width:${inner}px;height:${inner}px;margin:${gradientBorderWidth}px;border-radius:50%;background:${bg};overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}"></div></div>`
+      : `<div class="pin-selected" style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2.5px solid ${borderColor};box-shadow:0 4px 12px rgba(0,0,0,.4);overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}"></div>`
     return {
       hit,
-      html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><div class="pin-selected" style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2.5px solid ${borderColor};box-shadow:0 4px 12px rgba(0,0,0,.4);overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}"></div></div>`,
+      html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;">${circle}</div>`,
     }
   }
 
   const hit  = isMobile ? 48 : 40
   const size = 36
   const img  = Math.round(size * ratio)
+  const inner = size - gradientBorderWidth * 2
+  const circle = isFireworks
+    ? `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${gradientBorder};box-shadow:0 2px 6px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;"><div style="width:${inner}px;height:${inner}px;margin:${gradientBorderWidth}px;border-radius:50%;background:${bg};overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}"></div></div>`
+    : `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2.5px solid ${borderColor};box-shadow:0 2px 6px rgba(0,0,0,.25);overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}"></div>`
   return {
     hit,
-    html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2.5px solid ${borderColor};box-shadow:0 2px 6px rgba(0,0,0,.25);overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}"></div></div>`,
+    html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;">${circle}</div>`,
   }
 }
 
