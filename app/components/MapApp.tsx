@@ -48,7 +48,7 @@ const MapView = dynamic(() => import('./MapView'), {
 
 export default function MapApp() {
   const [isMobile, setIsMobile] = useState(false)
-  const [headerExpanded, setHeaderExpanded] = useState(true)
+  const [headerExpanded, setHeaderExpanded] = useState(false)
   const logoRef = useRef<HTMLDivElement>(null)
 
   useLayoutEffect(() => {
@@ -256,10 +256,10 @@ export default function MapApp() {
         <div ref={logoRef} className="fixed top-4 left-4" style={{ zIndex: 999 }}>
           <button
             onClick={() => setHeaderExpanded(v => !v)}
-            className="inline-flex items-center px-3 py-1 rounded-full text-sm text-white cursor-pointer select-none"
-            style={{ backgroundColor: '#4a4a4a', boxShadow: '0 2px 6px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.15)' }}
+            className="block cursor-pointer select-none overflow-hidden rounded-full"
+            style={{ width: 40, height: 40, boxShadow: '0 2px 6px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.15)' }}
           >
-            群馬県おでかけまっぷ
+            <img src="/icon-192.png" alt="群馬県おでかけまっぷ" width={40} height={40} className="h-full w-full object-cover" />
           </button>
           {/* ポップアップ */}
           {headerExpanded && (
