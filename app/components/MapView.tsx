@@ -633,6 +633,11 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
       el.style.width  = `${iconDef.hit}px`
       el.style.height = `${iconDef.hitH ?? iconDef.hit}px`
       el.style.zIndex = spot.id === selectedSpot?.id ? '1000' : '0'
+      // el（marker.getElement()）は Mapbox が map "move" イベントごとに
+      // el.style.opacity を強制上書きするため、内側の描画用 div に設定する
+      const opacity = selectedSpot && spot.id !== selectedSpot.id ? '0.6' : '1'
+      const pinEl = el.firstElementChild as HTMLElement | null
+      if (pinEl) pinEl.style.opacity = opacity
     }
   }, [spots, icons, selectedSpot?.id, mapReady])
 
