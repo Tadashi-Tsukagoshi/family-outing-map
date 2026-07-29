@@ -351,7 +351,7 @@ export default function EventFormFields({
               </button>
             )
 
-            if (cat !== 'park' && cat !== 'event') return categoryButton
+            if (cat !== 'park') return categoryButton
 
             return (
               <div key={cat} className="flex flex-col gap-1.5">

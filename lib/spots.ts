@@ -98,7 +98,9 @@ export const ICON_PATHS: Record<Category, string> = {
 }
 
 export function getCategoryIconSrc(category: Category): string {
-  return category === 'fireworks' ? '/icons/fireworks.png' : '/icons/lantern.png'
+  if (category === 'fireworks') return '/icons/fireworks.png'
+  if (category === 'event') return '/icons/event_001.png'
+  return '/icons/lantern.png'
 }
 
 export function isDarkPin(category: Category): boolean {

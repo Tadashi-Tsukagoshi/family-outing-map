@@ -51,7 +51,7 @@ function Toggle({
   )
 }
 
-const ICON_RATIO: Record<Category, number> = { event: 0.92, fireworks: 1.6, festival: 0.92, park: 0.92 }
+const ICON_RATIO: Record<Category, number> = { event: 1, fireworks: 1.6, festival: 0.92, park: 0.92 }
 const GRADIENT_BORDER_BG: Partial<Record<Category, string>> = { fireworks: '#0a0a3c', festival: '#1e1614' }
 const GRADIENT_BORDER = 'conic-gradient(from 0deg, #ffd600 0deg, #ffd600 60deg, #ff8a00 120deg, #ea4335 200deg, #bc2a8d 280deg, #ffd600 360deg)'
 const GRADIENT_BORDER_WIDTH = 2.5 * 0.7
@@ -66,23 +66,6 @@ export function CategoryIcon({ category, active = true, size = 20 }: { category:
       }}>
         <svg width={iconSize} height={iconSize} viewBox="0 0 48 48" style={{ display: 'block', opacity: active ? 1 : 0.35 }}>
           <path d="M24 4C16.26 4 10 10.26 10 18C10 28.5 24 44 24 44C24 44 38 28.5 38 18C38 10.26 31.74 4 24 4ZM24 23C21.24 23 19 20.76 19 18C19 15.24 21.24 13 24 13C26.76 13 29 15.24 29 18C29 20.76 26.76 23 24 23Z" fill="#333333" />
-        </svg>
-      </span>
-    )
-  }
-
-  if (category === 'event') {
-    const w = size
-    const h = Math.round(size * (58 / 80))
-    return (
-      <span style={{
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        width: size, height: size, flexShrink: 0,
-      }}>
-        <svg width={w} height={h} viewBox="-40 0 80 58" style={{ display: 'block', opacity: active ? 1 : 0.35 }}>
-          <ellipse cx="0" cy="23" rx="40" ry="23" fill="#333333" />
-          <polygon points="-4,45 4,45 0,57" fill="#333333" />
-          <text x="0" y="30" fontFamily="Arial, sans-serif" fontSize="17" fill="white" textAnchor="middle" fontWeight="700">EVENT!</text>
         </svg>
       </span>
     )

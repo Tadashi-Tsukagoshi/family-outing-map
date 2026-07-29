@@ -127,23 +127,16 @@ function locationPinSvg(width: number, height: number, selected: boolean, color:
   return `<svg${cls} width="${width}" height="${height}" viewBox="0 0 48 48" style="display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));"><path d="M24 4C16.26 4 10 10.26 10 18C10 28.5 24 44 24 44C24 44 38 28.5 38 18C38 10.26 31.74 4 24 4Z" fill="${color}" stroke="white" stroke-width="2.5"/><circle cx="24" cy="18" r="5" fill="white"/></svg>`
 }
 
-function eventBubbleSvg(selected: boolean, color: string): string {
-  const cls = selected ? ' class="pin-selected"' : ''
-  if (selected) {
-    return `<svg${cls} width="50" height="38" viewBox="-25 0 50 38" style="display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));"><ellipse cx="0" cy="15" rx="25" ry="15" fill="${color}"/><polygon points="-3,29 3,29 0,37" fill="${color}"/><text x="0" y="20" font-family="Arial,sans-serif" font-size="11" fill="white" text-anchor="middle" font-weight="700">EVENT!</text></svg>`
-  }
-  return `<svg${cls} width="42" height="32" viewBox="-21 0 42 32" style="display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));"><ellipse cx="0" cy="13" rx="21" ry="13" fill="${color}"/><polygon points="-3,25 3,25 0,31" fill="${color}"/><text x="0" y="17" font-family="Arial,sans-serif" font-size="9" fill="white" text-anchor="middle" font-weight="700">EVENT!</text></svg>`
-}
-
 function pickIcon(category: Category): { src: string; bg: string; glow: string; ratio: number } {
   const lanternGlow = 'filter:drop-shadow(0 0 1.5px rgba(255,255,255,1)) drop-shadow(0 0 1.5px rgba(255,255,255,1));'
   const src = getCategoryIconSrc(category)
   if (category === 'fireworks') return { src, bg: '#0a0a3c', glow: '', ratio: 1.6 }
   if (category === 'festival')  return { src, bg: '#1e1614', glow: lanternGlow, ratio: 0.63 }
+  if (category === 'event')     return { src, bg: 'transparent', glow: '', ratio: 1 }
   return { src, bg: 'white', glow: '', ratio: 0.78 }
 }
 
-type IconDef = { html: string; hit: number; hitH?: number; anchor?: 'center' | 'bottom' }
+type IconDef = { html: string; hit: number; anchor?: 'center' }
 
 function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef {
   if (spot.category === 'park') {
@@ -157,13 +150,14 @@ function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef
   }
 
   if (spot.category === 'event') {
-    const [w, h] = selected ? [50, 38] : [42, 32]
-    const color = spot.pinColor ?? '#333333'
+    const { src: icon } = pickIcon('event')
+    const hit  = selected ? 48 : (isMobile ? 48 : 40)
+    const size = selected ? 44 : 36
+    const cls  = selected ? ' class="pin-selected"' : ''
     return {
-      hit: w,
-      hitH: h,
-      anchor: 'bottom',
-      html: eventBubbleSvg(selected, color),
+      hit,
+      anchor: 'center',
+      html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><img${cls} src="${icon}" style="width:${size}px;height:${size}px;object-fit:contain;display:block;"></div>`,
     }
   }
 
@@ -221,9 +215,7 @@ type HoverCardProps = {
 
 function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, galleryImage, onDetailOpen }: HoverCardProps) {
   const cardRef = useRef<HTMLDivElement>(null)
-  // EVENT!吹き出しピンは anchor='bottom' で尻尾の先端が y 座標になり、ピン本体はそこから上方向に
-  // 丸ピンより大きく（約32px）張り出すため、上表示時の間隔を追加で確保する
-  const aboveGap = GAP + (hovered.spot.category === 'event' ? 12 : 0)
+  const aboveGap = GAP
 
   // ready:false で初期化 → 測定前は opacity:0 で非表示
   const [pos, setPos] = useState<Pos>({
@@ -631,7 +623,7 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
       const el = marker.getElement()
       el.innerHTML  = iconDef.html
       el.style.width  = `${iconDef.hit}px`
-      el.style.height = `${iconDef.hitH ?? iconDef.hit}px`
+      el.style.height = `${iconDef.hit}px`
       el.style.zIndex = spot.id === selectedSpot?.id ? '1000' : '0'
       // el（marker.getElement()）は Mapbox が map "move" イベントごとに
       // el.style.opacity を強制上書きするため、内側の描画用 div に設定する
