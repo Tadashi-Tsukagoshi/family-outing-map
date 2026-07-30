@@ -224,12 +224,12 @@ export default function Sidebar({
         </div>
       </div>
 
-      {/* イベント一覧（サイドバーモードのみタイトル行を表示） */}
+      {/* スポット一覧（サイドバーモードのみタイトル行を表示） */}
       <div className={`${isSheet ? '' : 'flex-1 min-h-0'} overflow-y-auto border-t border-gray-200`}>
         <div className="py-3 pr-3">
           {!isSheet && (
             <p className="text-sm mb-2" style={{ paddingLeft: 22, color: '#1F1F1F' }}>
-              イベント一覧　<span className="text-xs text-gray-700">{spots.length}件表示中</span>
+              スポット一覧　<span className="text-xs text-gray-700">{spots.length}件表示中</span>
             </p>
           )}
           <div className="space-y-0">

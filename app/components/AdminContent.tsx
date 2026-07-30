@@ -16,9 +16,9 @@ type Props = {
   /** true の場合、localStorage "myEvents" に記録された自分の投稿にのみ編集・削除ボタンを表示し、
    *  PUT/DELETE リクエストに x-edit-token ヘッダを付与する（一般公開の /admin 用） */
   restrictEditToOwn?: boolean
-  /** true の場合、承認待ちイベントの承認・却下セクションを表示する（運営用の /ota-admin 用） */
+  /** true の場合、承認待ちスポットの承認・却下セクションを表示する（運営用の /ota-admin 用） */
   showApprovalSection?: boolean
-  /** true の場合、「登録済みイベント一覧」セクションを非表示にする（一般公開の /admin 用） */
+  /** true の場合、「登録済みスポット一覧」セクションを非表示にする（一般公開の /admin 用） */
   hideEventList?: boolean
   /** true の場合、投稿が承認制であることを投稿前・投稿後に案内する（一般公開の /admin 用） */
   showApprovalNotice?: boolean
@@ -287,7 +287,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-3">
         <a href="/" className="text-gray-400 hover:text-gray-600 text-sm">← 地図に戻る</a>
         <span className="text-gray-300">|</span>
-        <h1 className="text-base font-bold text-gray-800">イベント管理</h1>
+        <h1 className="text-base font-bold text-gray-800">スポット管理</h1>
         {onLogout && (
           <button
             type="button"
@@ -304,7 +304,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
         {/* 登録 / 編集フォーム */}
         <section>
           <h2 className="text-sm font-semibold text-gray-700 mb-3">
-            {editingId ? 'イベントを編集' : '新規登録'}
+            {editingId ? 'スポットを編集' : '新規登録'}
           </h2>
           {showApprovalNotice && !editingId && (
             <p className="mb-3 text-xs text-gray-900 leading-relaxed">
@@ -369,12 +369,12 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
         {showApprovalSection && (
           <section>
             <h2 className="text-sm font-semibold text-gray-700 mb-3">
-              承認待ちイベント{pendingEvents.length > 0 ? `（${pendingEvents.length}件）` : ''}
+              承認待ちスポット{pendingEvents.length > 0 ? `（${pendingEvents.length}件）` : ''}
             </h2>
             {pendingLoading ? (
               <p className="text-sm text-gray-400">読み込み中...</p>
             ) : pendingEvents.length === 0 ? (
-              <p className="text-sm text-gray-400">承認待ちのイベントはありません。</p>
+              <p className="text-sm text-gray-400">承認待ちのスポットはありません。</p>
             ) : (
               <ul className="space-y-2">
                 {pendingEvents.map(ev => (
@@ -394,14 +394,14 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
           </section>
         )}
 
-        {/* 登録済みイベント一覧 */}
+        {/* 登録済みスポット一覧 */}
         {!hideEventList && (
         <section>
-          <h2 className="text-sm font-semibold text-gray-700 mb-3">登録済みイベント</h2>
+          <h2 className="text-sm font-semibold text-gray-700 mb-3">登録済みスポット</h2>
           {eventsLoading ? (
             <p className="text-sm text-gray-400">読み込み中...</p>
           ) : allItems.length === 0 ? (
-            <p className="text-sm text-gray-400">登録されたイベントはありません。</p>
+            <p className="text-sm text-gray-400">登録されたスポットはありません。</p>
           ) : (
             <ul className="space-y-2">
               {allItems.map(ev => (
