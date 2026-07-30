@@ -337,6 +337,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
               fixedPosterType={fixedPosterType}
               onUploadingChange={setImageUploading}
               showEmail={showEmail}
+              isStaffAdmin={showApprovalSection}
             />
 
             {/* 送信結果 */}
@@ -385,6 +386,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
                     busy={pendingActionId === ev.id}
                     onApprove={formValues => handleApprovePending(ev, formValues)}
                     onReject={() => handleRejectPending(ev)}
+                    isStaffAdmin={showApprovalSection}
                   />
                 ))}
               </ul>

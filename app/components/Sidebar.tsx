@@ -1,6 +1,6 @@
 'use client'
 
-import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, PERIOD_LABELS, getCategoryIconSrc, isDarkPin, type Category, type PeriodFilter, type Spot } from '@/lib/spots'
+import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, EVENT_CATEGORIES, PERIOD_LABELS, getCategoryIconSrc, isDarkPin, type Category, type PeriodFilter, type Spot } from '@/lib/spots'
 import { getDateDisplay } from '@/lib/date-utils'
 
 type Props = {
@@ -202,7 +202,7 @@ export default function Sidebar({
         <div>
           <span className="text-sm" style={{ color: '#1F1F1F' }}>カテゴリ</span>
           <div className="flex flex-wrap gap-1.5 mt-2">
-            {(Object.keys(CATEGORY_LABELS) as Category[]).map((cat) => {
+            {EVENT_CATEGORIES.map((cat) => {
               const active = activeCategories.has(cat)
               return (
                 <button

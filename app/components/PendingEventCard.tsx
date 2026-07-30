@@ -12,9 +12,10 @@ type Props = {
   busy: boolean
   onApprove: (form: FormState) => void
   onReject: () => void
+  isStaffAdmin?: boolean
 }
 
-export default function PendingEventCard({ event, expanded, onToggle, busy, onApprove, onReject }: Props) {
+export default function PendingEventCard({ event, expanded, onToggle, busy, onApprove, onReject, isStaffAdmin }: Props) {
   const [form, setForm] = useState<FormState>(() => eventToFormState(event))
   const [uploading, setUploading] = useState(false)
 
@@ -87,6 +88,7 @@ export default function PendingEventCard({ event, expanded, onToggle, busy, onAp
               eventId={event.id}
               fixedPosterType={event.posterType ?? 'general'}
               onUploadingChange={setUploading}
+              isStaffAdmin={isStaffAdmin}
             />
           </div>
         )}

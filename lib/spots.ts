@@ -3,6 +3,11 @@ export type Category = 'event' | 'fireworks' | 'festival' | 'park' | 'kumamoto_e
 /** 'event'=期間限定イベント, 'permanent'=常設施設, 'disaster'=災害支援 */
 export type EventType = 'event' | 'permanent' | 'disaster'
 
+/** 種別='event'/'permanent'（通常イベント）で選択可能なカテゴリ */
+export const EVENT_CATEGORIES: Category[] = ['event', 'fireworks', 'festival', 'park']
+/** 種別='disaster'（災害支援）で選択可能なカテゴリ */
+export const DISASTER_CATEGORIES: Category[] = ['kumamoto_earthquake_r8']
+
 export type Spot = {
   id: string
   name: string

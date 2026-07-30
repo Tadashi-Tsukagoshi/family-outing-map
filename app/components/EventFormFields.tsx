@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
-import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, EVENT_TYPE_LABELS, PIN_COLORS, DEFAULT_PIN_COLOR, type Category, type EventType } from '@/lib/spots'
+import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, EVENT_TYPE_LABELS, EVENT_CATEGORIES, DISASTER_CATEGORIES, PIN_COLORS, DEFAULT_PIN_COLOR, type Category, type EventType } from '@/lib/spots'
 import { CategoryIcon } from './Sidebar'
 import type { CollectedEvent } from '@/lib/events'
 import { resizeImage } from '@/lib/image-utils'
@@ -178,10 +178,13 @@ type Props = {
   onUploadingChange?: (uploading: boolean) => void
   /** true の場合、メールアドレス（任意）入力欄を表示する（一般公開の /admin 用） */
   showEmail?: boolean
+  /** true の場合、運営（ota-admin）向けに種別「災害支援」を選択肢に表示する */
+  isStaffAdmin?: boolean
 }
 
 export default function EventFormFields({
   form, onChange, disabled, editing, eventId, posterTypeOptions, fixedPosterType, onUploadingChange, showEmail,
+  isStaffAdmin = false,
 }: Props) {
   const hasInitialLocation = form.lat !== null && form.lng !== null
   const [geoStatus,  setGeoStatus]  = useState<GeoStatus>(() => (editing && hasInitialLocation) ? 'ok' : 'idle')
@@ -274,7 +277,13 @@ export default function EventFormFields({
     set('imageUrls', form.imageUrls.filter((_, i) => i !== index))
   }
 
-  const categories = Object.keys(CATEGORY_LABELS) as Category[]
+  const categories = form.type === 'disaster' ? DISASTER_CATEGORIES : EVENT_CATEGORIES
+
+  const typeOptions: { value: EventType; label: string }[] = [
+    { value: 'event',     label: EVENT_TYPE_LABELS.event },
+    { value: 'permanent', label: EVENT_TYPE_LABELS.permanent },
+    ...(isStaffAdmin ? [{ value: 'disaster' as const, label: EVENT_TYPE_LABELS.disaster }] : []),
+  ]
 
   return (
     <>
@@ -294,10 +303,7 @@ export default function EventFormFields({
       <div>
         <Label required>種別</Label>
         <div className="flex gap-2">
-          {([
-            { value: 'event' as const,     label: EVENT_TYPE_LABELS.event },
-            { value: 'permanent' as const, label: EVENT_TYPE_LABELS.permanent },
-          ]).map(opt => (
+          {typeOptions.map(opt => (
             <button
               key={opt.value}
               type="button"
@@ -308,8 +314,12 @@ export default function EventFormFields({
                   if (form.category !== 'park') set('category', 'park')
                   set('startTime', '')
                   set('endTime', '')
+                } else if (opt.value === 'disaster') {
+                  if (form.category !== 'kumamoto_earthquake_r8') set('category', 'kumamoto_earthquake_r8')
+                  set('businessHours', '')
+                  set('spotLabel', '')
                 } else {
-                  if (form.category === 'park') set('category', 'event')
+                  if (form.category === 'park' || form.category === 'kumamoto_earthquake_r8') set('category', 'event')
                   set('businessHours', '')
                   set('spotLabel', '')
                 }
