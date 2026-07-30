@@ -125,6 +125,7 @@ function pickIcon(category: Category): { src: string; bg: string; glow: string; 
   if (category === 'fireworks') return { src, bg: '#0a0a3c', glow: '', ratio: 1.6 }
   if (category === 'festival')  return { src, bg: '#1e1614', glow: lanternGlow, ratio: 0.63 }
   if (category === 'event')     return { src, bg: 'transparent', glow: '', ratio: 1 }
+  if (category === 'kumamoto_earthquake_r8') return { src, bg: 'white', glow: '', ratio: 1.05 }
   return { src, bg: 'white', glow: '', ratio: 0.78 }
 }
 
@@ -156,9 +157,7 @@ function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef
   const { src: icon, bg, glow, ratio } = pickIcon(spot.category)
   const borderColor = '#9ca3af'
   const useGradientBorder = spot.category === 'fireworks' || spot.category === 'festival' || spot.category === 'kumamoto_earthquake_r8'
-  const gradientBorder = spot.category === 'kumamoto_earthquake_r8'
-    ? 'conic-gradient(from 0deg, #FFF056 0deg, #00A2FF 180deg, #FFF056 360deg)'
-    : 'conic-gradient(from 0deg, #ffd600 0deg, #ffd600 60deg, #ff8a00 120deg, #ea4335 200deg, #bc2a8d 280deg, #ffd600 360deg)'
+  const gradientBorder = 'conic-gradient(from 0deg, #ffd600 0deg, #ffd600 60deg, #ff8a00 120deg, #ea4335 200deg, #bc2a8d 280deg, #ffd600 360deg)'
   const gradientBorderWidth = 2.5 * 0.7
 
   if (selected) {

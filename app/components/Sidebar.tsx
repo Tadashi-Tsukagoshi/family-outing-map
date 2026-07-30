@@ -54,7 +54,6 @@ function Toggle({
 const ICON_RATIO: Record<Category, number> = { event: 1, fireworks: 1.6, festival: 0.92, park: 0.92, kumamoto_earthquake_r8: 1 }
 const GRADIENT_BORDER_BG: Partial<Record<Category, string>> = { fireworks: '#0a0a3c', festival: '#1e1614' }
 const GRADIENT_BORDER = 'conic-gradient(from 0deg, #ffd600 0deg, #ffd600 60deg, #ff8a00 120deg, #ea4335 200deg, #bc2a8d 280deg, #ffd600 360deg)'
-const KUMAMON_GRADIENT_BORDER = 'conic-gradient(from 0deg, #FFF056 0deg, #00A2FF 180deg, #FFF056 360deg)'
 const GRADIENT_BORDER_WIDTH = 2.5 * 0.7
 
 export function CategoryIcon({ category, active = true, size = 20 }: { category: Category; active?: boolean; size?: number }) {
@@ -74,13 +73,13 @@ export function CategoryIcon({ category, active = true, size = 20 }: { category:
 
   const imgSize = Math.round(size * ICON_RATIO[category])
 
-  if (category === 'fireworks' || category === 'kumamoto_earthquake_r8') {
+  if (category === 'fireworks') {
     const inner = size - GRADIENT_BORDER_WIDTH * 2
     return (
       <span style={{
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
         width: size, height: size, flexShrink: 0, borderRadius: '50%',
-        background: category === 'kumamoto_earthquake_r8' ? KUMAMON_GRADIENT_BORDER : GRADIENT_BORDER,
+        background: GRADIENT_BORDER,
       }}>
         <span style={{
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
