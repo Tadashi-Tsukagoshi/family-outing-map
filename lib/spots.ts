@@ -126,7 +126,7 @@ export const ICON_PATHS: Record<Category, string> = {
 export function getCategoryIconSrc(category: Category): string | null {
   if (category === 'fireworks') return '/icons/fireworks.png'
   if (category === 'event') return '/icons/event_001.png'
-  if (category === 'kumamoto_earthquake_r8') return null
+  if (category === 'kumamoto_earthquake_r8') return '/images/pins/kumamon.png'
   return '/icons/lantern.png'
 }
 

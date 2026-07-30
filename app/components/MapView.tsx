@@ -155,8 +155,10 @@ function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef
 
   const { src: icon, bg, glow, ratio } = pickIcon(spot.category)
   const borderColor = '#9ca3af'
-  const useGradientBorder = spot.category === 'fireworks' || spot.category === 'festival'
-  const gradientBorder = 'conic-gradient(from 0deg, #ffd600 0deg, #ffd600 60deg, #ff8a00 120deg, #ea4335 200deg, #bc2a8d 280deg, #ffd600 360deg)'
+  const useGradientBorder = spot.category === 'fireworks' || spot.category === 'festival' || spot.category === 'kumamoto_earthquake_r8'
+  const gradientBorder = spot.category === 'kumamoto_earthquake_r8'
+    ? 'conic-gradient(from 0deg, #FFF056 0deg, #00A2FF 180deg, #FFF056 360deg)'
+    : 'conic-gradient(from 0deg, #ffd600 0deg, #ffd600 60deg, #ff8a00 120deg, #ea4335 200deg, #bc2a8d 280deg, #ffd600 360deg)'
   const gradientBorderWidth = 2.5 * 0.7
 
   if (selected) {
