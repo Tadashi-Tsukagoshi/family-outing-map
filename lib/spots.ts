@@ -58,7 +58,7 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   fireworks:              '花火',
   festival:               'まつり',
   park:                   '常設施設',
-  kumamoto_earthquake_r8: 'R8熊本地震',
+  kumamoto_earthquake_r8: 'R8熊本地震支援',
 }
 
 /** カテゴリ選択ボタン表示用のラベル上書き（CATEGORY_LABELS は他箇所の表示に使うため変更しない） */

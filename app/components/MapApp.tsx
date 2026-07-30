@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic'
 import Sidebar from './Sidebar'
 import DetailPanel from './DetailPanel'
 import BottomSheet, { type SheetState } from './BottomSheet'
-import { EVENT_CATEGORIES, type Category, type PeriodFilter, type Spot } from '@/lib/spots'
+import { CATEGORY_LABELS, type Category, type PeriodFilter, type Spot } from '@/lib/spots'
 import { eventToSpot, type EventsDatabase } from '@/lib/events'
 import { getEventStatus } from '@/lib/date-utils'
 
@@ -60,7 +60,7 @@ export default function MapApp() {
 
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('all')
   const [activeCategories, setActiveCategories] = useState<Set<Category>>(
-    () => new Set(EVENT_CATEGORIES)
+    () => new Set(Object.keys(CATEGORY_LABELS) as Category[])
   )
   const [selectedSpot,   setSelectedSpot]   = useState<Spot | null>(null)
   const [detailSpot,     setDetailSpot]     = useState<Spot | null>(null)
@@ -80,7 +80,7 @@ export default function MapApp() {
       // 新設カテゴリ（fireworks/festival）は保存データに存在しなくてもデフォルトでオンにする
       const OLD_CATEGORIES = new Set(['park', 'museum', 'playground', 'food', 'event', 'music', 'exhibition'])
       const restored = new Set<Category>()
-      for (const cat of EVENT_CATEGORIES) {
+      for (const cat of Object.keys(CATEGORY_LABELS) as Category[]) {
         if (saved.activeCategories.includes(cat) || !OLD_CATEGORIES.has(cat)) restored.add(cat)
       }
       setActiveCategories(restored)
@@ -134,8 +134,7 @@ export default function MapApp() {
     try {
       const res = await fetch('/api/events')
       const db: EventsDatabase = await res.json()
-      // 災害支援イベントは一般公開の地図には表示しない（ota-admin管理画面のみで扱う）
-      setCollectedSpots(db.events.map(eventToSpot).filter(s => s.type !== 'disaster'))
+      setCollectedSpots(db.events.map(eventToSpot))
     } catch {
       // events.json がまだない場合は無視
     }

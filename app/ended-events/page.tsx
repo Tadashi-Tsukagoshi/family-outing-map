@@ -24,7 +24,6 @@ export default function EndedEventsPage() {
 
         const all = db.events
           .map(eventToSpot)
-          .filter(s => s.type !== 'disaster')
           .filter(s => getEventStatus(s.startDate, s.endDate) === 'ended')
         all.sort((a, b) => (b.endDate ?? '').localeCompare(a.endDate ?? ''))
         setEndedSpots(all)
