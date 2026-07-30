@@ -45,11 +45,12 @@ export default function PhotoCarousel({ images, height, radius, onPhotoClick }: 
             src={src}
             alt=""
             onClick={() => onPhotoClick(i)}
+            className="bg-gray-100"
             style={{
               flex: '0 0 100%',
               width: '100%',
               height,
-              objectFit: 'cover',
+              objectFit: 'contain',
               scrollSnapAlign: 'start',
               cursor: 'pointer',
             }}

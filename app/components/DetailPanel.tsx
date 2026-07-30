@@ -180,8 +180,9 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
             src={image}
             alt=""
             onClick={(isManualImage || isOgpImage) ? handleImageClick : undefined}
+            className="bg-gray-100"
             style={{
-              display: 'block', width: '100%', height: mobile ? 180 : 160, objectFit: 'cover',
+              display: 'block', width: '100%', height: mobile ? 180 : 160, objectFit: 'contain',
               ...(mobile ? { borderRadius: '16px 16px 0 0' } : {}),
               cursor: (isManualImage || isOgpImage) ? 'pointer' : undefined,
             }}
