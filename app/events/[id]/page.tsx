@@ -1,17 +1,10 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { CATEGORY_LABELS, CATEGORY_COLORS, CATEGORY_EMOJIS, type Category, type Spot } from '@/lib/spots'
+import { CATEGORY_LABELS, CATEGORY_COLORS, CATEGORY_EMOJIS, CATEGORY_IMAGES, type Spot } from '@/lib/spots'
 import { eventToSpot } from '@/lib/events'
 import { getDateDisplay, getEventStatus, STATUS_CONFIG, PERMANENT_STATUS } from '@/lib/date-utils'
 import { supabaseAdmin } from '@/lib/supabase'
 import type { Metadata } from 'next'
-
-const CATEGORY_IMAGES: Record<Category, string> = {
-  event:     'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80',
-  fireworks: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80',
-  festival:  'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80',
-  park:      'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80',
-}
 
 async function getSpot(id: string): Promise<Spot | null> {
   const supabase = supabaseAdmin()

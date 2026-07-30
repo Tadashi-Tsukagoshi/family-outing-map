@@ -2,7 +2,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 import type { CollectedEvent } from '@/lib/events'
 import type { NextRequest } from 'next/server'
 import { ADMIN_SESSION_COOKIE, verifyAdminSessionToken } from '@/lib/admin-session'
-import { normalizeEventType, PIN_COLORS, DEFAULT_PIN_COLOR } from '@/lib/spots'
+import { normalizeCategory, normalizeEventType, PIN_COLORS, DEFAULT_PIN_COLOR } from '@/lib/spots'
 
 async function authorizeEventAccess(req: NextRequest, id: string) {
   const supabase = supabaseAdmin()
@@ -99,7 +99,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
       image_url: imageUrl,
       lat,
       lng,
-      category:      (b.category   as string) ?? 'event',
+      category:      normalizeCategory(b.category),
       type,
       pin_color:     pinColor,
       url:           ((b.url      as string | undefined) ?? '').trim() || null,

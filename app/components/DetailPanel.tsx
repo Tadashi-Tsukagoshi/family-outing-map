@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { BADGE_BG_COLOR, type Category, type Spot } from '@/lib/spots'
+import { BADGE_BG_COLOR, CATEGORY_IMAGES, type Spot } from '@/lib/spots'
 import { getDateDisplay, getEventStatus, STATUS_CONFIG, PARK_STATUS, fmtTimeRange } from '@/lib/date-utils'
 import PhotoCarousel from './PhotoCarousel'
 import Lightbox from './Lightbox'
@@ -61,13 +61,6 @@ function forgetLiked(id: string) {
     const ids = raw ? (JSON.parse(raw) as string[]) : []
     localStorage.setItem(LIKED_EVENTS_KEY, JSON.stringify(ids.filter((x) => x !== id)))
   } catch {}
-}
-
-const CATEGORY_IMAGES: Record<Category, string> = {
-  event:     'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400',
-  fireworks: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400',
-  festival:  'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400',
-  park:      'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400',
 }
 
 type Props = {

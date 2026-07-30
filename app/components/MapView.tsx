@@ -3,7 +3,7 @@
 import 'mapbox-gl/dist/mapbox-gl.css'
 import mapboxgl from 'mapbox-gl'
 import { useRef, useState, useMemo, useCallback, useEffect, useLayoutEffect } from 'react'
-import { getCategoryIconSrc, BADGE_BG_COLOR, type Category, type Spot } from '@/lib/spots'
+import { getCategoryIconSrc, BADGE_BG_COLOR, CATEGORY_IMAGES, type Category, type Spot } from '@/lib/spots'
 import { getDateDisplay, getEventStatus, STATUS_CONFIG, PARK_STATUS, fmtTimeRange } from '@/lib/date-utils'
 import { type SheetState } from './BottomSheet'
 
@@ -42,14 +42,6 @@ const GAP      = 14
 const MARGIN   = 8
 /** PC詳細パネル幅（w-72 = 288px）*/
 const DETAIL_PANEL_W = 288
-
-// ─── Unsplash images ─────────────────────────────────────────────
-const CATEGORY_IMAGES: Record<Category, string> = {
-  event:     'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=200',
-  fireworks: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=200',
-  festival:  'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=200',
-  park:      'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=200',
-}
 
 // ─── Geo helpers ─────────────────────────────────────────────────
 /** [lat, lng] → mapbox-gl の [lng, lat] */
@@ -129,7 +121,7 @@ function locationPinSvg(width: number, height: number, selected: boolean, color:
 
 function pickIcon(category: Category): { src: string; bg: string; glow: string; ratio: number } {
   const lanternGlow = 'filter:drop-shadow(0 0 1.5px rgba(255,255,255,1)) drop-shadow(0 0 1.5px rgba(255,255,255,1));'
-  const src = getCategoryIconSrc(category)
+  const src = getCategoryIconSrc(category) ?? ''
   if (category === 'fireworks') return { src, bg: '#0a0a3c', glow: '', ratio: 1.6 }
   if (category === 'festival')  return { src, bg: '#1e1614', glow: lanternGlow, ratio: 0.63 }
   if (category === 'event')     return { src, bg: 'transparent', glow: '', ratio: 1 }

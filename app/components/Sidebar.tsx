@@ -51,7 +51,7 @@ function Toggle({
   )
 }
 
-const ICON_RATIO: Record<Category, number> = { event: 1, fireworks: 1.6, festival: 0.92, park: 0.92 }
+const ICON_RATIO: Record<Category, number> = { event: 1, fireworks: 1.6, festival: 0.92, park: 0.92, kumamoto_earthquake_r8: 1 }
 const GRADIENT_BORDER_BG: Partial<Record<Category, string>> = { fireworks: '#0a0a3c', festival: '#1e1614' }
 const GRADIENT_BORDER = 'conic-gradient(from 0deg, #ffd600 0deg, #ffd600 60deg, #ff8a00 120deg, #ea4335 200deg, #bc2a8d 280deg, #ffd600 360deg)'
 const GRADIENT_BORDER_WIDTH = 2.5 * 0.7
@@ -87,7 +87,7 @@ export function CategoryIcon({ category, active = true, size = 20 }: { category:
           borderRadius: '50%', backgroundColor: GRADIENT_BORDER_BG[category], overflow: 'hidden',
         }}>
           <img
-            src={getCategoryIconSrc(category)}
+            src={getCategoryIconSrc(category) ?? undefined}
             alt=""
             style={{ width: imgSize, height: imgSize, objectFit: 'contain', display: 'block', opacity: active ? 1 : 0.35 }}
           />
@@ -102,7 +102,7 @@ export function CategoryIcon({ category, active = true, size = 20 }: { category:
       width: size, height: size, flexShrink: 0,
     }}>
       <img
-        src={getCategoryIconSrc(category)}
+        src={getCategoryIconSrc(category) ?? undefined}
         alt=""
         style={{ width: imgSize, height: imgSize, objectFit: 'contain', display: 'block', opacity: active ? 1 : 0.35 }}
       />

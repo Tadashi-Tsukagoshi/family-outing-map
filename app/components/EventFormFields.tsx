@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
-import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, PIN_COLORS, DEFAULT_PIN_COLOR, type Category, type EventType } from '@/lib/spots'
+import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, EVENT_TYPE_LABELS, PIN_COLORS, DEFAULT_PIN_COLOR, type Category, type EventType } from '@/lib/spots'
 import { CategoryIcon } from './Sidebar'
 import type { CollectedEvent } from '@/lib/events'
 import { resizeImage } from '@/lib/image-utils'
@@ -278,9 +278,9 @@ export default function EventFormFields({
 
   return (
     <>
-      {/* イベント・施設名 */}
+      {/* 名称 */}
       <div>
-        <Label required>イベント・施設名</Label>
+        <Label required>名称</Label>
         <Input
           value={form.name}
           onChange={e => set('name', e.target.value)}
@@ -295,8 +295,8 @@ export default function EventFormFields({
         <Label required>種別</Label>
         <div className="flex gap-2">
           {([
-            { value: 'event' as const,     label: '期間限定イベント' },
-            { value: 'permanent' as const, label: '常設スポット' },
+            { value: 'event' as const,     label: EVENT_TYPE_LABELS.event },
+            { value: 'permanent' as const, label: EVENT_TYPE_LABELS.permanent },
           ]).map(opt => (
             <button
               key={opt.value}
