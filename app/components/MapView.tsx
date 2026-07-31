@@ -117,7 +117,7 @@ function buildUserLocationElement(): HTMLDivElement {
 function pickIcon(category: Category): { src: string; bg: string; glow: string; ratio: number } {
   const lanternGlow = 'filter:drop-shadow(0 0 1.5px rgba(255,255,255,1)) drop-shadow(0 0 1.5px rgba(255,255,255,1));'
   const src = getCategoryIconSrc(category) ?? ''
-  if (category === 'fireworks') return { src, bg: '#0a0a3c', glow: '', ratio: 7.0 }
+  if (category === 'fireworks') return { src, bg: '#0a0a3c', glow: '', ratio: 1.0 }
   if (category === 'festival')  return { src, bg: '#1e1614', glow: lanternGlow, ratio: 0.63 }
   if (category === 'event')     return { src, bg: 'transparent', glow: '', ratio: 1 }
   if (category === 'park')      return { src, bg: 'transparent', glow: '', ratio: 1 }
