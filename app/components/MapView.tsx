@@ -128,8 +128,8 @@ function pickIcon(category: Category): { src: string; bg: string; glow: string; 
 type IconDef = { html: string; hit: number; anchor?: 'center' }
 
 function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef {
-  if (spot.category === 'event') {
-    const { src: icon } = pickIcon('event')
+  if (spot.category === 'event' || spot.category === 'park') {
+    const { src: icon } = pickIcon(spot.category)
     const hit  = selected ? 48 : (isMobile ? 48 : 40)
     const size = selected ? 44 : 36
     const cls  = selected ? ' class="pin-selected"' : ''
