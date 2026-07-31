@@ -120,7 +120,7 @@ export const ICON_PATHS: Record<Category, string> = {
 
 /** アイコン画像パス。未提供のカテゴリは null を返す */
 export function getCategoryIconSrc(category: Category): string | null {
-  if (category === 'fireworks') return '/icons/iota_firework_1024.png'
+  if (category === 'fireworks') return '/icons/fireworks.png'
   if (category === 'event') return '/icons/event_001.png'
   if (category === 'kumamoto_earthquake_r8') return '/images/pins/kumamon.png'
   if (category === 'park') return '/icons/permanent-spot.png'
