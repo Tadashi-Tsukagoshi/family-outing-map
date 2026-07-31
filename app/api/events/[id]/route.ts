@@ -2,7 +2,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 import type { CollectedEvent } from '@/lib/events'
 import type { NextRequest } from 'next/server'
 import { ADMIN_SESSION_COOKIE, verifyAdminSessionToken } from '@/lib/admin-session'
-import { normalizeCategory, normalizeEventType, PIN_COLORS, DEFAULT_PIN_COLOR } from '@/lib/spots'
+import { normalizeCategory, normalizeEventType } from '@/lib/spots'
 
 async function authorizeEventAccess(req: NextRequest, id: string) {
   const supabase = supabaseAdmin()
@@ -72,8 +72,6 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
     const lng          = typeof b.lng === 'number' ? b.lng : undefined
     const type         = normalizeEventType(b.type)
     const isPermanent  = type === 'permanent'
-    const pinColorRaw  = b.pinColor as string | undefined
-    const pinColor     = PIN_COLORS.includes(pinColorRaw as typeof PIN_COLORS[number]) ? pinColorRaw! : DEFAULT_PIN_COLOR
 
     if (!name)  return Response.json({ error: 'イベント名は必須です' }, { status: 400 })
     if (!isPermanent && !venue) return Response.json({ error: '会場名は必須です' },     { status: 400 })
@@ -101,7 +99,6 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
       lng,
       category:      normalizeCategory(b.category),
       type,
-      pin_color:     pinColor,
       url:           ((b.url      as string | undefined) ?? '').trim() || null,
       email,
       posted_by:     postedBy,
@@ -156,7 +153,6 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
       lng:         data.lng,
       category:    data.category,
       type:        data.type ?? undefined,
-      pinColor:    data.pin_color ?? undefined,
       startTime:   data.start_time ?? undefined,
       endTime:     data.end_time ?? undefined,
       businessHours: data.business_hours ?? undefined,

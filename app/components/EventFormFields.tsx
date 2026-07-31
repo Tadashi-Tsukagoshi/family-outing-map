@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
-import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, EVENT_TYPE_LABELS, EVENT_CATEGORIES, DISASTER_CATEGORIES, PIN_COLORS, DEFAULT_PIN_COLOR, type Category, type EventType } from '@/lib/spots'
+import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, EVENT_TYPE_LABELS, EVENT_CATEGORIES, DISASTER_CATEGORIES, type Category, type EventType } from '@/lib/spots'
 import { CategoryIcon } from './Sidebar'
 import type { CollectedEvent } from '@/lib/events'
 import { resizeImage } from '@/lib/image-utils'
@@ -15,7 +15,6 @@ export type FormState = {
   name:          string
   category:      Category
   type:          EventType
-  pinColor:      string
   dateConfirmed: boolean
   startDate:     string
   endDate:       string
@@ -54,7 +53,6 @@ export const POSTER_TYPE_LABELS: Record<string, string> = {
 export const INITIAL_FORM: FormState = {
   name: '', category: 'event',
   type: 'event',
-  pinColor: DEFAULT_PIN_COLOR,
   dateConfirmed: true,
   startDate: '', endDate: '', startTime: '', endTime: '', businessHours: '', spotLabel: '', scheduleNote: '',
   venue: '', fee: '', imageUrl: '', imageUrls: [], address: '',
@@ -70,7 +68,6 @@ export function eventToFormState(ev: CollectedEvent): FormState {
     name:          ev.name,
     category:      ev.category ?? 'event',
     type:          ev.type ?? 'event',
-    pinColor:      ev.pinColor ?? DEFAULT_PIN_COLOR,
     dateConfirmed: !hasScheduleNote,
     startDate:     ev.startDate ?? ev.date ?? '',
     endDate:       ev.endDate   ?? ev.date ?? '',
@@ -361,41 +358,7 @@ export default function EventFormFields({
               </button>
             )
 
-            if (cat !== 'park') return categoryButton
-
-            return (
-              <div key={cat} className="flex flex-col gap-1.5">
-                {categoryButton}
-                {form.category === cat && (
-                  <div className="flex flex-wrap md:flex-nowrap justify-center md:justify-around gap-x-1 gap-y-1.5 md:gap-x-0">
-                    {PIN_COLORS.map(color => {
-                      const isSelected = form.pinColor === color
-                      return (
-                        <button
-                          key={color}
-                          type="button"
-                          disabled={disabled}
-                          onClick={() => set('pinColor', color)}
-                          aria-label={color}
-                          style={{
-                            backgroundColor: color,
-                            border: isSelected ? '2px solid #1f2937' : '2px solid transparent',
-                          }}
-                          className={`w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center flex-shrink-0
-                            ${disabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'}`}
-                        >
-                          {isSelected && (
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
-                              <path d="M5 13l4 4L19 7" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          )}
-                        </button>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-            )
+            return categoryButton
           })}
         </div>
       </div>

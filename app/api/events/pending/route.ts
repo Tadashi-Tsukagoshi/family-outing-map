@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   const supabase = supabaseAdmin()
   const { data, error } = await supabase
     .from('events')
-    .select('id, name, description, start_date, end_date, start_time, end_time, business_hours, spot_label, schedule_note, venue, address, fee, image_url, lat, lng, category, type, url, collected_at, posted_by, email, poster_type, status, pin_color')
+    .select('id, name, description, start_date, end_date, start_time, end_time, business_hours, spot_label, schedule_note, venue, address, fee, image_url, lat, lng, category, type, url, collected_at, posted_by, email, poster_type, status')
     .eq('status', 'pending')
     .order('collected_at', { ascending: false })
 
@@ -41,7 +41,6 @@ export async function GET(req: NextRequest) {
     email: e.email ?? undefined,
     posterType: e.poster_type,
     status: e.status,
-    pinColor: e.pin_color ?? undefined,
     startTime: e.start_time ?? undefined,
     endTime: e.end_time ?? undefined,
     businessHours: e.business_hours ?? undefined,

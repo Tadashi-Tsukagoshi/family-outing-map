@@ -114,17 +114,13 @@ function buildUserLocationElement(): HTMLDivElement {
 }
 
 // ─── Pin icon helpers ────────────────────────────────────────────
-function locationPinSvg(width: number, height: number, selected: boolean, color: string): string {
-  const cls = selected ? ' class="pin-selected"' : ''
-  return `<svg${cls} width="${width}" height="${height}" viewBox="0 0 48 48" style="display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));"><path d="M24 4C16.26 4 10 10.26 10 18C10 28.5 24 44 24 44C24 44 38 28.5 38 18C38 10.26 31.74 4 24 4Z" fill="${color}" stroke="white" stroke-width="2.5"/><circle cx="24" cy="18" r="5" fill="white"/></svg>`
-}
-
 function pickIcon(category: Category): { src: string; bg: string; glow: string; ratio: number } {
   const lanternGlow = 'filter:drop-shadow(0 0 1.5px rgba(255,255,255,1)) drop-shadow(0 0 1.5px rgba(255,255,255,1));'
   const src = getCategoryIconSrc(category) ?? ''
   if (category === 'fireworks') return { src, bg: '#0a0a3c', glow: '', ratio: 1.6 }
   if (category === 'festival')  return { src, bg: '#1e1614', glow: lanternGlow, ratio: 0.63 }
   if (category === 'event')     return { src, bg: 'transparent', glow: '', ratio: 1 }
+  if (category === 'park')      return { src, bg: 'transparent', glow: '', ratio: 1 }
   if (category === 'kumamoto_earthquake_r8') return { src, bg: 'white', glow: '', ratio: 1.05 }
   return { src, bg: 'white', glow: '', ratio: 0.78 }
 }
@@ -132,16 +128,6 @@ function pickIcon(category: Category): { src: string; bg: string; glow: string; 
 type IconDef = { html: string; hit: number; anchor?: 'center' }
 
 function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef {
-  if (spot.category === 'park') {
-    const hit = selected ? 48 : (isMobile ? 48 : 40)
-    const [w, h] = selected ? [46, 60] : [38, 50]
-    const color = spot.pinColor ?? '#333333'
-    return {
-      hit,
-      html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;">${locationPinSvg(w, h, selected, color)}</div>`,
-    }
-  }
-
   if (spot.category === 'event') {
     const { src: icon } = pickIcon('event')
     const hit  = selected ? 48 : (isMobile ? 48 : 40)

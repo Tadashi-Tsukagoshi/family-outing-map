@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 import { supabaseAdmin } from '@/lib/supabase'
-import { normalizeCategory, normalizeEventType, PIN_COLORS, DEFAULT_PIN_COLOR } from '@/lib/spots'
+import { normalizeCategory, normalizeEventType } from '@/lib/spots'
 import type { CollectedEvent } from '@/lib/events'
 
 export async function POST(req: Request) {
@@ -33,8 +33,6 @@ export async function POST(req: Request) {
   const lng          = typeof b.lng === 'number' ? b.lng : undefined
   const type         = normalizeEventType(b.type)
   const isPermanent  = type === 'permanent'
-  const pinColorRaw  = b.pinColor as string | undefined
-  const pinColor     = PIN_COLORS.includes(pinColorRaw as typeof PIN_COLORS[number]) ? pinColorRaw! : DEFAULT_PIN_COLOR
 
   if (!name)  return Response.json({ error: 'イベント名は必須です' }, { status: 400 })
   if (!isPermanent && !venue) return Response.json({ error: '会場名は必須です' },     { status: 400 })
@@ -67,7 +65,6 @@ export async function POST(req: Request) {
     lng,
     category:      normalizeCategory(b.category),
     type,
-    pin_color:     pinColor,
     url:           ((b.url as string | undefined) ?? '').trim() || null,
     collected_at:  new Date().toISOString(),
     posted_by:     ((b.postedBy as string | undefined) ?? '匿名').trim() || '匿名',
@@ -111,7 +108,6 @@ export async function POST(req: Request) {
     lng:         newEvent.lng,
     category:    newEvent.category as CollectedEvent['category'],
     type:        newEvent.type,
-    pinColor:    newEvent.pin_color,
     startTime:   newEvent.start_time ?? undefined,
     endTime:     newEvent.end_time ?? undefined,
     businessHours: newEvent.business_hours ?? undefined,
