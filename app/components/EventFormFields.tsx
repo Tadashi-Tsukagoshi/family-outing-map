@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
-import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, EVENT_TYPE_LABELS, EVENT_CATEGORIES, DISASTER_CATEGORIES, type Category, type EventType } from '@/lib/spots'
+import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, EVENT_TYPE_LABELS, EVENT_CATEGORIES, DISASTER_CATEGORIES, type AllCategory, type EventType } from '@/lib/spots'
 import { CategoryIcon } from './Sidebar'
 import type { CollectedEvent } from '@/lib/events'
 import { resizeImage } from '@/lib/image-utils'
@@ -13,7 +13,7 @@ export type PosterType = 'general' | 'organizer' | 'business' | 'staff'
 
 export type FormState = {
   name:          string
-  category:      Category
+  category:      AllCategory
   type:          EventType
   dateConfirmed: boolean
   startDate:     string
@@ -354,7 +354,9 @@ export default function EventFormFields({
                     : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
               >
                 <CategoryIcon category={cat} active={form.category === cat} size={28} />
-                {CATEGORY_BUTTON_LABEL_OVERRIDES[cat] ?? CATEGORY_LABELS[cat]}
+                {cat === 'kumamoto_earthquake_r8'
+                  ? 'R8熊本地震支援'
+                  : (CATEGORY_BUTTON_LABEL_OVERRIDES[cat] ?? CATEGORY_LABELS[cat])}
               </button>
             )
 

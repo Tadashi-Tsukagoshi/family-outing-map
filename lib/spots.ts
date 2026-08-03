@@ -1,4 +1,6 @@
-export type Category = 'event' | 'fireworks' | 'festival' | 'park' | 'kumamoto_earthquake_r8'
+export type Category = 'event' | 'fireworks' | 'festival' | 'park' // | 'kumamoto_earthquake_r8'（ユーザー向け画面から非表示。データ・型・関連定数は保持。再表示はこのユニオンと CATEGORY_LABELS に戻すだけ）
+/** UI非表示化前のフルカテゴリ型。ota-admin側やデータ層で災害支援カテゴリを扱う箇所で使用 */
+export type AllCategory = Category | 'kumamoto_earthquake_r8'
 
 /** 'event'=期間限定イベント, 'permanent'=常設施設, 'disaster'=災害支援 */
 export type EventType = 'event' | 'permanent' | 'disaster'
@@ -6,7 +8,7 @@ export type EventType = 'event' | 'permanent' | 'disaster'
 /** 種別='event'/'permanent'（通常イベント）で選択可能なカテゴリ */
 export const EVENT_CATEGORIES: Category[] = ['event', 'fireworks', 'festival', 'park']
 /** 種別='disaster'（災害支援）で選択可能なカテゴリ */
-export const DISASTER_CATEGORIES: Category[] = ['kumamoto_earthquake_r8']
+export const DISASTER_CATEGORIES: AllCategory[] = ['kumamoto_earthquake_r8']
 
 export type Spot = {
   id: string
@@ -53,11 +55,11 @@ export function normalizeEventType(value: unknown): EventType {
 }
 
 export const CATEGORY_LABELS: Record<Category, string> = {
-  event:                  'イベント',
-  fireworks:              '花火',
-  festival:               'まつり',
-  park:                   '常設施設',
-  kumamoto_earthquake_r8: 'R8熊本地震支援',
+  event:     'イベント',
+  fireworks: '花火',
+  festival:  'まつり',
+  park:      '常設施設',
+  // kumamoto_earthquake_r8: 'R8熊本地震支援',（ユーザー向け画面から非表示）
 }
 
 /** カテゴリ選択ボタン表示用のラベル上書き（CATEGORY_LABELS は他箇所の表示に使うため変更しない） */
@@ -65,7 +67,7 @@ export const CATEGORY_BUTTON_LABEL_OVERRIDES: Partial<Record<Category, string>> 
   park: '施設・公園',
 }
 
-export const CATEGORY_EMOJIS: Record<Category, string> = {
+export const CATEGORY_EMOJIS: Record<AllCategory, string> = {
   event:                  '⛺',
   fireworks:              '🎆',
   festival:               '🏮',
@@ -73,7 +75,7 @@ export const CATEGORY_EMOJIS: Record<Category, string> = {
   kumamoto_earthquake_r8: '🆘',
 }
 
-export const CATEGORY_COLORS: Record<Category, string> = {
+export const CATEGORY_COLORS: Record<AllCategory, string> = {
   event:                  '#3b7de2',
   fireworks:              '#e8902a',
   festival:               '#e23b3b',
@@ -82,7 +84,7 @@ export const CATEGORY_COLORS: Record<Category, string> = {
 }
 
 /** カテゴリ別フォールバック画像（OGP/ギャラリー画像がない場合に表示） */
-export const CATEGORY_IMAGES: Record<Category, string> = {
+export const CATEGORY_IMAGES: Record<AllCategory, string> = {
   event:                  'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80',
   fireworks:              'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80',
   festival:               'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80',
@@ -110,7 +112,7 @@ export const PERIOD_LABELS: Record<PeriodFilter, string> = {
   '6m': '6ヶ月',
 }
 
-export const ICON_PATHS: Record<Category, string> = {
+export const ICON_PATHS: Record<AllCategory, string> = {
   event:                  'M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z',
   fireworks:              'M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z',
   festival:               'M12 3L2 9h20zM2 9h20v2H2zM4 11h2v9H4zM11 11h2v9h-2zM18 11h2v9h-2zM2 20h20v2H2z',
@@ -119,7 +121,7 @@ export const ICON_PATHS: Record<Category, string> = {
 }
 
 /** アイコン画像パス。未提供のカテゴリは null を返す */
-export function getCategoryIconSrc(category: Category): string | null {
+export function getCategoryIconSrc(category: AllCategory): string | null {
   if (category === 'fireworks') return '/icons/fireworks.png'
   if (category === 'event') return '/icons/event_001.png'
   if (category === 'kumamoto_earthquake_r8') return '/images/pins/kumamon.png'
@@ -127,6 +129,6 @@ export function getCategoryIconSrc(category: Category): string | null {
   return '/icons/lantern.png'
 }
 
-export function isDarkPin(category: Category): boolean {
+export function isDarkPin(category: AllCategory): boolean {
   return category === 'fireworks' || category === 'festival' || category === 'kumamoto_earthquake_r8'
 }

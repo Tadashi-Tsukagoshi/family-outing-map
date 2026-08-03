@@ -1,6 +1,6 @@
 'use client'
 
-import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, PERIOD_LABELS, getCategoryIconSrc, isDarkPin, type Category, type PeriodFilter, type Spot } from '@/lib/spots'
+import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, PERIOD_LABELS, getCategoryIconSrc, isDarkPin, type Category, type AllCategory, type PeriodFilter, type Spot } from '@/lib/spots'
 import { getDateDisplay } from '@/lib/date-utils'
 
 type Props = {
@@ -51,12 +51,12 @@ function Toggle({
   )
 }
 
-const ICON_RATIO: Record<Category, number> = { event: 1, fireworks: 1.6, festival: 0.92, park: 0.92, kumamoto_earthquake_r8: 1 }
+const ICON_RATIO: Record<AllCategory, number> = { event: 1, fireworks: 1.6, festival: 0.92, park: 0.92, kumamoto_earthquake_r8: 1 }
 const GRADIENT_BORDER_BG: Partial<Record<Category, string>> = { fireworks: '#0a0a3c', festival: '#1e1614' }
 const GRADIENT_BORDER = 'conic-gradient(from 0deg, #ffd600 0deg, #ffd600 60deg, #ff8a00 120deg, #ea4335 200deg, #bc2a8d 280deg, #ffd600 360deg)'
 const GRADIENT_BORDER_WIDTH = 2.5 * 0.7
 
-export function CategoryIcon({ category, active = true, size = 20 }: { category: Category; active?: boolean; size?: number }) {
+export function CategoryIcon({ category, active = true, size = 20 }: { category: AllCategory; active?: boolean; size?: number }) {
   const imgSize = Math.round(size * ICON_RATIO[category])
 
   if (category === 'fireworks') {
