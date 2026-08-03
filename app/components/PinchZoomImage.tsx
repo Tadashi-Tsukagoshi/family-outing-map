@@ -56,6 +56,7 @@ export default function PinchZoomImage({ src, alt = '', className, style, onErro
     const reset = (animate: boolean) => {
       scale.current = 1
       translate.current = { x: 0, y: 0 }
+      origin.current = { x: 50, y: 50 }
       applyTransform(animate)
     }
 
