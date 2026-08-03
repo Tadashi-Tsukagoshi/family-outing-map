@@ -177,24 +177,39 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
             className="select-none cursor-pointer"
             style={{ touchAction: 'none' }}
           >
-            <div className="flex justify-center pt-2.5 pb-1.5">
+            <div className="flex justify-center pt-2 pb-1">
               <div className="w-9 h-1 rounded-full bg-gray-300" />
             </div>
           </div>
-          <div style={{ padding: '0 16px 12px' }}>
-            <h2 style={{ fontSize: 18, fontWeight: 400, color: '#111', lineHeight: 1.4, margin: '0 0 4px' }}>
-              {spot.name}
-            </h2>
-            {statusCfg && (
-              <span style={{ fontSize: 14, fontWeight: 600, color: statusCfg.color }}>
-                {statusCfg.label}
-              </span>
-            )}
-            {!statusCfg && spot.scheduleNote && (
-              <span style={{ fontSize: 14, fontWeight: 600, color: '#9ca3af' }}>
-                日程未確定
-              </span>
-            )}
+          <div style={{ padding: '0 16px 8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h2 style={{ fontSize: 18, fontWeight: 400, color: '#111', lineHeight: 1.4, margin: 0 }}>
+                  {spot.name}
+                </h2>
+                {isPark ? (
+                  <p style={{ fontSize: 11, color: '#6b7280', margin: 0 }}>
+                    {spot.businessHours || '未登録'}
+                  </p>
+                ) : (
+                  dateRange && (
+                    <p style={{ fontSize: 11, color: '#6b7280', margin: 0 }}>
+                      {dateRange}{timeRange ? ` ${timeRange}` : ''}
+                    </p>
+                  )
+                )}
+              </div>
+              {statusCfg && (
+                <span style={{ fontSize: 14, fontWeight: 600, color: statusCfg.color }}>
+                  {statusCfg.label}
+                </span>
+              )}
+              {!statusCfg && spot.scheduleNote && (
+                <span style={{ fontSize: 14, fontWeight: 600, color: '#9ca3af' }}>
+                  日程未確定
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -255,30 +270,6 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
 
           {/* ④ キャプション層 */}
           <div style={{ padding: '0 16px 20px' }}>
-            {isPark ? (
-              <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#374151', margin: '0 0 8px' }}>
-                <span style={{
-                  display: 'inline-block', padding: '1px 4px', borderRadius: 4,
-                  background: badgeBg, color: badgeColor, fontSize: 10, fontWeight: 400,
-                }}>
-                  営業時間
-                </span>
-                {spot.businessHours || '未登録'}
-              </p>
-            ) : (
-              dateRange && (
-                <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#374151', margin: '0 0 8px' }}>
-                  <span style={{
-                    display: 'inline-block', padding: '1px 4px', borderRadius: 4,
-                    background: badgeBg, color: badgeColor, fontSize: 10, fontWeight: 400,
-                  }}>
-                    日時
-                  </span>
-                  {dateRange}{timeRange ? ` ${timeRange}` : ''}
-                </p>
-              )
-            )}
-
             {spot.venue && (
               <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#374151', margin: '0 0 8px' }}>
                 <span style={{
