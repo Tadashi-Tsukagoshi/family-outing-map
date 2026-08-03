@@ -276,7 +276,7 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
         <img
           src={galleryImage || spot.imageUrl || ogpImage || CATEGORY_IMAGES[spot.category]}
           alt=""
-          style={{ display: 'block', width: '100%', height: 100, objectFit: 'cover' }}
+          style={{ display: 'block', width: '100%', height: 100, objectFit: 'contain', backgroundColor: '#f3f4f6' }}
           onError={(e) => { (e.currentTarget as HTMLImageElement).src = CATEGORY_IMAGES[spot.category] }}
         />
 
