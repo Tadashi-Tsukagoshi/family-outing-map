@@ -176,18 +176,16 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
       <>
       <aside className="bg-white flex flex-col w-full h-full overflow-hidden">
         {/* ① ヘッダー層（固定） */}
-        <div className="shrink-0" style={{ borderBottom: '1px solid #f3f4f6' }}>
-          <div
-            onTouchStart={onHandleTouchStart}
-            onTouchMove={onHandleTouchMove}
-            onTouchEnd={onHandleTouchEnd}
-            onClick={onClose}
-            className="select-none cursor-pointer"
-            style={{ touchAction: 'none' }}
-          >
-            <div className="flex justify-center pt-2 pb-1">
-              <div className="w-9 h-1 rounded-full bg-gray-300" />
-            </div>
+        <div
+          onTouchStart={onHandleTouchStart}
+          onTouchMove={onHandleTouchMove}
+          onTouchEnd={onHandleTouchEnd}
+          onClick={onClose}
+          className="shrink-0 select-none cursor-pointer"
+          style={{ borderBottom: '1px solid #f3f4f6', touchAction: 'none' }}
+        >
+          <div className="flex justify-center pt-2 pb-1">
+            <div className="w-9 h-1 rounded-full bg-gray-300" />
           </div>
           <div style={{ padding: '0 16px 8px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
