@@ -111,6 +111,9 @@ export default function PinchZoomImage({ src, alt = '', className, style, onErro
           x: baseTranslate.current.x + (cx - startCenter.current.x),
           y: baseTranslate.current.y + (cy - startCenter.current.y),
         }
+        if (scale.current <= ZOOM_THRESHOLD) {
+          translate.current = { x: 0, y: 0 }
+        }
         applyTransform(false)
         return
       }
@@ -132,6 +135,8 @@ export default function PinchZoomImage({ src, alt = '', className, style, onErro
         if (e.touches.length === 1) {
           // 1本指が残った場合はそのままパンへ移行（拡大状態は保持）
           startPan(e.touches[0].clientX, e.touches[0].clientY)
+        } else if (e.touches.length === 0 && !isZoomed()) {
+          reset(true)
         }
         return
       }
