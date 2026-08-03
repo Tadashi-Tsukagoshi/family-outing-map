@@ -163,16 +163,277 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
     }
   }
 
+  if (mobile) {
+    return (
+      <>
+      <aside className="bg-white flex flex-col w-full h-full overflow-hidden">
+        {/* ① ヘッダー層（固定） */}
+        <div className="shrink-0" style={{ borderBottom: '1px solid #f3f4f6' }}>
+          <div
+            onTouchStart={onHandleTouchStart}
+            onTouchMove={onHandleTouchMove}
+            onTouchEnd={onHandleTouchEnd}
+            onClick={onClose}
+            className="select-none cursor-pointer"
+            style={{ touchAction: 'none' }}
+          >
+            <div className="flex justify-center pt-2.5 pb-1.5">
+              <div className="w-9 h-1 rounded-full bg-gray-300" />
+            </div>
+          </div>
+          <div style={{ padding: '0 16px 12px' }}>
+            <h2 style={{ fontSize: 18, fontWeight: 400, color: '#111', lineHeight: 1.4, margin: '0 0 4px' }}>
+              {spot.name}
+            </h2>
+            {statusCfg && (
+              <span style={{ fontSize: 14, fontWeight: 600, color: statusCfg.color }}>
+                {statusCfg.label}
+              </span>
+            )}
+            {!statusCfg && spot.scheduleNote && (
+              <span style={{ fontSize: 14, fontWeight: 600, color: '#9ca3af' }}>
+                日程未確定
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* ②③④ スクロール領域 */}
+        <div className="flex-1 overflow-y-auto">
+          {/* ② 画像層 */}
+          {hasGallery ? (
+            <PhotoCarousel
+              images={galleryImages}
+              height={200}
+              onPhotoClick={setLightboxIndex}
+            />
+          ) : (
+            <img
+              src={image}
+              alt=""
+              onClick={(isManualImage || isOgpImage) ? handleImageClick : undefined}
+              className="bg-gray-100"
+              style={{
+                display: 'block', width: '100%', height: 200, objectFit: 'contain',
+                cursor: (isManualImage || isOgpImage) ? 'pointer' : undefined,
+              }}
+              onError={(e) => { (e.currentTarget as HTMLImageElement).src = CATEGORY_IMAGES[spot.category] }}
+            />
+          )}
+
+          {/* ③ アクションバー層 */}
+          <div style={{ padding: '8px 16px' }}>
+            <button
+              onClick={handleLike}
+              aria-pressed={liked}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 4,
+                padding: 0, border: 'none', background: 'none',
+                cursor: 'pointer', alignSelf: 'flex-start',
+              }}
+            >
+              <svg viewBox="0 0 24 24" width={20} height={20}>
+                {liked ? (
+                  <path
+                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                    fill="#e11d48"
+                  />
+                ) : (
+                  <path
+                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                    fill="none"
+                    stroke="#6b7280"
+                    strokeWidth={2}
+                  />
+                )}
+              </svg>
+              <span style={{ fontSize: 12, fontWeight: 600, color: liked ? '#e11d48' : '#6b7280' }}>
+                {likes}
+              </span>
+            </button>
+          </div>
+
+          {/* ④ キャプション層 */}
+          <div style={{ padding: '0 16px 20px' }}>
+            {isPark ? (
+              <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#374151', margin: '0 0 8px' }}>
+                <span style={{
+                  display: 'inline-block', padding: '1px 4px', borderRadius: 4,
+                  background: badgeBg, color: badgeColor, fontSize: 10, fontWeight: 400,
+                }}>
+                  営業時間
+                </span>
+                {spot.businessHours || '未登録'}
+              </p>
+            ) : (
+              dateRange && (
+                <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#374151', margin: '0 0 8px' }}>
+                  <span style={{
+                    display: 'inline-block', padding: '1px 4px', borderRadius: 4,
+                    background: badgeBg, color: badgeColor, fontSize: 10, fontWeight: 400,
+                  }}>
+                    日時
+                  </span>
+                  {dateRange}{timeRange ? ` ${timeRange}` : ''}
+                </p>
+              )
+            )}
+
+            {spot.venue && (
+              <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#374151', margin: '0 0 8px' }}>
+                <span style={{
+                  display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
+                  background: badgeBg, color: badgeColor, fontSize: 10, fontWeight: 400,
+                }}>
+                  会場
+                </span>
+                <span>{spot.venue}</span>
+              </p>
+            )}
+
+            {spot.address && (
+              <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#374151', margin: '0 0 8px' }}>
+                <span style={{
+                  display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
+                  background: badgeBg, color: badgeColor, fontSize: 10, fontWeight: 400,
+                }}>
+                  住所
+                </span>
+                <span>{spot.address}</span>
+              </p>
+            )}
+
+            <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#374151', margin: '0 0 8px' }}>
+              <span style={{
+                display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
+                background: badgeBg, color: badgeColor, fontSize: 10, fontWeight: 400,
+              }}>
+                料金
+              </span>
+              {spot.fee && <span>{spot.fee}</span>}
+            </p>
+
+            <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#4b5563', lineHeight: 1.65, margin: '0 0 14px' }}>
+              <span style={{
+                display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
+                background: badgeBg, color: badgeColor, fontSize: 10, fontWeight: 400,
+              }}>
+                説明
+              </span>
+              {spot.description && <span>{spot.description}</span>}
+            </p>
+
+            {spot.postedBy && (
+              <>
+                <p style={{ display: 'flex', alignItems: 'center', fontSize: 11, color: '#6b7280', margin: '0 0 24px' }}>
+                  <span style={{
+                    display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
+                    background: badgeBg, color: badgeColor, fontSize: 10, fontWeight: 400,
+                  }}>
+                    投稿
+                  </span>
+                  {spot.posterType && (
+                    <span style={{
+                      marginLeft: 6, marginRight: 6, padding: '1px 5px', borderRadius: 3,
+                      background: '#f3f4f6', color: '#374151', fontSize: 12,
+                    }}>
+                      {POSTER_TYPE_LABELS[spot.posterType] ?? spot.posterType}
+                    </span>
+                  )}
+                  <span style={{ fontSize: 12, color: '#374151' }}>{spot.postedBy}</span>
+                </p>
+                {spot.editedAt && spot.posterType !== 'staff' && (
+                  <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#374151', margin: '-18px 0 24px' }}>
+                    <span aria-hidden style={{
+                      display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
+                      fontSize: 10, fontWeight: 400, visibility: 'hidden',
+                    }}>
+                      投稿
+                    </span>
+                    運営により編集（{new Date(spot.editedAt).toLocaleDateString('ja-JP', { year: 'numeric', month: 'numeric', day: 'numeric' })}）
+                  </p>
+                )}
+              </>
+            )}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {spot.url && (
+                <a
+                  href={spot.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: 12, fontWeight: 600, color: '#374151', textDecoration: 'none' }}
+                >
+                  公式サイトを開く
+                </a>
+              )}
+              <a
+                href={`https://maps.google.com/?q=${spot.lat},${spot.lng}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 4,
+                  padding: '5px 0', borderRadius: 6,
+                  color: '#374151',
+                  fontSize: 12, fontWeight: 600, textDecoration: 'none',
+                  alignSelf: 'flex-start',
+                  marginTop: -8,
+                }}
+              >
+                Googleマップで開く
+              </a>
+            </div>
+
+            <a
+              href={buildCorrectionFormUrl(spot.name)}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'block', marginTop: 16, paddingTop: 10,
+                borderTop: '1px solid #f3f4f6',
+                fontSize: 12, color: '#3b82f6', textDecoration: 'none',
+              }}
+            >
+              情報の修正を依頼する
+            </a>
+
+            <a
+              href={buildPhotoFormUrl(spot.name)}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'block', marginTop: 8,
+                fontSize: 12, color: '#3b82f6', textDecoration: 'none',
+              }}
+            >
+              写真を提供する
+            </a>
+          </div>
+        </div>
+      </aside>
+
+      {lightboxIndex !== null && typeof document !== 'undefined' && createPortal(
+        <Lightbox
+          images={lightboxImages}
+          index={lightboxIndex}
+          onIndexChange={setLightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />,
+        document.body
+      )}
+      </>
+    )
+  }
+
   return (
     <>
-    <aside className={`bg-white flex flex-col overflow-hidden ${mobile ? 'w-full h-full' : 'w-72 h-full shadow-lg'}`}>
+    <aside className="bg-white flex flex-col overflow-hidden w-72 h-full shadow-lg">
       {/* ヘッダー画像 */}
       <div className="relative shrink-0">
         {hasGallery ? (
           <PhotoCarousel
             images={galleryImages}
             height={200}
-            radius={mobile ? '16px 16px 0 0' : undefined}
             onPhotoClick={setLightboxIndex}
           />
         ) : (
@@ -182,44 +443,27 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
             onClick={(isManualImage || isOgpImage) ? handleImageClick : undefined}
             className="bg-gray-100"
             style={{
-              display: 'block', width: '100%', height: mobile ? 180 : 160, objectFit: 'contain',
-              ...(mobile ? { borderRadius: '16px 16px 0 0' } : {}),
+              display: 'block', width: '100%', height: 160, objectFit: 'contain',
               cursor: (isManualImage || isOgpImage) ? 'pointer' : undefined,
             }}
             onError={(e) => { (e.currentTarget as HTMLImageElement).src = CATEGORY_IMAGES[spot.category] }}
           />
         )}
-        {mobile ? (
-          /* 下スワイプ・タップで閉じるハンドル（画像に重ねる） */
-          <div
-            onTouchStart={onHandleTouchStart}
-            onTouchMove={onHandleTouchMove}
-            onTouchEnd={onHandleTouchEnd}
-            onClick={onClose}
-            className="select-none cursor-pointer"
-            style={{ position: 'absolute', top: 0, left: 0, right: 0, touchAction: 'none' }}
-          >
-            <div className="flex justify-center pt-2.5 pb-1.5">
-              <div className="w-9 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.7)' }} />
-            </div>
-          </div>
-        ) : (
-          <button
-            onClick={onClose}
-            aria-label="閉じる"
-            style={{
-              position: 'absolute', top: 8, right: 8,
-              width: 28, height: 28, borderRadius: '50%',
-              background: 'white', color: '#111',
-              border: 'none', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 16, lineHeight: 1,
-              boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
-            }}
-          >
-            ×
-          </button>
-        )}
+        <button
+          onClick={onClose}
+          aria-label="閉じる"
+          style={{
+            position: 'absolute', top: 8, right: 8,
+            width: 28, height: 28, borderRadius: '50%',
+            background: 'white', color: '#111',
+            border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 16, lineHeight: 1,
+            boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
+          }}
+        >
+          ×
+        </button>
       </div>
 
       {/* コンテンツ */}

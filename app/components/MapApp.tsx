@@ -310,7 +310,7 @@ export default function MapApp() {
             key={detailSpot.id}
             className="detail-sheet-enter fixed bottom-0 left-0 right-0 z-[1001] overflow-hidden"
             style={{
-              height: '50vh',
+              height: '85vh',
               borderRadius: '16px 16px 0 0',
               boxShadow: '0 -4px 24px rgba(0,0,0,0.15)',
             }}
