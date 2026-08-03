@@ -12,6 +12,8 @@ type Props = {
 }
 
 const MAX_SCALE = 3
+const ZOOM_THRESHOLD = 1.05
+const TAP_THRESHOLD = 10
 
 function distance(a: Touch, b: Touch): number {
   return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY)
@@ -20,11 +22,23 @@ function distance(a: Touch, b: Touch): number {
 export default function PinchZoomImage({ src, alt = '', className, style, onError, onLoad }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
+
+  // ピンチ用
   const startDistance = useRef(0)
   const startCenter = useRef({ x: 0, y: 0 })
+  const baseScale = useRef(1)
+  const baseTranslate = useRef({ x: 0, y: 0 })
+
+  // 現在の表示状態
   const scale = useRef(1)
   const origin = useRef({ x: 50, y: 50 })
   const translate = useRef({ x: 0, y: 0 })
+
+  // 1本指パン/タップ判定用
+  const isPanning = useRef(false)
+  const panStart = useRef({ x: 0, y: 0 })
+
+  const isZoomed = () => scale.current > ZOOM_THRESHOLD
 
   const applyTransform = (animate: boolean) => {
     const img = imgRef.current
@@ -38,14 +52,21 @@ export default function PinchZoomImage({ src, alt = '', className, style, onErro
     const el = containerRef.current
     if (!el) return
 
-    const onTouchStart = (e: TouchEvent) => {
-      if (e.touches.length !== 2) return
-      e.preventDefault()
+    const reset = (animate: boolean) => {
+      scale.current = 1
+      translate.current = { x: 0, y: 0 }
+      applyTransform(animate)
+    }
+
+    const startPinch = (e: TouchEvent) => {
+      isPanning.current = false
       startDistance.current = distance(e.touches[0], e.touches[1])
       startCenter.current = {
         x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
         y: (e.touches[0].clientY + e.touches[1].clientY) / 2,
       }
+      baseScale.current = scale.current
+      baseTranslate.current = { ...translate.current }
 
       const rect = el.getBoundingClientRect()
       origin.current = {
@@ -55,27 +76,75 @@ export default function PinchZoomImage({ src, alt = '', className, style, onErro
       applyTransform(false)
     }
 
-    const onTouchMove = (e: TouchEvent) => {
-      if (e.touches.length !== 2 || startDistance.current === 0) return
-      e.preventDefault()
-      const ratio = distance(e.touches[0], e.touches[1]) / startDistance.current
-      scale.current = Math.min(MAX_SCALE, Math.max(1, ratio))
+    const startPan = (x: number, y: number) => {
+      isPanning.current = true
+      panStart.current = { x, y }
+      baseTranslate.current = { ...translate.current }
+    }
 
-      const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2
-      const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2
-      translate.current = {
-        x: cx - startCenter.current.x,
-        y: cy - startCenter.current.y,
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault()
+        startPinch(e)
+        return
       }
-      applyTransform(false)
+      if (e.touches.length === 1) {
+        if (!isZoomed()) return // 通常状態の1本指操作は素通し
+        e.preventDefault()
+        startPan(e.touches[0].clientX, e.touches[0].clientY)
+      }
+    }
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2 && startDistance.current > 0) {
+        e.preventDefault()
+        const ratio = distance(e.touches[0], e.touches[1]) / startDistance.current
+        scale.current = Math.min(MAX_SCALE, Math.max(1, baseScale.current * ratio))
+
+        const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2
+        const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2
+        translate.current = {
+          x: baseTranslate.current.x + (cx - startCenter.current.x),
+          y: baseTranslate.current.y + (cy - startCenter.current.y),
+        }
+        applyTransform(false)
+        return
+      }
+
+      if (e.touches.length === 1 && isPanning.current) {
+        e.preventDefault()
+        translate.current = {
+          x: baseTranslate.current.x + (e.touches[0].clientX - panStart.current.x),
+          y: baseTranslate.current.y + (e.touches[0].clientY - panStart.current.y),
+        }
+        applyTransform(false)
+      }
     }
 
     const onTouchEnd = (e: TouchEvent) => {
-      if (e.touches.length >= 2) return
-      startDistance.current = 0
-      scale.current = 1
-      translate.current = { x: 0, y: 0 }
-      applyTransform(true)
+      // ピンチ中だった場合
+      if (startDistance.current > 0) {
+        startDistance.current = 0
+        if (e.touches.length === 1) {
+          // 1本指が残った場合はそのままパンへ移行（拡大状態は保持）
+          startPan(e.touches[0].clientX, e.touches[0].clientY)
+        }
+        return
+      }
+
+      // 1本指パン/タップ中だった場合
+      if (isPanning.current) {
+        isPanning.current = false
+        if (e.touches.length > 0) return // まだ指が残っている場合は継続扱い
+
+        const t = e.changedTouches[0]
+        const moved = Math.hypot(t.clientX - panStart.current.x, t.clientY - panStart.current.y)
+        if (moved < TAP_THRESHOLD) {
+          // タップとみなして元に戻す
+          reset(true)
+        }
+        // 移動が大きければパンとみなし、拡大・移動状態を保持
+      }
     }
 
     el.addEventListener('touchstart', onTouchStart, { passive: false })
