@@ -228,18 +228,14 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
           {hasGallery ? (
             <PhotoCarousel
               images={galleryImages}
-              onPhotoClick={setLightboxIndex}
+              onPhotoClick={() => {}}
             />
           ) : (
             <img
               src={image}
               alt=""
-              onClick={(isManualImage || isOgpImage) ? handleImageClick : undefined}
               className="bg-gray-100"
-              style={{
-                display: 'block', width: '100%', height: 'auto',
-                cursor: (isManualImage || isOgpImage) ? 'pointer' : undefined,
-              }}
+              style={{ display: 'block', width: '100%', height: 'auto' }}
               onError={(e) => { (e.currentTarget as HTMLImageElement).src = CATEGORY_IMAGES[spot.category] }}
             />
           )}
