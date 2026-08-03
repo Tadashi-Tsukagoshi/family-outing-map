@@ -4,17 +4,20 @@ import { useRef, useState, useEffect } from 'react'
 
 type Props = {
   images: string[]
-  height: number
+  height?: number
   radius?: string
   onPhotoClick: (index: number) => void
 }
 
 export default function PhotoCarousel({ images, height, radius, onPhotoClick }: Props) {
   const [index, setIndex] = useState(0)
+  const [autoHeight, setAutoHeight] = useState<number | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setIndex(0)
+    setAutoHeight(null)
     scrollRef.current?.scrollTo({ left: 0 })
   }, [images])
 
@@ -24,8 +27,18 @@ export default function PhotoCarousel({ images, height, radius, onPhotoClick }: 
     setIndex(Math.round(el.scrollLeft / el.clientWidth))
   }
 
+  const onFirstImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    if (height !== undefined || autoHeight !== null) return
+    const { naturalWidth, naturalHeight } = e.currentTarget
+    const containerW = containerRef.current?.clientWidth
+    if (!naturalWidth || !naturalHeight || !containerW) return
+    setAutoHeight(containerW * (naturalHeight / naturalWidth))
+  }
+
+  const rowHeight = height ?? autoHeight ?? undefined
+
   return (
-    <div style={{ position: 'relative' }}>
+    <div ref={containerRef} style={{ position: 'relative' }}>
       <div
         ref={scrollRef}
         onScroll={onScroll}
@@ -35,7 +48,7 @@ export default function PhotoCarousel({ images, height, radius, onPhotoClick }: 
           overflowX: 'auto',
           scrollSnapType: 'x mandatory',
           WebkitOverflowScrolling: 'touch',
-          height,
+          height: rowHeight,
           ...(radius ? { borderRadius: radius } : {}),
         }}
       >
@@ -45,12 +58,13 @@ export default function PhotoCarousel({ images, height, radius, onPhotoClick }: 
             src={src}
             alt=""
             onClick={() => onPhotoClick(i)}
+            onLoad={i === 0 ? onFirstImageLoad : undefined}
             className="bg-gray-100"
             style={{
               flex: '0 0 100%',
               width: '100%',
-              height,
-              objectFit: 'contain',
+              height: rowHeight,
+              objectFit: height !== undefined ? 'contain' : (i === 0 ? 'cover' : 'contain'),
               scrollSnapAlign: 'start',
               cursor: 'pointer',
             }}
