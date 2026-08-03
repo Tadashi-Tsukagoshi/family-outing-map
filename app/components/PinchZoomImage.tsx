@@ -37,6 +37,7 @@ export default function PinchZoomImage({ src, alt = '', className, style, onErro
   // 1本指パン/タップ判定用
   const isPanning = useRef(false)
   const panStart = useRef({ x: 0, y: 0 })
+  const wasPinching = useRef(false)
 
   const isZoomed = () => scale.current > ZOOM_THRESHOLD
 
@@ -91,6 +92,7 @@ export default function PinchZoomImage({ src, alt = '', className, style, onErro
       if (e.touches.length === 1) {
         if (!isZoomed()) return // 通常状態の1本指操作は素通し
         e.preventDefault()
+        wasPinching.current = false // 独立した新規ジェスチャーなのでピンチ直後フラグはクリア
         startPan(e.touches[0].clientX, e.touches[0].clientY)
       }
     }
@@ -98,6 +100,7 @@ export default function PinchZoomImage({ src, alt = '', className, style, onErro
     const onTouchMove = (e: TouchEvent) => {
       if (e.touches.length === 2 && startDistance.current > 0) {
         e.preventDefault()
+        wasPinching.current = true
         const ratio = distance(e.touches[0], e.touches[1]) / startDistance.current
         scale.current = Math.min(MAX_SCALE, Math.max(1, baseScale.current * ratio))
 
@@ -136,6 +139,14 @@ export default function PinchZoomImage({ src, alt = '', className, style, onErro
       if (isPanning.current) {
         isPanning.current = false
         if (e.touches.length > 0) return // まだ指が残っている場合は継続扱い
+
+        if (wasPinching.current) {
+          // 2本指を同時に離した場合の2回目のtouchend。
+          // 1回目のtouchendでパン開始位置を記録しただけで実際の移動はないため、
+          // タップ判定はスキップして拡大状態を保持する。
+          wasPinching.current = false
+          return
+        }
 
         const t = e.changedTouches[0]
         const moved = Math.hypot(t.clientX - panStart.current.x, t.clientY - panStart.current.y)
