@@ -66,10 +66,12 @@ function forgetLiked(id: string) {
 type Props = {
   spot: Spot
   onClose: () => void
+  onExpand?: () => void
+  onCollapse?: () => void
   mobile?: boolean
 }
 
-export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
+export default function DetailPanel({ spot, onClose, onExpand, onCollapse, mobile = false }: Props) {
   const [ogpImage, setOgpImage] = useState<string | null>(null)
   const [likes, setLikes] = useState(spot.likes ?? 0)
   const [liked, setLiked] = useState(false)
@@ -88,6 +90,7 @@ export default function DetailPanel({ spot, onClose, mobile = false }: Props) {
   const onHandleTouchEnd = () => {
     const delta = currentY.current - startY.current
     if (delta > 50) onClose()
+    else if (delta < -50) onExpand?.()
   }
 
   useEffect(() => {

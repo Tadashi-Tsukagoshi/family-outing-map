@@ -64,6 +64,7 @@ export default function MapApp() {
   )
   const [selectedSpot,   setSelectedSpot]   = useState<Spot | null>(null)
   const [detailSpot,     setDetailSpot]     = useState<Spot | null>(null)
+  const [detailSheetHeight, setDetailSheetHeight] = useState<'50vh' | '85vh'>('50vh')
   const [sheetState,     setSheetState]     = useState<SheetState>('closed')
   const [collectedSpots, setCollectedSpots] = useState<Spot[]>([])
   const [userLocation,  setUserLocation]    = useState<[number, number] | null>(null)
@@ -117,6 +118,10 @@ export default function MapApp() {
     setDetailSpot(spot)
     setSelectedSpot(spot)
   }, [])
+
+  useEffect(() => {
+    setDetailSheetHeight('50vh')
+  }, [detailSpot])
 
   const handleDetailClose = useCallback(() => {
     setDetailSpot(null)
@@ -310,12 +315,19 @@ export default function MapApp() {
             key={detailSpot.id}
             className="detail-sheet-enter fixed bottom-0 left-0 right-0 z-[1001] overflow-hidden"
             style={{
-              height: '85vh',
+              height: detailSheetHeight,
               borderRadius: '16px 16px 0 0',
               boxShadow: '0 -4px 24px rgba(0,0,0,0.15)',
+              transition: 'height 0.3s cubic-bezier(0.32,0.72,0,1)',
             }}
           >
-            <DetailPanel spot={detailSpot} onClose={() => { handleDetailClose(); setSheetState('mid') }} mobile />
+            <DetailPanel
+              spot={detailSpot}
+              onClose={() => { handleDetailClose(); setSheetState('mid') }}
+              onExpand={() => setDetailSheetHeight('85vh')}
+              onCollapse={() => setDetailSheetHeight('50vh')}
+              mobile
+            />
           </div>
         )}
       </div>

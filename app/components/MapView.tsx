@@ -746,11 +746,11 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
       const lngLat = toLngLat(selectedSpot.lat, selectedSpot.lng)
 
       if (isMobile) {
-        // ボトムシート（85vh）上の可視エリア中央にピンを配置する
+        // ボトムシート（50vh）上の可視エリア中央にピンを配置する
         const zoom = map.getZoom()
         const spotPx = map.project(lngLat)
         const containerH = map.getContainer().clientHeight
-        const center = map.unproject([spotPx.x, spotPx.y + containerH * 0.425])
+        const center = map.unproject([spotPx.x, spotPx.y + containerH / 4])
         map.panTo(center, { animate: true, duration: 500 })
       } else {
         // PC: 範囲内でパネルに隠れる場合・範囲外の場合ともにオフセット付き panTo
