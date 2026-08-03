@@ -21,15 +21,17 @@ export default function PinchZoomImage({ src, alt = '', className, style, onErro
   const containerRef = useRef<HTMLDivElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
   const startDistance = useRef(0)
+  const startCenter = useRef({ x: 0, y: 0 })
   const scale = useRef(1)
   const origin = useRef({ x: 50, y: 50 })
+  const translate = useRef({ x: 0, y: 0 })
 
   const applyTransform = (animate: boolean) => {
     const img = imgRef.current
     if (!img) return
     img.style.transition = animate ? 'transform 0.3s ease' : 'none'
     img.style.transformOrigin = `${origin.current.x}% ${origin.current.y}%`
-    img.style.transform = `scale(${scale.current})`
+    img.style.transform = `scale(${scale.current}) translate(${translate.current.x}px, ${translate.current.y}px)`
   }
 
   useEffect(() => {
@@ -40,13 +42,15 @@ export default function PinchZoomImage({ src, alt = '', className, style, onErro
       if (e.touches.length !== 2) return
       e.preventDefault()
       startDistance.current = distance(e.touches[0], e.touches[1])
+      startCenter.current = {
+        x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+        y: (e.touches[0].clientY + e.touches[1].clientY) / 2,
+      }
 
       const rect = el.getBoundingClientRect()
-      const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2
-      const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2
       origin.current = {
-        x: ((cx - rect.left) / rect.width) * 100,
-        y: ((cy - rect.top) / rect.height) * 100,
+        x: ((startCenter.current.x - rect.left) / rect.width) * 100,
+        y: ((startCenter.current.y - rect.top) / rect.height) * 100,
       }
       applyTransform(false)
     }
@@ -56,6 +60,13 @@ export default function PinchZoomImage({ src, alt = '', className, style, onErro
       e.preventDefault()
       const ratio = distance(e.touches[0], e.touches[1]) / startDistance.current
       scale.current = Math.min(MAX_SCALE, Math.max(1, ratio))
+
+      const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2
+      const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2
+      translate.current = {
+        x: cx - startCenter.current.x,
+        y: cy - startCenter.current.y,
+      }
       applyTransform(false)
     }
 
@@ -63,6 +74,7 @@ export default function PinchZoomImage({ src, alt = '', className, style, onErro
       if (e.touches.length >= 2) return
       startDistance.current = 0
       scale.current = 1
+      translate.current = { x: 0, y: 0 }
       applyTransform(true)
     }
 
@@ -94,7 +106,7 @@ export default function PinchZoomImage({ src, alt = '', className, style, onErro
           display: 'block',
           objectFit,
           cursor,
-          transform: 'scale(1)',
+          transform: 'scale(1) translate(0px, 0px)',
           transformOrigin: '50% 50%',
           transition: 'none',
         }}
