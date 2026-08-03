@@ -68,10 +68,11 @@ type Props = {
   onClose: () => void
   onExpand?: () => void
   onCollapse?: () => void
+  expanded?: boolean
   mobile?: boolean
 }
 
-export default function DetailPanel({ spot, onClose, onExpand, onCollapse, mobile = false }: Props) {
+export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expanded = false, mobile = false }: Props) {
   const [ogpImage, setOgpImage] = useState<string | null>(null)
   const [likes, setLikes] = useState(spot.likes ?? 0)
   const [liked, setLiked] = useState(false)
@@ -89,8 +90,12 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, mobil
   }
   const onHandleTouchEnd = () => {
     const delta = currentY.current - startY.current
-    if (delta > 50) onClose()
-    else if (delta < -50) onExpand?.()
+    if (delta > 50) {
+      if (expanded) onCollapse?.()
+      else onClose()
+    } else if (delta < -50) {
+      onExpand?.()
+    }
   }
 
   useEffect(() => {

@@ -326,6 +326,7 @@ export default function MapApp() {
               onClose={() => { handleDetailClose(); setSheetState('mid') }}
               onExpand={() => setDetailSheetHeight('85vh')}
               onCollapse={() => setDetailSheetHeight('50vh')}
+              expanded={detailSheetHeight === '85vh'}
               mobile
             />
           </div>
