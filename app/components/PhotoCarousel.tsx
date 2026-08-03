@@ -1,15 +1,17 @@
 'use client'
 
 import { useRef, useState, useEffect } from 'react'
+import PinchZoomImage from './PinchZoomImage'
 
 type Props = {
   images: string[]
   height?: number
   radius?: string
   onPhotoClick: (index: number) => void
+  mobile?: boolean
 }
 
-export default function PhotoCarousel({ images, height, radius, onPhotoClick }: Props) {
+export default function PhotoCarousel({ images, height, radius, onPhotoClick, mobile = false }: Props) {
   const [index, setIndex] = useState(0)
   const [autoHeight, setAutoHeight] = useState<number | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -52,24 +54,35 @@ export default function PhotoCarousel({ images, height, radius, onPhotoClick }: 
           ...(radius ? { borderRadius: radius } : {}),
         }}
       >
-        {images.map((src, i) => (
-          <img
-            key={i}
-            src={src}
-            alt=""
-            onClick={() => onPhotoClick(i)}
-            onLoad={i === 0 ? onFirstImageLoad : undefined}
-            className="bg-gray-100"
-            style={{
-              flex: '0 0 100%',
-              width: '100%',
-              height: rowHeight,
-              objectFit: height !== undefined ? 'contain' : (i === 0 ? 'cover' : 'contain'),
-              scrollSnapAlign: 'start',
-              cursor: 'pointer',
-            }}
-          />
-        ))}
+        {images.map((src, i) => {
+          const imgStyle: React.CSSProperties = {
+            flex: '0 0 100%',
+            width: '100%',
+            height: rowHeight,
+            objectFit: height !== undefined ? 'contain' : (i === 0 ? 'cover' : 'contain'),
+            scrollSnapAlign: 'start',
+            cursor: 'pointer',
+          }
+          return mobile ? (
+            <PinchZoomImage
+              key={i}
+              src={src}
+              className="bg-gray-100"
+              style={imgStyle}
+              onLoad={i === 0 ? onFirstImageLoad : undefined}
+            />
+          ) : (
+            <img
+              key={i}
+              src={src}
+              alt=""
+              onClick={() => onPhotoClick(i)}
+              onLoad={i === 0 ? onFirstImageLoad : undefined}
+              className="bg-gray-100"
+              style={imgStyle}
+            />
+          )
+        })}
       </div>
 
       {images.length > 1 && (

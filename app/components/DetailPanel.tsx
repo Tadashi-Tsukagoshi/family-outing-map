@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import { BADGE_BG_COLOR, CATEGORY_IMAGES, type Spot } from '@/lib/spots'
 import { getDateDisplay, getEventStatus, STATUS_CONFIG, PARK_STATUS, fmtTimeRange } from '@/lib/date-utils'
 import PhotoCarousel from './PhotoCarousel'
+import PinchZoomImage from './PinchZoomImage'
 import Lightbox from './Lightbox'
 
 const POSTER_TYPE_LABELS: Record<string, string> = {
@@ -229,11 +230,11 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
             <PhotoCarousel
               images={galleryImages}
               onPhotoClick={() => {}}
+              mobile
             />
           ) : (
-            <img
+            <PinchZoomImage
               src={image}
-              alt=""
               className="bg-gray-100"
               style={{ display: 'block', width: '100%', height: 'auto' }}
               onError={(e) => { (e.currentTarget as HTMLImageElement).src = CATEGORY_IMAGES[spot.category] }}
