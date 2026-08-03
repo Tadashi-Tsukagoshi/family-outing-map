@@ -34,6 +34,28 @@ html, body {
   animation: pin-bounce 0.48s 2;
 }
 
+/* ── 開催中ピンの振動 ── */
+@keyframes vibrate {
+  0%   { margin-left: 0; }
+  3%   { margin-left: -2px; }
+  6%   { margin-left: 2px; }
+  9%   { margin-left: -2px; }
+  12%  { margin-left: 0; }
+  15%  { margin-left: -2px; }
+  18%  { margin-left: 2px; }
+  21%  { margin-left: -2px; }
+  24%  { margin-left: 0; }
+  27%  { margin-left: -2px; }
+  30%  { margin-left: 2px; }
+  33%  { margin-left: -2px; }
+  36%  { margin-left: 0; }
+  100% { margin-left: 0; }
+}
+
+.pin-vibrate {
+  animation: vibrate 3s ease-in-out infinite;
+}
+
 /* ── モバイル詳細シートのスライドアップ ── */
 @keyframes sheet-slide-up {
   from { transform: translateY(100%); }

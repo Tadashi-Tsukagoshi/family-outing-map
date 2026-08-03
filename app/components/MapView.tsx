@@ -128,6 +128,9 @@ function pickIcon(category: Category): { src: string; bg: string; glow: string; 
 type IconDef = { html: string; hit: number; anchor?: 'center' }
 
 function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef {
+  const isActive = getEventStatus(spot.startDate, spot.endDate) === 'active'
+  const wrapperCls = isActive ? ' class="pin-vibrate"' : ''
+
   if (spot.category === 'event' || spot.category === 'park') {
     const { src: icon } = pickIcon(spot.category)
     const hit  = selected ? 48 : (isMobile ? 48 : 40)
@@ -136,7 +139,7 @@ function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef
     return {
       hit,
       anchor: 'center',
-      html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><img${cls} src="${icon}" style="width:${size}px;height:${size}px;object-fit:contain;display:block;"></div>`,
+      html: `<div${wrapperCls} style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><img${cls} src="${icon}" style="width:${size}px;height:${size}px;object-fit:contain;display:block;"></div>`,
     }
   }
 
@@ -156,7 +159,7 @@ function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef
       : `<div class="pin-selected" style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2.5px solid ${borderColor};box-shadow:0 4px 12px rgba(0,0,0,.4);overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}"></div>`
     return {
       hit,
-      html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;">${circle}</div>`,
+      html: `<div${wrapperCls} style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;">${circle}</div>`,
     }
   }
 
@@ -169,7 +172,7 @@ function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef
     : `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2.5px solid ${borderColor};box-shadow:0 2px 6px rgba(0,0,0,.25);overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}"></div>`
   return {
     hit,
-    html: `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;">${circle}</div>`,
+    html: `<div${wrapperCls} style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;">${circle}</div>`,
   }
 }
 
