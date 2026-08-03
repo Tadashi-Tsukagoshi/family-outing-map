@@ -117,8 +117,8 @@ export default function PinchZoomImage({ src, alt = '', className, style, onErro
       if (e.touches.length === 1 && isPanning.current) {
         e.preventDefault()
         translate.current = {
-          x: baseTranslate.current.x + (e.touches[0].clientX - panStart.current.x),
-          y: baseTranslate.current.y + (e.touches[0].clientY - panStart.current.y),
+          x: baseTranslate.current.x + (e.touches[0].clientX - panStart.current.x) / scale.current,
+          y: baseTranslate.current.y + (e.touches[0].clientY - panStart.current.y) / scale.current,
         }
         applyTransform(false)
       }
