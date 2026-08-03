@@ -32,20 +32,17 @@ export default function BottomSheet({ spotCount, children, sheetState, onSheetSt
   }
   const onTouchEnd = () => {
     const delta = currentY.current - startY.current
-    if (delta < -50) {
+    if (delta < -30) {
       if (sheetState === 'closed') onSheetStateChange('mid')
       else if (sheetState === 'mid') onSheetStateChange('full')
-    }
-    if (delta > 50) {
+    } else if (delta > 30) {
       if (sheetState === 'full') onSheetStateChange('mid')
       else if (sheetState === 'mid') onSheetStateChange('closed')
+    } else {
+      if (sheetState === 'closed') onSheetStateChange('mid')
+      else if (sheetState === 'mid') onSheetStateChange('closed')
+      else onSheetStateChange('mid')
     }
-  }
-
-  const handleTap = () => {
-    if (sheetState === 'closed') onSheetStateChange('mid')
-    else if (sheetState === 'mid') onSheetStateChange('closed')
-    else onSheetStateChange('mid')
   }
 
   return (
@@ -64,7 +61,6 @@ export default function BottomSheet({ spotCount, children, sheetState, onSheetSt
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
-        onClick={handleTap}
         className="flex-shrink-0 select-none cursor-pointer"
         style={{ touchAction: 'none' }}
       >

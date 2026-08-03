@@ -91,11 +91,14 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
   }
   const onHandleTouchEnd = () => {
     const delta = currentY.current - startY.current
-    if (delta > 50) {
+    if (delta < -30) {
+      onExpand?.()
+    } else if (delta > 30) {
       if (expanded) onCollapse?.()
       else onClose()
-    } else if (delta < -50) {
-      onExpand?.()
+    } else {
+      if (expanded) onCollapse?.()
+      else onClose()
     }
   }
 
@@ -181,7 +184,6 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
           onTouchStart={onHandleTouchStart}
           onTouchMove={onHandleTouchMove}
           onTouchEnd={onHandleTouchEnd}
-          onClick={onClose}
           className="shrink-0 select-none cursor-pointer"
           style={{ borderBottom: '1px solid #f3f4f6', touchAction: 'none' }}
         >
