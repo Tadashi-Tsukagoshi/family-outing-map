@@ -189,8 +189,11 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
           </div>
           <div style={{ padding: '0 16px 8px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <h2 style={{ fontSize: 18, fontWeight: 400, color: '#111', lineHeight: 1.4, margin: 0 }}>
+              <div style={{ minWidth: 0 }}>
+                <h2 style={{
+                  fontSize: 18, fontWeight: 400, color: '#111', lineHeight: 1.4, margin: 0,
+                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0,
+                }}>
                   {spot.name}
                 </h2>
                 {isPark ? (
@@ -206,12 +209,12 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                 )}
               </div>
               {statusCfg && (
-                <span style={{ fontSize: 14, fontWeight: 600, color: statusCfg.color }}>
+                <span style={{ fontSize: 14, fontWeight: 600, color: statusCfg.color, flexShrink: 0, whiteSpace: 'nowrap' }}>
                   {statusCfg.label}
                 </span>
               )}
               {!statusCfg && spot.scheduleNote && (
-                <span style={{ fontSize: 14, fontWeight: 600, color: '#9ca3af' }}>
+                <span style={{ fontSize: 14, fontWeight: 600, color: '#9ca3af', flexShrink: 0, whiteSpace: 'nowrap' }}>
                   日程未確定
                 </span>
               )}
