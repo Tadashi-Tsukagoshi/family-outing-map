@@ -323,7 +323,7 @@ export default function MapApp() {
           >
             <DetailPanel
               spot={detailSpot}
-              onClose={() => { handleDetailClose(); setSheetState('mid') }}
+              onClose={() => { handleDetailClose(); setSheetState('closed') }}
               onExpand={() => setDetailSheetHeight('85vh')}
               onCollapse={() => setDetailSheetHeight('50vh')}
               expanded={detailSheetHeight === '85vh'}
