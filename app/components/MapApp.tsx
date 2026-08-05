@@ -341,7 +341,7 @@ export default function MapApp() {
       <Sidebar {...sidebarProps} mode="sidebar" />
       <main className="flex-1 relative">
         {detailSpot && (
-          <div className="absolute inset-y-0 left-0 z-[500]">
+          <div className="absolute inset-y-0 left-0 z-[1001]">
             <DetailPanel spot={detailSpot} onClose={handleDetailClose} />
           </div>
         )}
