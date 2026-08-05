@@ -752,7 +752,7 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
       if (isMobile) {
         // ボトムシート（50vh）上の可視エリア中央にピンを配置する
         const containerH = map.getContainer().clientHeight
-        map.panTo(lngLat, { offset: [0, -containerH / 4], animate: true, duration: 500 })
+        map.panTo(lngLat, { offset: [0, -containerH / 5], animate: true, duration: 500 })
       } else {
         // PC: 範囲内でパネルに隠れる場合・範囲外の場合ともにオフセット付き panTo
         const inBounds = map.getBounds()?.contains(lngLat) ?? false
