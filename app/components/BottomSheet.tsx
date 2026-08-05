@@ -1,16 +1,8 @@
 'use client'
 
-import { useRef } from 'react'
-
-const PEEK_HEIGHT = 72
+import { useEffect, useRef, useState } from 'react'
 
 export type SheetState = 'closed' | 'mid' | 'full'
-
-const SHEET_HEIGHTS: Record<SheetState, string> = {
-  closed: `${PEEK_HEIGHT}px`,
-  mid:    '50vh',
-  full:   '85vh',
-}
 
 type Props = {
   spotCount: number
@@ -22,6 +14,24 @@ type Props = {
 export default function BottomSheet({ spotCount, children, sheetState, onSheetStateChange }: Props) {
   const startY   = useRef(0)
   const currentY = useRef(0)
+  const headerRef = useRef<HTMLDivElement>(null)
+  const [peekHeight, setPeekHeight] = useState(72)
+
+  useEffect(() => {
+    const el = headerRef.current
+    if (!el) return
+    const update = () => setPeekHeight(el.offsetHeight)
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  const sheetHeights: Record<SheetState, string> = {
+    closed: `${peekHeight}px`,
+    mid:    '50vh',
+    full:   '85vh',
+  }
 
   const onTouchStart = (e: React.TouchEvent) => {
     startY.current   = e.touches[0].clientY
@@ -30,7 +40,8 @@ export default function BottomSheet({ spotCount, children, sheetState, onSheetSt
   const onTouchMove = (e: React.TouchEvent) => {
     currentY.current = e.touches[0].clientY
   }
-  const onTouchEnd = () => {
+  const onTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault()
     const delta = currentY.current - startY.current
     if (delta < -30) {
       if (sheetState === 'closed') onSheetStateChange('mid')
@@ -49,7 +60,7 @@ export default function BottomSheet({ spotCount, children, sheetState, onSheetSt
     <div
       className="fixed bottom-0 left-0 right-0 bg-white flex flex-col overflow-hidden"
       style={{
-        height:       SHEET_HEIGHTS[sheetState],
+        height:       sheetHeights[sheetState],
         transition:   'height 0.3s cubic-bezier(0.32,0.72,0,1)',
         borderRadius: '16px 16px 0 0',
         boxShadow:    '0 -4px 24px rgba(0,0,0,0.12)',
@@ -58,6 +69,7 @@ export default function BottomSheet({ spotCount, children, sheetState, onSheetSt
     >
       {/* ハンドル + ピーク時ヘッダー */}
       <div
+        ref={headerRef}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}

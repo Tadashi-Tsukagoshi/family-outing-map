@@ -89,7 +89,8 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
   const onHandleTouchMove = (e: React.TouchEvent) => {
     currentY.current = e.touches[0].clientY
   }
-  const onHandleTouchEnd = () => {
+  const onHandleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault()
     const delta = currentY.current - startY.current
     if (delta < -30) {
       onExpand?.()
