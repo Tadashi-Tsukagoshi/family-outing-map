@@ -255,9 +255,6 @@ export default function Sidebar({
                 条件に合うスポットがありません
               </p>
             )}
-            <a href="/ended-events" className="block text-xs text-gray-400 text-center py-4">
-              終了イベントを見る
-            </a>
           </div>
         </div>
       </div>

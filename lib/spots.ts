@@ -101,15 +101,14 @@ export const EVENT_TYPE_LABELS: Record<EventType, string> = {
 
 export const BADGE_BG_COLOR = '#dbeafe'
 
-export type PeriodFilter = 'all' | '2w' | '1m' | '2m' | '3m' | '6m'
+export type PeriodFilter = 'all' | '2w' | '1m' | '3m' | 'ended_2026'
 
 export const PERIOD_LABELS: Record<PeriodFilter, string> = {
   all: 'すべて',
   '2w': '2週間',
   '1m': '1ヶ月',
-  '2m': '2ヶ月',
   '3m': '3ヶ月',
-  '6m': '6ヶ月',
+  ended_2026: '終了イベント(2026)',
 }
 
 export const ICON_PATHS: Record<AllCategory, string> = {

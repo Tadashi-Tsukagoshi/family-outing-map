@@ -75,7 +75,13 @@ export default function MapApp() {
   // ハイドレーション後にlocalStorageから設定を復元
   useEffect(() => {
     const saved = loadSettings()
-    if (saved.periodFilter !== undefined)    setPeriodFilter(saved.periodFilter)
+    if (saved.periodFilter !== undefined) {
+      // 廃止された期間フィルタ値が保存されている場合は 'all' にフォールバック
+      const REMOVED_PERIOD_FILTERS = new Set(['2m', '6m'])
+      setPeriodFilter(
+        REMOVED_PERIOD_FILTERS.has(saved.periodFilter) ? 'all' : saved.periodFilter
+      )
+    }
     if (saved.activeCategories) {
       // 旧カテゴリ構成（park/museum/playground/food/event/music/exhibition）からの移行措置:
       // 新設カテゴリ（fireworks/festival）は保存データに存在しなくてもデフォルトでオンにする
@@ -173,6 +179,14 @@ export default function MapApp() {
   const filteredSpots = useMemo(() => {
     return allSpots.filter((spot) => {
       if (!activeCategories.has(spot.category)) return false
+
+      if (periodFilter === 'ended_2026') {
+        if (spot.type === 'permanent') return false
+        if (getEventStatus(spot.startDate, spot.endDate) !== 'ended') return false
+        // 2026年に終了したイベントのみ
+        return !!spot.endDate && spot.endDate >= '2026-01-01'
+      }
+
       // 常設施設は期限切れ判定・期間フィルタの対象外で常に表示する
       if (spot.type === 'permanent') return true
       if (getEventStatus(spot.startDate, spot.endDate) === 'ended') return false
@@ -184,9 +198,7 @@ export default function MapApp() {
         switch (periodFilter) {
           case '2w': cutoff.setDate(cutoff.getDate() + 14); break
           case '1m': cutoff.setMonth(cutoff.getMonth() + 1); break
-          case '2m': cutoff.setMonth(cutoff.getMonth() + 2); break
           case '3m': cutoff.setMonth(cutoff.getMonth() + 3); break
-          case '6m': cutoff.setMonth(cutoff.getMonth() + 6); break
         }
         const cutoffStr = cutoff.toISOString().split('T')[0]
         const todayStr = today.toISOString().split('T')[0]
