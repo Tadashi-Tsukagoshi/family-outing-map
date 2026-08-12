@@ -430,116 +430,97 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
   return (
     <>
     <aside className="bg-white flex flex-col overflow-hidden w-72 h-full shadow-lg">
-      {/* ヘッダー画像 */}
-      <div className="relative shrink-0">
-        {hasGallery ? (
-          <PhotoCarousel
-            images={galleryImages.map(g => g.imageUrl)}
-            captions={galleryImages.map(g => g.caption)}
-            onPhotoClick={setLightboxIndex}
-          />
-        ) : (
-          <img
-            src={image}
-            alt=""
-            onClick={(isManualImage || isOgpImage) ? handleImageClick : undefined}
-            className="bg-gray-100"
-            style={{
-              display: 'block', width: '100%', height: 'auto',
-              cursor: (isManualImage || isOgpImage) ? 'pointer' : undefined,
-            }}
-            onError={(e) => { (e.currentTarget as HTMLImageElement).src = CATEGORY_IMAGES[spot.category] }}
-          />
-        )}
-        <button
-          onClick={onClose}
-          aria-label="閉じる"
-          style={{
-            position: 'absolute', top: 8, right: 8,
-            width: 28, height: 28, borderRadius: '50%',
-            background: 'white', color: '#111',
-            border: 'none', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 16, lineHeight: 1,
-            boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
-          }}
-        >
-          ×
-        </button>
-      </div>
-
-      {/* コンテンツ */}
-      <div className="flex-1 overflow-y-auto" style={{ padding: '14px 16px 20px' }}>
-        <h2 style={{ fontSize: 18, fontWeight: 400, color: '#111', lineHeight: 1.4, margin: '0 0 1px' }}>
-          {spot.name}
-        </h2>
-
-        {(statusCfg || spot.scheduleNote || dateRange) && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 8 }}>
+      {/* ヘッダー層（固定） */}
+      <div className="shrink-0" style={{ borderBottom: '1px solid #f3f4f6', padding: '14px 16px 12px' }}>
+        {(statusCfg || (!statusCfg && spot.scheduleNote)) && (
+          <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
             {statusCfg && (
-              <span style={{ fontSize: 14, fontWeight: 600, color: statusCfg.color }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: statusCfg.color, whiteSpace: 'nowrap' }}>
                 {statusCfg.label}
               </span>
             )}
             {!statusCfg && spot.scheduleNote && (
-              <span style={{ fontSize: 14, fontWeight: 600, color: '#9ca3af' }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#9ca3af', whiteSpace: 'nowrap' }}>
                 日程未確定
               </span>
             )}
-            <button
-              onClick={handleLike}
-              aria-pressed={liked}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 4,
-                padding: 0, border: 'none', background: 'none',
-                cursor: 'pointer', alignSelf: 'flex-start',
-              }}
-            >
-              <svg viewBox="0 0 24 24" width={20} height={20}>
-                {liked ? (
-                  <path
-                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-                    fill="#e11d48"
-                  />
-                ) : (
-                  <path
-                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-                    fill="none"
-                    stroke="#6b7280"
-                    strokeWidth={2}
-                  />
-                )}
-              </svg>
-              <span style={{ fontSize: 12, fontWeight: 600, color: liked ? '#e11d48' : '#6b7280' }}>
-                {likes}
-              </span>
-            </button>
-            {isPark ? (
-              <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#374151', margin: 0 }}>
-                <span style={{
-                  display: 'inline-block', padding: '1px 4px', borderRadius: 4,
-                  background: badgeBg, color: badgeColor, fontSize: 10, fontWeight: 400,
-                }}>
-                  営業時間
-                </span>
-                {spot.businessHours || '未登録'}
-              </p>
-            ) : (
-              dateRange && (
-                <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#374151', margin: 0 }}>
-                  <span style={{
-                    display: 'inline-block', padding: '1px 4px', borderRadius: 4,
-                    background: badgeBg, color: badgeColor, fontSize: 10, fontWeight: 400,
-                  }}>
-                    日時
-                  </span>
-                  {dateRange}{timeRange ? ` ${timeRange}` : ''}
-                </p>
-              )
-            )}
           </div>
         )}
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111', lineHeight: 1.4, margin: 0 }}>
+          {spot.name}
+        </h2>
+        {isPark ? (
+          <p style={{ fontSize: 12, color: '#6b7280', margin: '1px 0 0' }}>
+            {spot.businessHours || '未登録'}
+          </p>
+        ) : (
+          dateRange && (
+            <p style={{ fontSize: 12, color: '#6b7280', margin: '1px 0 0' }}>
+              {dateRange}{timeRange ? ` ${timeRange}` : ''}
+            </p>
+          )
+        )}
+      </div>
 
+      {/* スクロール領域 */}
+      <div className="flex-1 overflow-y-auto">
+        {/* 画像層 */}
+        <div className="shrink-0">
+          {hasGallery ? (
+            <PhotoCarousel
+              images={galleryImages.map(g => g.imageUrl)}
+              captions={galleryImages.map(g => g.caption)}
+              onPhotoClick={setLightboxIndex}
+            />
+          ) : (
+            <img
+              src={image}
+              alt=""
+              onClick={(isManualImage || isOgpImage) ? handleImageClick : undefined}
+              className="bg-gray-100"
+              style={{
+                display: 'block', width: '100%', height: 'auto',
+                cursor: (isManualImage || isOgpImage) ? 'pointer' : undefined,
+              }}
+              onError={(e) => { (e.currentTarget as HTMLImageElement).src = CATEGORY_IMAGES[spot.category] }}
+            />
+          )}
+        </div>
+
+        {/* アクションバー層 */}
+        <div style={{ padding: '6px 16px 8px' }}>
+          <button
+            onClick={handleLike}
+            aria-pressed={liked}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 4,
+              padding: 0, border: 'none', background: 'none',
+              cursor: 'pointer', alignSelf: 'flex-start',
+            }}
+          >
+            <svg viewBox="0 0 24 24" width={20} height={20}>
+              {liked ? (
+                <path
+                  d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                  fill="#e11d48"
+                />
+              ) : (
+                <path
+                  d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                  fill="none"
+                  stroke="#6b7280"
+                  strokeWidth={2}
+                />
+              )}
+            </svg>
+            <span style={{ fontSize: 12, fontWeight: 600, color: liked ? '#e11d48' : '#6b7280' }}>
+              {likes}
+            </span>
+          </button>
+        </div>
+
+        {/* コンテンツ層 */}
+        <div style={{ padding: '0 16px 20px' }}>
         {spot.venue && (
           <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#374151', margin: '0 0 8px' }}>
             <span style={{
@@ -669,6 +650,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
         >
           写真を提供する
         </a>
+        </div>
       </div>
     </aside>
 
