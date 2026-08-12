@@ -61,7 +61,7 @@ export default function PhotoCarousel({ images, captions, height, radius, onPhot
               flex: '0 0 100%',
               width: '100%',
               height: rowHeight,
-              objectFit: height !== undefined ? 'contain' : (i === 0 ? 'cover' : 'contain'),
+              objectFit: mobile ? (i === 0 ? 'cover' : 'contain') : undefined,
               scrollSnapAlign: 'start',
               cursor: 'pointer',
             }
