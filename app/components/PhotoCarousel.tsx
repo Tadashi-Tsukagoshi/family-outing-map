@@ -41,74 +41,79 @@ export default function PhotoCarousel({ images, captions, height, radius, onPhot
   const rowHeight = height ?? autoHeight ?? undefined
 
   return (
-    <div ref={containerRef} style={{ position: 'relative' }}>
-      <div
-        ref={scrollRef}
-        onScroll={onScroll}
-        className="hide-scrollbar"
-        style={{
-          display: 'flex',
-          overflowX: 'auto',
-          scrollSnapType: 'x mandatory',
-          WebkitOverflowScrolling: 'touch',
-          height: rowHeight,
-          ...(radius ? { borderRadius: radius } : {}),
-        }}
-      >
-        {images.map((src, i) => {
-          const imgStyle: React.CSSProperties = {
-            flex: '0 0 100%',
-            width: '100%',
-            height: rowHeight,
-            objectFit: height !== undefined ? 'contain' : (i === 0 ? 'cover' : 'contain'),
-            scrollSnapAlign: 'start',
-            cursor: 'pointer',
-          }
-          return mobile ? (
-            <PinchZoomImage
-              key={i}
-              src={src}
-              className="bg-gray-100"
-              style={imgStyle}
-              onLoad={i === 0 ? onFirstImageLoad : undefined}
-            />
-          ) : (
-            <img
-              key={i}
-              src={src}
-              alt=""
-              onClick={() => onPhotoClick(i)}
-              onLoad={i === 0 ? onFirstImageLoad : undefined}
-              className="bg-gray-100"
-              style={imgStyle}
-            />
-          )
-        })}
-      </div>
-
-      {images.length > 1 && (
+    <div ref={containerRef}>
+      <div style={{ position: 'relative' }}>
         <div
+          ref={scrollRef}
+          onScroll={onScroll}
+          className="hide-scrollbar"
           style={{
-            position: 'absolute', bottom: 8, left: 0, right: 0,
-            display: 'flex', justifyContent: 'center', gap: 6,
-            pointerEvents: 'none',
+            display: 'flex',
+            overflowX: 'auto',
+            scrollSnapType: 'x mandatory',
+            WebkitOverflowScrolling: 'touch',
+            height: rowHeight,
+            ...(radius ? { borderRadius: radius } : {}),
           }}
         >
-          {images.map((_, i) => (
-            <span
-              key={i}
-              style={{
-                width: 6, height: 6, borderRadius: '50%',
-                background: i === index ? 'white' : 'rgba(255,255,255,0.55)',
-                boxShadow: '0 0 2px rgba(0,0,0,0.5)',
-              }}
-            />
-          ))}
+          {images.map((src, i) => {
+            const imgStyle: React.CSSProperties = {
+              flex: '0 0 100%',
+              width: '100%',
+              height: rowHeight,
+              objectFit: height !== undefined ? 'contain' : (i === 0 ? 'cover' : 'contain'),
+              scrollSnapAlign: 'start',
+              cursor: 'pointer',
+            }
+            return mobile ? (
+              <PinchZoomImage
+                key={i}
+                src={src}
+                className="bg-gray-100"
+                style={imgStyle}
+                onLoad={i === 0 ? onFirstImageLoad : undefined}
+              />
+            ) : (
+              <img
+                key={i}
+                src={src}
+                alt=""
+                onClick={() => onPhotoClick(i)}
+                onLoad={i === 0 ? onFirstImageLoad : undefined}
+                className="bg-gray-100"
+                style={imgStyle}
+              />
+            )
+          })}
         </div>
-      )}
+
+        {images.length > 1 && (
+          <div
+            style={{
+              position: 'absolute', bottom: 8, left: 0, right: 0,
+              display: 'flex', justifyContent: 'center', gap: 6,
+              pointerEvents: 'none',
+            }}
+          >
+            {images.map((_, i) => (
+              <span
+                key={i}
+                style={{
+                  width: 6, height: 6, borderRadius: '50%',
+                  background: i === index ? 'white' : 'rgba(255,255,255,0.55)',
+                  boxShadow: '0 0 2px rgba(0,0,0,0.5)',
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
       {captions?.[index] && captions[index]!.trim() !== '' && (
-        <p style={{ fontSize: 11, color: '#999', padding: '6px 16px', lineHeight: 1.5, margin: 0 }}>
+        <p style={{
+          fontSize: 11, color: '#999', padding: '1.5px 16px', lineHeight: 1.5, margin: 0,
+          textAlign: mobile ? 'center' : 'left',
+        }}>
           {captions[index]}
         </p>
       )}

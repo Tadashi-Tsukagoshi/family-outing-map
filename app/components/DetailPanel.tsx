@@ -248,7 +248,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
           )}
 
           {/* ③ アクションバー層 */}
-          <div style={{ padding: '8px 16px' }}>
+          <div style={{ padding: '2px 16px 8px' }}>
             <button
               onClick={handleLike}
               aria-pressed={liked}
