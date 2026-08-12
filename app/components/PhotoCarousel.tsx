@@ -30,6 +30,12 @@ export default function PhotoCarousel({ images, captions, height, radius, onPhot
     setIndex(Math.round(el.scrollLeft / el.clientWidth))
   }
 
+  const scrollByOne = (dir: 1 | -1) => {
+    const el = scrollRef.current
+    if (!el) return
+    el.scrollBy({ left: dir * el.clientWidth, behavior: 'smooth' })
+  }
+
   const onFirstImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     if (height !== undefined || autoHeight !== null) return
     const { naturalWidth, naturalHeight } = e.currentTarget
@@ -106,6 +112,45 @@ export default function PhotoCarousel({ images, captions, height, radius, onPhot
               />
             ))}
           </div>
+        )}
+
+        {!mobile && images.length > 1 && (
+          <>
+            {index > 0 && (
+              <button
+                type="button"
+                onClick={() => scrollByOne(-1)}
+                aria-label="前の画像"
+                className="bg-black/30 hover:bg-black/50 transition-colors"
+                style={{
+                  position: 'absolute', top: '50%', left: 8, transform: 'translateY(-50%)',
+                  width: 32, height: 32, borderRadius: '50%',
+                  color: 'white', border: 'none', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 16, lineHeight: 1,
+                }}
+              >
+                ◀
+              </button>
+            )}
+            {index < images.length - 1 && (
+              <button
+                type="button"
+                onClick={() => scrollByOne(1)}
+                aria-label="次の画像"
+                className="bg-black/30 hover:bg-black/50 transition-colors"
+                style={{
+                  position: 'absolute', top: '50%', right: 8, transform: 'translateY(-50%)',
+                  width: 32, height: 32, borderRadius: '50%',
+                  color: 'white', border: 'none', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 16, lineHeight: 1,
+                }}
+              >
+                ▶
+              </button>
+            )}
+          </>
         )}
       </div>
 
