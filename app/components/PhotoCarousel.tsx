@@ -112,7 +112,7 @@ export default function PhotoCarousel({ images, captions, height, radius, onPhot
       {captions?.[index] && captions[index]!.trim() !== '' && (
         <p style={{
           fontSize: 12, color: '#4b5563', padding: '1.5px 8px 1.5px 16px', lineHeight: 1.5, margin: 0,
-          textAlign: 'right',
+          textAlign: 'center',
         }}>
           {captions[index]}
         </p>
