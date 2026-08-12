@@ -28,6 +28,8 @@ export type FormState = {
   imageUrl:      string
   /** 新規登録時の複数画像（最大5枚、選択順）。編集フォームでは未使用 */
   imageUrls:     string[]
+  /** imageUrls と同じ並び順のキャプション（画像ごとの説明文、任意） */
+  imageCaptions: string[]
   address:       string
   lat:           number | null
   lng:           number | null
@@ -55,7 +57,7 @@ export const INITIAL_FORM: FormState = {
   type: 'event',
   dateConfirmed: true,
   startDate: '', endDate: '', startTime: '', endTime: '', businessHours: '', spotLabel: '', scheduleNote: '',
-  venue: '', fee: '', imageUrl: '', imageUrls: [], address: '',
+  venue: '', fee: '', imageUrl: '', imageUrls: [], imageCaptions: [], address: '',
   lat: null, lng: null,
   description: '', url: '',
   postedBy: '', email: '', posterType: 'general',
@@ -80,6 +82,7 @@ export function eventToFormState(ev: CollectedEvent): FormState {
     fee:           ev.fee ?? '',
     imageUrl:      ev.imageUrl ?? '',
     imageUrls:     ev.imageUrl ? [ev.imageUrl] : [],
+    imageCaptions: ev.imageUrl ? [''] : [],
     address:       ev.address ?? '',
     lat:           ev.lat,
     lng:           ev.lng,
@@ -201,8 +204,11 @@ export default function EventFormFields({
     fetch(`/api/events/${eventId}/images`)
       .then(r => r.json())
       .then(d => {
-        const imgs = Array.isArray(d.images) ? d.images.map((img: { imageUrl: string }) => img.imageUrl) : []
-        if (imgs.length > 0) set('imageUrls', imgs)
+        const rows: { imageUrl: string; caption?: string | null }[] = Array.isArray(d.images) ? d.images : []
+        if (rows.length > 0) {
+          set('imageUrls', rows.map(img => img.imageUrl))
+          set('imageCaptions', rows.map(img => img.caption ?? ''))
+        }
       })
       .catch(() => {})
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -259,10 +265,14 @@ export default function EventFormFields({
         uploaded.push(data.url as string)
       }
       set('imageUrls', [...form.imageUrls, ...uploaded])
+      set('imageCaptions', [...form.imageCaptions, ...uploaded.map(() => '')])
       setImageStatus('ok')
       setImageMessage('アップロードしました')
     } catch (e) {
-      if (uploaded.length > 0) set('imageUrls', [...form.imageUrls, ...uploaded])
+      if (uploaded.length > 0) {
+        set('imageUrls', [...form.imageUrls, ...uploaded])
+        set('imageCaptions', [...form.imageCaptions, ...uploaded.map(() => '')])
+      }
       setImageStatus('error')
       setImageMessage(e instanceof Error ? e.message : 'アップロードに失敗しました')
     } finally {
@@ -272,6 +282,14 @@ export default function EventFormFields({
 
   const handleImageRemoveAt = (index: number) => {
     set('imageUrls', form.imageUrls.filter((_, i) => i !== index))
+    set('imageCaptions', form.imageCaptions.filter((_, i) => i !== index))
+  }
+
+  const handleCaptionChange = (index: number, value: string) => {
+    const next = [...form.imageCaptions]
+    while (next.length <= index) next.push('')
+    next[index] = value
+    set('imageCaptions', next)
   }
 
   const categories = form.type === 'disaster' ? DISASTER_CATEGORIES : EVENT_CATEGORIES
@@ -674,6 +692,34 @@ export default function EventFormFields({
             ${imageStatus === 'uploading' ? 'text-gray-400'  : ''}`}>
             {imageMessage}
           </p>
+        )}
+
+        {form.imageUrls.length > 0 && (
+          <div className="mt-3 rounded-lg border border-gray-200 overflow-hidden">
+            {form.imageUrls.map((url, i) => (
+              <div
+                key={url + i}
+                className={`flex items-center gap-3 px-3 py-2
+                  ${i < form.imageUrls.length - 1 ? 'border-b border-gray-200' : ''}`}
+              >
+                <img
+                  src={url}
+                  alt=""
+                  className="w-8 h-8 object-cover rounded border border-gray-200 flex-shrink-0"
+                />
+                <span className="text-xs text-gray-500 flex-shrink-0" style={{ width: 92 }}>
+                  {i + 1}枚目のキャプション
+                </span>
+                <Input
+                  value={form.imageCaptions[i] ?? ''}
+                  onChange={e => handleCaptionChange(i, e.target.value)}
+                  placeholder={i === 0 ? '例：画像は○○のものです' : '例：写真提供 ○○市'}
+                  disabled={disabled}
+                  className="flex-1"
+                />
+              </div>
+            ))}
+          </div>
         )}
       </div>
 

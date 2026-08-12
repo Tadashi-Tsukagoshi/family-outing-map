@@ -78,7 +78,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
   const [likes, setLikes] = useState(spot.likes ?? 0)
   const [liked, setLiked] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
-  const [galleryImages, setGalleryImages] = useState<string[]>([])
+  const [galleryImages, setGalleryImages] = useState<{ imageUrl: string; caption: string | null }[]>([])
   const startY   = useRef(0)
   const currentY = useRef(0)
 
@@ -120,7 +120,9 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
     setGalleryImages([])
     fetch(`/api/events/${spot.id}/images`)
       .then(r => r.json())
-      .then(d => setGalleryImages(Array.isArray(d.images) ? d.images.map((img: { imageUrl: string }) => img.imageUrl) : []))
+      .then(d => setGalleryImages(Array.isArray(d.images)
+        ? d.images.map((img: { imageUrl: string; caption?: string | null }) => ({ imageUrl: img.imageUrl, caption: img.caption ?? null }))
+        : []))
       .catch(() => {})
   }, [spot.id])
 
@@ -166,7 +168,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
   const hasGallery    = galleryImages.length > 0
   const isManualImage = !!spot.imageUrl
   const isOgpImage    = !spot.imageUrl && !!ogpImage && !!spot.url
-  const lightboxImages = hasGallery ? galleryImages : (spot.imageUrl ? [spot.imageUrl] : [])
+  const lightboxImages = hasGallery ? galleryImages.map(g => g.imageUrl) : (spot.imageUrl ? [spot.imageUrl] : [])
 
   const handleImageClick = () => {
     if (isManualImage) {
@@ -231,7 +233,8 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
           {/* ② 画像層 */}
           {hasGallery ? (
             <PhotoCarousel
-              images={galleryImages}
+              images={galleryImages.map(g => g.imageUrl)}
+              captions={galleryImages.map(g => g.caption)}
               onPhotoClick={() => {}}
               mobile
             />
@@ -431,7 +434,8 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
       <div className="relative shrink-0">
         {hasGallery ? (
           <PhotoCarousel
-            images={galleryImages}
+            images={galleryImages.map(g => g.imageUrl)}
+            captions={galleryImages.map(g => g.caption)}
             height={200}
             onPhotoClick={setLightboxIndex}
           />

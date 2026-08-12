@@ -21,6 +21,9 @@ export async function POST(req: Request) {
     ? (b.imageUrls as unknown[]).filter((u): u is string => typeof u === 'string' && u.trim() !== '').slice(0, 5)
     : []
   const imageUrl     = imageUrls[0] ?? ((b.imageUrl as string | undefined)?.trim() || null)
+  const imageCaptions = Array.isArray(b.imageCaptions)
+    ? (b.imageCaptions as unknown[]).map(c => (typeof c === 'string' ? c.trim() : ''))
+    : []
   const email        = (b.email        as string | undefined)?.trim() || null
   const startDate    = (b.startDate    as string | undefined)?.trim()
   const endDate      = (b.endDate      as string | undefined)?.trim()
@@ -87,6 +90,7 @@ export async function POST(req: Request) {
       event_id:   newEvent.id,
       image_url:  url,
       sort_order: i,
+      caption:    imageCaptions[i] || null,
     }))
     const { error: imagesError } = await supabase.from('event_images').insert(imageRows)
     if (imagesError) {

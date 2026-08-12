@@ -5,13 +5,14 @@ import PinchZoomImage from './PinchZoomImage'
 
 type Props = {
   images: string[]
+  captions?: (string | null | undefined)[]
   height?: number
   radius?: string
   onPhotoClick: (index: number) => void
   mobile?: boolean
 }
 
-export default function PhotoCarousel({ images, height, radius, onPhotoClick, mobile = false }: Props) {
+export default function PhotoCarousel({ images, captions, height, radius, onPhotoClick, mobile = false }: Props) {
   const [index, setIndex] = useState(0)
   const [autoHeight, setAutoHeight] = useState<number | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -104,6 +105,12 @@ export default function PhotoCarousel({ images, height, radius, onPhotoClick, mo
             />
           ))}
         </div>
+      )}
+
+      {captions?.[index] && captions[index]!.trim() !== '' && (
+        <p style={{ fontSize: 11, color: '#999', padding: '6px 16px', lineHeight: 1.5, margin: 0 }}>
+          {captions[index]}
+        </p>
       )}
     </div>
   )

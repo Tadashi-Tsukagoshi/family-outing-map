@@ -59,6 +59,9 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
     const imageUrl     = imageUrlsRaw !== null
       ? (imageUrls[0] ?? null)
       : ((b.imageUrl as string | undefined)?.trim() || null)
+    const imageCaptions = Array.isArray(b.imageCaptions)
+      ? (b.imageCaptions as unknown[]).map(c => (typeof c === 'string' ? c.trim() : ''))
+      : []
     const email        = (b.email        as string | undefined)?.trim() || null
     const postedBy     = ((b.postedBy    as string | undefined) ?? '匿名').trim() || '匿名'
     const startDate    = (b.startDate    as string | undefined)?.trim()
@@ -131,6 +134,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
           event_id:   id,
           image_url:  url,
           sort_order: i,
+          caption:    imageCaptions[i] || null,
         }))
         const { error: insError } = await supabase.from('event_images').insert(imageRows)
         if (insError) {
