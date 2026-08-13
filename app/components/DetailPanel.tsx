@@ -265,7 +265,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
             />
           ) : showImagePlaceholder ? (
             <div className="w-full bg-gray-100 flex items-center justify-center" style={{ height: 200 }}>
-              <span className="text-sm text-gray-400">画像なし</span>
+              <span className="text-base text-gray-500">画像なし</span>
             </div>
           ) : (
             <PinchZoomImage
@@ -503,7 +503,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
             />
           ) : showImagePlaceholder ? (
             <div className="w-full bg-gray-100 flex items-center justify-center" style={{ height: 200 }}>
-              <span className="text-sm text-gray-400">画像なし</span>
+              <span className="text-base text-gray-500">画像なし</span>
             </div>
           ) : (
             <img

@@ -294,7 +294,7 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
             width: '100%', height: 100, backgroundColor: '#f3f4f6',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <span style={{ fontSize: 12, color: '#9ca3af' }}>画像なし</span>
+            <span style={{ fontSize: 14, color: '#6b7280' }}>画像なし</span>
           </div>
         )}
 
