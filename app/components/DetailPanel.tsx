@@ -429,7 +429,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
 
   return (
     <>
-    <aside className="bg-white flex flex-col overflow-hidden w-72 h-full shadow-lg">
+    <aside className="bg-white flex flex-col overflow-hidden w-80 h-full shadow-lg">
       {/* ヘッダー層（固定） */}
       <div className="shrink-0" style={{ borderBottom: '1px solid #f3f4f6', padding: '14px 16px 12px' }}>
         {(statusCfg || (!statusCfg && spot.scheduleNote)) && (
