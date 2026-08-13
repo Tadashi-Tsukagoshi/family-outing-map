@@ -64,7 +64,7 @@ export default function MapApp() {
   )
   const [selectedSpot,   setSelectedSpot]   = useState<Spot | null>(null)
   const [detailSpot,     setDetailSpot]     = useState<Spot | null>(null)
-  const [detailSheetHeight, setDetailSheetHeight] = useState<'50vh' | '100vh'>('50vh')
+  const [detailSheetHeight, setDetailSheetHeight] = useState<'50vh' | '100dvh'>('50vh')
   const [sheetState,     setSheetState]     = useState<SheetState>('closed')
   const [collectedSpots, setCollectedSpots] = useState<Spot[]>([])
   const [userLocation,  setUserLocation]    = useState<[number, number] | null>(null)
@@ -336,9 +336,9 @@ export default function MapApp() {
             <DetailPanel
               spot={detailSpot}
               onClose={() => { handleDetailClose(); setSheetState('closed') }}
-              onExpand={() => setDetailSheetHeight('100vh')}
+              onExpand={() => setDetailSheetHeight('100dvh')}
               onCollapse={() => setDetailSheetHeight('50vh')}
-              expanded={detailSheetHeight === '100vh'}
+              expanded={detailSheetHeight === '100dvh'}
               mobile
             />
           </div>

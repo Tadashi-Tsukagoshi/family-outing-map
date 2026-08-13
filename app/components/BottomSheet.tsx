@@ -30,7 +30,7 @@ export default function BottomSheet({ spotCount, children, sheetState, onSheetSt
   const sheetHeights: Record<SheetState, string> = {
     closed: `${peekHeight}px`,
     mid:    '50vh',
-    full:   '100vh',
+    full:   '100dvh',
   }
 
   const onTouchStart = (e: React.TouchEvent) => {
