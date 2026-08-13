@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { BADGE_BG_COLOR, CATEGORY_IMAGES, type Spot } from '@/lib/spots'
 import { getDateDisplay, getEventStatus, STATUS_CONFIG, PARK_STATUS, fmtTimeRange } from '@/lib/date-utils'
@@ -165,6 +165,9 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
   const badgeBg     = BADGE_BG_COLOR
   const badgeColor  = '#374151'
 
+  const galleryImageUrls = useMemo(() => galleryImages.map(g => g.imageUrl), [galleryImages])
+  const galleryCaptions  = useMemo(() => galleryImages.map(g => g.caption), [galleryImages])
+
   const hasGallery    = galleryImages.length > 0
   const isManualImage = !!spot.imageUrl
   const isOgpImage    = !spot.imageUrl && !!ogpImage && !!spot.url
@@ -233,8 +236,8 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
           {/* ② 画像層 */}
           {hasGallery ? (
             <PhotoCarousel
-              images={galleryImages.map(g => g.imageUrl)}
-              captions={galleryImages.map(g => g.caption)}
+              images={galleryImageUrls}
+              captions={galleryCaptions}
               onPhotoClick={() => {}}
               mobile
             />
@@ -468,8 +471,8 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
         <div className="shrink-0">
           {hasGallery ? (
             <PhotoCarousel
-              images={galleryImages.map(g => g.imageUrl)}
-              captions={galleryImages.map(g => g.caption)}
+              images={galleryImageUrls}
+              captions={galleryCaptions}
               onPhotoClick={setLightboxIndex}
             />
           ) : (
