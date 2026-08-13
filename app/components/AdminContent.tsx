@@ -63,6 +63,8 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
   const [eventsLoading, setEventsLoading] = useState(true)
   const [searchQuery,   setSearchQuery]   = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
+  const [listMinHeight, setListMinHeight] = useState<number | undefined>(undefined)
+  const listContainerRef = useRef<HTMLDivElement>(null)
   const [myEvents,      setMyEvents]      = useState<MyEvent[]>([])
   const [pendingEvents,   setPendingEvents]   = useState<CollectedEvent[]>([])
   const [pendingLoading,  setPendingLoading]  = useState(true)
@@ -96,6 +98,13 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
     const timer = setTimeout(() => setDebouncedQuery(searchQuery), 300)
     return () => clearTimeout(timer)
   }, [searchQuery])
+
+  useEffect(() => {
+    if (debouncedQuery.trim() === '') {
+      const height = listContainerRef.current?.offsetHeight
+      if (height) setListMinHeight(height)
+    }
+  }, [debouncedQuery, events])
 
   const loadPendingEvents = async () => {
     setPendingLoading(true)
@@ -445,7 +454,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
           ) : allItems.length === 0 ? (
             <p className="text-sm text-gray-400">登録されたスポットはありません。</p>
           ) : (
-            <>
+            <div ref={listContainerRef} style={{ minHeight: listMinHeight }}>
               {groupedItems.map((group, groupIndex) => (
                 <div key={group.key}>
                   <div className={`flex items-center gap-2 mb-2 ${groupIndex === 0 ? 'mt-0' : 'mt-2'}`}>
@@ -496,7 +505,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
                   </ul>
                 </div>
               ))}
-            </>
+            </div>
           )}
         </section>
         )}
