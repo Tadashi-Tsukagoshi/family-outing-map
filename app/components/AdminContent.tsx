@@ -424,9 +424,8 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
               {groupedItems.map(group => (
                 <div key={group.key}>
                   <div className="flex items-center gap-2 mt-4 mb-2 first:mt-0">
-                    <CategoryIcon category={group.icon} size={18} />
                     <span className="text-xs font-semibold text-gray-500">
-                      {group.label}（{group.items.length}件）
+                      ・{group.label}（{group.items.length}件）
                     </span>
                   </div>
                   <ul className="space-y-2">
