@@ -61,6 +61,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
 
   const [events,        setEvents]        = useState<CollectedEvent[]>([])
   const [eventsLoading, setEventsLoading] = useState(true)
+  const [searchQuery,   setSearchQuery]   = useState('')
   const [myEvents,      setMyEvents]      = useState<MyEvent[]>([])
   const [pendingEvents,   setPendingEvents]   = useState<CollectedEvent[]>([])
   const [pendingLoading,  setPendingLoading]  = useState(true)
@@ -284,6 +285,10 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
 
   const allItems = events
 
+  const filteredItems = searchQuery.trim()
+    ? allItems.filter(ev => ev.name.toLowerCase().includes(searchQuery.trim().toLowerCase()))
+    : allItems
+
   const isEndedEvent = (ev: CollectedEvent) =>
     getEventStatus(ev.startDate ?? ev.date, ev.endDate ?? ev.date) === 'ended'
 
@@ -296,13 +301,13 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
       key: cat as string,
       label: CATEGORY_LABELS[cat],
       icon: cat,
-      items: sortByEndedLast(allItems.filter(ev => (ev.category ?? 'event') === cat)),
+      items: sortByEndedLast(filteredItems.filter(ev => (ev.category ?? 'event') === cat)),
     })),
     {
       key: 'other',
       label: 'その他',
-      icon: allItems.find(ev => !CATEGORY_ORDER.includes((ev.category ?? 'event') as Category))?.category ?? 'event',
-      items: sortByEndedLast(allItems.filter(ev => !CATEGORY_ORDER.includes((ev.category ?? 'event') as Category))),
+      icon: filteredItems.find(ev => !CATEGORY_ORDER.includes((ev.category ?? 'event') as Category))?.category ?? 'event',
+      items: sortByEndedLast(filteredItems.filter(ev => !CATEGORY_ORDER.includes((ev.category ?? 'event') as Category))),
     },
   ].filter(group => group.items.length > 0)
 
@@ -422,6 +427,13 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
         {!hideEventList && (
         <section>
           <h2 className="text-sm font-semibold text-gray-700 mb-3">登録済みスポット</h2>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="スポット名で検索"
+            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:border-blue-300"
+          />
           {eventsLoading ? (
             <p className="text-sm text-gray-400">読み込み中...</p>
           ) : allItems.length === 0 ? (
