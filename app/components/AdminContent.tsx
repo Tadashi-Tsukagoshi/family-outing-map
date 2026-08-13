@@ -428,9 +428,9 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
             <p className="text-sm text-gray-400">登録されたスポットはありません。</p>
           ) : (
             <>
-              {groupedItems.map(group => (
+              {groupedItems.map((group, groupIndex) => (
                 <div key={group.key}>
-                  <div className="flex items-center gap-2 mt-4 mb-2 first:mt-0">
+                  <div className={`flex items-center gap-2 mb-2 ${groupIndex === 0 ? 'mt-0' : 'mt-2'}`}>
                     <span className="text-xs font-semibold text-gray-500">
                       ・{group.label}（{group.items.length}件）
                     </span>
