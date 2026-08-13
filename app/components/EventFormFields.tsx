@@ -108,6 +108,10 @@ function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
+      onKeyDown={e => {
+        if (e.key === 'Enter') e.preventDefault()
+        props.onKeyDown?.(e)
+      }}
       className={`w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
         placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400
         disabled:bg-gray-50 disabled:text-gray-500 ${props.className ?? ''}`}
