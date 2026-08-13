@@ -443,7 +443,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
                           ${editingId === ev.id
                             ? 'border-blue-300 bg-blue-50'
                             : isEndedEvent(ev)
-                              ? 'border-gray-200 bg-gray-100'
+                              ? 'border-gray-300 bg-gray-200'
                               : 'border-gray-100 bg-white'}`}
                       >
                         <span className="mt-0.5 flex-shrink-0">
