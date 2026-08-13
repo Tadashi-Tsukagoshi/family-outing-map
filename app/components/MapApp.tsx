@@ -69,7 +69,7 @@ export default function MapApp() {
   const [collectedSpots, setCollectedSpots] = useState<Spot[]>([])
   const [userLocation,  setUserLocation]    = useState<[number, number] | null>(null)
   const [locateStatus,  setLocateStatus]    = useState<'idle' | 'loading'>('idle')
-  const [locationRadius, setLocationRadius] = useState(10)
+  const [locationRadius, setLocationRadius] = useState(20)
   const [recenterSignal, setRecenterSignal] = useState(0)
 
   // ハイドレーション後にlocalStorageから設定を復元
