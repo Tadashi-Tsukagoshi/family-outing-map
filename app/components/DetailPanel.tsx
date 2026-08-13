@@ -289,7 +289,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                 }}>
                   会場
                 </span>
-                <span>{spot.venue}</span>
+                <span style={{ whiteSpace: 'pre-line' }}>{spot.venue}</span>
               </p>
             )}
 
@@ -312,7 +312,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
               }}>
                 料金
               </span>
-              {spot.fee && <span>{spot.fee}</span>}
+              {spot.fee && <span style={{ whiteSpace: 'pre-line' }}>{spot.fee}</span>}
             </p>
 
             <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#4b5563', lineHeight: 1.65, margin: '0 0 14px' }}>
@@ -529,7 +529,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
             }}>
               会場
             </span>
-            <span>{spot.venue}</span>
+            <span style={{ whiteSpace: 'pre-line' }}>{spot.venue}</span>
           </p>
         )}
 
@@ -552,7 +552,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
           }}>
             料金
           </span>
-          {spot.fee && <span>{spot.fee}</span>}
+          {spot.fee && <span style={{ whiteSpace: 'pre-line' }}>{spot.fee}</span>}
         </p>
 
         <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#4b5563', lineHeight: 1.65, margin: '0 0 14px' }}>

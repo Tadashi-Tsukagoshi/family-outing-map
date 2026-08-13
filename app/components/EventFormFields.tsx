@@ -517,23 +517,27 @@ export default function EventFormFields({
       {/* 会場名 */}
       <div className={isPermanent ? 'opacity-40' : undefined}>
         <Label required={!isPermanent}>会場名</Label>
-        <Input
+        <Textarea
           value={form.venue}
           onChange={e => set('venue', e.target.value)}
           placeholder="例：太田市総合体育館"
           required={!isPermanent}
           disabled={disabled || isPermanent}
+          rows={2}
+          style={{ resize: 'vertical' }}
         />
       </div>
 
       {/* 料金 */}
       <div>
         <Label>料金</Label>
-        <Input
+        <Textarea
           value={form.fee}
           onChange={e => set('fee', e.target.value)}
           placeholder="例：大人500円・子ども無料"
           disabled={disabled}
+          rows={2}
+          style={{ resize: 'vertical' }}
         />
       </div>
 
