@@ -3,7 +3,7 @@
 import 'mapbox-gl/dist/mapbox-gl.css'
 import mapboxgl from 'mapbox-gl'
 import { useRef, useState, useMemo, useCallback, useEffect, useLayoutEffect } from 'react'
-import { getCategoryIconSrc, BADGE_BG_COLOR, CATEGORY_IMAGES, type Category, type Spot } from '@/lib/spots'
+import { getCategoryIconSrc, BADGE_BG_COLOR, type Category, type Spot } from '@/lib/spots'
 import { getDateDisplay, getEventStatus, STATUS_CONFIG, PARK_STATUS, fmtTimeRange } from '@/lib/date-utils'
 import { type SheetState } from './BottomSheet'
 
@@ -199,6 +199,12 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
   const cardRef = useRef<HTMLDivElement>(null)
   const aboveGap = GAP
 
+  const imageSrc = galleryImage || hovered.spot.imageUrl || ogpImage || null
+  const [imageLoadFailed, setImageLoadFailed] = useState(false)
+  useEffect(() => {
+    setImageLoadFailed(false)
+  }, [imageSrc])
+
   // ready:false で初期化 → 測定前は opacity:0 で非表示
   const [pos, setPos] = useState<Pos>({
     left:  hovered.x,
@@ -276,12 +282,21 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
         boxShadow:    '0 2px 4px rgba(0,0,0,.10), 0 8px 24px rgba(0,0,0,.12)',
       }}>
         {/* 画像（全体の約55%） */}
-        <img
-          src={galleryImage || spot.imageUrl || ogpImage || CATEGORY_IMAGES[spot.category]}
-          alt=""
-          style={{ display: 'block', width: '100%', height: 100, objectFit: 'contain', backgroundColor: '#f3f4f6' }}
-          onError={(e) => { (e.currentTarget as HTMLImageElement).src = CATEGORY_IMAGES[spot.category] }}
-        />
+        {imageSrc && !imageLoadFailed ? (
+          <img
+            src={imageSrc}
+            alt=""
+            style={{ display: 'block', width: '100%', height: 100, objectFit: 'contain', backgroundColor: '#f3f4f6' }}
+            onError={() => setImageLoadFailed(true)}
+          />
+        ) : (
+          <div style={{
+            width: '100%', height: 100, backgroundColor: '#f3f4f6',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <span style={{ fontSize: 12, color: '#9ca3af' }}>画像なし</span>
+          </div>
+        )}
 
         {/* テキストエリア（固定高さでサイズ統一） */}
         <div style={{

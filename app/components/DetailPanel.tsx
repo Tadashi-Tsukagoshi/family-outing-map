@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { createPortal } from 'react-dom'
-import { BADGE_BG_COLOR, CATEGORY_IMAGES, type Spot } from '@/lib/spots'
+import { BADGE_BG_COLOR, type Spot } from '@/lib/spots'
 import { getDateDisplay, getEventStatus, STATUS_CONFIG, PARK_STATUS, fmtTimeRange } from '@/lib/date-utils'
 import PhotoCarousel from './PhotoCarousel'
 import PinchZoomImage from './PinchZoomImage'
@@ -79,6 +79,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
   const [liked, setLiked] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [galleryImages, setGalleryImages] = useState<{ imageUrl: string; caption: string | null }[]>([])
+  const [imageLoadFailed, setImageLoadFailed] = useState(false)
   const startY   = useRef(0)
   const currentY = useRef(0)
   const likeDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -176,9 +177,15 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
   const dateRange   = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
   const timeRange   = fmtTimeRange(spot.startTime, spot.endTime)
   const statusCfg   = isPark ? { ...PARK_STATUS, label: spot.spotLabel || PARK_STATUS.label } : (status ? STATUS_CONFIG[status] : null)
-  const image       = spot.imageUrl || ogpImage || CATEGORY_IMAGES[spot.category]
+  const image       = spot.imageUrl || ogpImage || null
   const badgeBg     = BADGE_BG_COLOR
   const badgeColor  = '#374151'
+
+  useEffect(() => {
+    setImageLoadFailed(false)
+  }, [image])
+
+  const showImagePlaceholder = !image || imageLoadFailed
 
   const galleryImageUrls = useMemo(() => galleryImages.map(g => g.imageUrl), [galleryImages])
   const galleryCaptions  = useMemo(() => galleryImages.map(g => g.caption), [galleryImages])
@@ -256,12 +263,16 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
               onPhotoClick={() => {}}
               mobile
             />
+          ) : showImagePlaceholder ? (
+            <div className="w-full bg-gray-100 flex items-center justify-center" style={{ height: 200 }}>
+              <span className="text-sm text-gray-400">画像なし</span>
+            </div>
           ) : (
             <PinchZoomImage
               src={image}
               className="bg-gray-100"
               style={{ display: 'block', width: '100%', height: 'auto' }}
-              onError={(e) => { (e.currentTarget as HTMLImageElement).src = CATEGORY_IMAGES[spot.category] }}
+              onError={() => setImageLoadFailed(true)}
             />
           )}
 
@@ -490,6 +501,10 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
               captions={galleryCaptions}
               onPhotoClick={setLightboxIndex}
             />
+          ) : showImagePlaceholder ? (
+            <div className="w-full bg-gray-100 flex items-center justify-center" style={{ height: 200 }}>
+              <span className="text-sm text-gray-400">画像なし</span>
+            </div>
           ) : (
             <img
               src={image}
@@ -500,7 +515,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                 display: 'block', width: '100%', height: 'auto',
                 cursor: (isManualImage || isOgpImage) ? 'pointer' : undefined,
               }}
-              onError={(e) => { (e.currentTarget as HTMLImageElement).src = CATEGORY_IMAGES[spot.category] }}
+              onError={() => setImageLoadFailed(true)}
             />
           )}
         </div>
