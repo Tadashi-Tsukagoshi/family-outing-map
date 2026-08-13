@@ -62,6 +62,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
   const [events,        setEvents]        = useState<CollectedEvent[]>([])
   const [eventsLoading, setEventsLoading] = useState(true)
   const [searchQuery,   setSearchQuery]   = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
   const [myEvents,      setMyEvents]      = useState<MyEvent[]>([])
   const [pendingEvents,   setPendingEvents]   = useState<CollectedEvent[]>([])
   const [pendingLoading,  setPendingLoading]  = useState(true)
@@ -90,6 +91,11 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
   }
 
   useEffect(() => { loadEvents() }, [])
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(searchQuery), 300)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
 
   const loadPendingEvents = async () => {
     setPendingLoading(true)
@@ -285,8 +291,8 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
 
   const allItems = events
 
-  const filteredItems = searchQuery.trim()
-    ? allItems.filter(ev => ev.name.toLowerCase().includes(searchQuery.trim().toLowerCase()))
+  const filteredItems = debouncedQuery.trim()
+    ? allItems.filter(ev => ev.name.toLowerCase().includes(debouncedQuery.trim().toLowerCase()))
     : allItems
 
   const isEndedEvent = (ev: CollectedEvent) =>
@@ -432,7 +438,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="スポット名で検索"
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:border-blue-300"
+            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:border-blue-300 mb-2"
           />
           {eventsLoading ? (
             <p className="text-sm text-gray-400">読み込み中...</p>
