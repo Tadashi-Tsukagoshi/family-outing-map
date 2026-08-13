@@ -6,6 +6,7 @@ import EventFormFields, { type FormState, type PosterType, INITIAL_FORM, eventTo
 import PendingEventCard from './PendingEventCard'
 import { formatDateRange, type CollectedEvent } from '@/lib/events'
 import { CATEGORY_LABELS, type Category } from '@/lib/spots'
+import { getEventStatus } from '@/lib/date-utils'
 
 // ─── 型 ───────────────────────────────────────────────────────────
 type SubmitStatus = 'idle' | 'loading' | 'ok' | 'error'
@@ -283,19 +284,25 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
 
   const allItems = events
 
+  const isEndedEvent = (ev: CollectedEvent) =>
+    getEventStatus(ev.startDate ?? ev.date, ev.endDate ?? ev.date) === 'ended'
+
+  const sortByEndedLast = (items: CollectedEvent[]) =>
+    [...items].sort((a, b) => Number(isEndedEvent(a)) - Number(isEndedEvent(b)))
+
   const CATEGORY_ORDER = Object.keys(CATEGORY_LABELS) as Category[]
   const groupedItems = [
     ...CATEGORY_ORDER.map(cat => ({
       key: cat as string,
       label: CATEGORY_LABELS[cat],
       icon: cat,
-      items: allItems.filter(ev => (ev.category ?? 'event') === cat),
+      items: sortByEndedLast(allItems.filter(ev => (ev.category ?? 'event') === cat)),
     })),
     {
       key: 'other',
       label: 'その他',
       icon: allItems.find(ev => !CATEGORY_ORDER.includes((ev.category ?? 'event') as Category))?.category ?? 'event',
-      items: allItems.filter(ev => !CATEGORY_ORDER.includes((ev.category ?? 'event') as Category)),
+      items: sortByEndedLast(allItems.filter(ev => !CATEGORY_ORDER.includes((ev.category ?? 'event') as Category))),
     },
   ].filter(group => group.items.length > 0)
 
@@ -432,8 +439,12 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
                     {group.items.map(ev => (
                       <li
                         key={ev.id}
-                        className={`bg-white rounded-xl border px-4 py-3 flex items-start gap-3 transition-colors
-                          ${editingId === ev.id ? 'border-blue-300 bg-blue-50' : 'border-gray-100'}`}
+                        className={`rounded-xl border px-4 py-3 flex items-start gap-3 transition-colors
+                          ${editingId === ev.id
+                            ? 'border-blue-300 bg-blue-50'
+                            : isEndedEvent(ev)
+                              ? 'border-gray-200 bg-gray-100'
+                              : 'border-gray-100 bg-white'}`}
                       >
                         <span className="mt-0.5 flex-shrink-0">
                           <CategoryIcon category={ev.category ?? 'event'} size={20} />
