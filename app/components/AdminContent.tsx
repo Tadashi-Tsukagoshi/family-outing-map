@@ -5,6 +5,7 @@ import { CategoryIcon } from './Sidebar'
 import EventFormFields, { type FormState, type PosterType, INITIAL_FORM, eventToFormState } from './EventFormFields'
 import PendingEventCard from './PendingEventCard'
 import { formatDateRange, type CollectedEvent } from '@/lib/events'
+import { CATEGORY_LABELS, type Category } from '@/lib/spots'
 
 // ─── 型 ───────────────────────────────────────────────────────────
 type SubmitStatus = 'idle' | 'loading' | 'ok' | 'error'
@@ -282,6 +283,22 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
 
   const allItems = events
 
+  const CATEGORY_ORDER = Object.keys(CATEGORY_LABELS) as Category[]
+  const groupedItems = [
+    ...CATEGORY_ORDER.map(cat => ({
+      key: cat as string,
+      label: CATEGORY_LABELS[cat],
+      icon: cat,
+      items: allItems.filter(ev => (ev.category ?? 'event') === cat),
+    })),
+    {
+      key: 'other',
+      label: 'その他',
+      icon: allItems.find(ev => !CATEGORY_ORDER.includes((ev.category ?? 'event') as Category))?.category ?? 'event',
+      items: allItems.filter(ev => !CATEGORY_ORDER.includes((ev.category ?? 'event') as Category)),
+    },
+  ].filter(group => group.items.length > 0)
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-3">
@@ -403,43 +420,55 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
           ) : allItems.length === 0 ? (
             <p className="text-sm text-gray-400">登録されたスポットはありません。</p>
           ) : (
-            <ul className="space-y-2">
-              {allItems.map(ev => (
-                <li
-                  key={ev.id}
-                  className={`bg-white rounded-xl border px-4 py-3 flex items-start gap-3 transition-colors
-                    ${editingId === ev.id ? 'border-blue-300 bg-blue-50' : 'border-gray-100'}`}
-                >
-                  <span className="mt-0.5 flex-shrink-0">
-                    <CategoryIcon category={ev.category ?? 'event'} size={20} />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-800 truncate">{ev.name}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{formatDateRange(ev)} · {ev.venue}</p>
+            <>
+              {groupedItems.map(group => (
+                <div key={group.key}>
+                  <div className="flex items-center gap-2 mt-4 mb-2 first:mt-0">
+                    <CategoryIcon category={group.icon} size={18} />
+                    <span className="text-xs font-semibold text-gray-500">
+                      {group.label}（{group.items.length}件）
+                    </span>
                   </div>
-                  {(!restrictEditToOwn || isMyEvent(ev.id)) && (
-                    <div className="flex gap-1.5 flex-shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => handleEdit(ev)}
-                        className="px-2.5 py-1 text-xs rounded-lg border border-blue-200 text-blue-600
-                          hover:bg-blue-100 transition-colors cursor-pointer"
+                  <ul className="space-y-2">
+                    {group.items.map(ev => (
+                      <li
+                        key={ev.id}
+                        className={`bg-white rounded-xl border px-4 py-3 flex items-start gap-3 transition-colors
+                          ${editingId === ev.id ? 'border-blue-300 bg-blue-50' : 'border-gray-100'}`}
                       >
-                        編集
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(ev)}
-                        className="px-2.5 py-1 text-xs rounded-lg border border-red-200 text-red-500
-                          hover:bg-red-50 transition-colors cursor-pointer"
-                      >
-                        削除
-                      </button>
-                    </div>
-                  )}
-                </li>
+                        <span className="mt-0.5 flex-shrink-0">
+                          <CategoryIcon category={ev.category ?? 'event'} size={20} />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-800 truncate">{ev.name}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">{formatDateRange(ev)} · {ev.venue}</p>
+                        </div>
+                        {(!restrictEditToOwn || isMyEvent(ev.id)) && (
+                          <div className="flex gap-1.5 flex-shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => handleEdit(ev)}
+                              className="px-2.5 py-1 text-xs rounded-lg border border-blue-200 text-blue-600
+                                hover:bg-blue-100 transition-colors cursor-pointer"
+                            >
+                              編集
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(ev)}
+                              className="px-2.5 py-1 text-xs rounded-lg border border-red-200 text-red-500
+                                hover:bg-red-50 transition-colors cursor-pointer"
+                            >
+                              削除
+                            </button>
+                          </div>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ))}
-            </ul>
+            </>
           )}
         </section>
         )}
