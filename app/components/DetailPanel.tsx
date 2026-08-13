@@ -81,6 +81,8 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
   const [galleryImages, setGalleryImages] = useState<{ imageUrl: string; caption: string | null }[]>([])
   const startY   = useRef(0)
   const currentY = useRef(0)
+  const likeDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const likeRequestIdRef = useRef(0)
 
   const onHandleTouchStart = (e: React.TouchEvent) => {
     startY.current   = e.touches[0].clientY
@@ -143,17 +145,30 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
     setLiked(hasLiked(spot.id))
   }, [spot.id, spot.likes])
 
-  const handleLike = async () => {
+  useEffect(() => {
+    return () => {
+      if (likeDebounceRef.current) clearTimeout(likeDebounceRef.current)
+    }
+  }, [])
+
+  const handleLike = () => {
     const next = !liked
     setLiked(next)
     setLikes((n) => n + (next ? 1 : -1))
     if (next) rememberLiked(spot.id)
     else      forgetLiked(spot.id)
-    try {
-      const res = await fetch(`/api/events/${spot.id}/like`, { method: next ? 'POST' : 'DELETE' })
-      const d = await res.json()
-      if (typeof d.likes === 'number') setLikes(d.likes)
-    } catch {}
+
+    if (likeDebounceRef.current) clearTimeout(likeDebounceRef.current)
+    likeDebounceRef.current = setTimeout(() => {
+      likeDebounceRef.current = null
+      const requestId = ++likeRequestIdRef.current
+      fetch(`/api/events/${spot.id}/like`, { method: next ? 'POST' : 'DELETE' })
+        .then((res) => res.json())
+        .then((d) => {
+          if (requestId === likeRequestIdRef.current && typeof d.likes === 'number') setLikes(d.likes)
+        })
+        .catch(() => {})
+    }, 300)
   }
 
   const isPark      = spot.category === 'park'
