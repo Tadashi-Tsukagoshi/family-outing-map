@@ -228,12 +228,12 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                   {spot.name}
                 </h2>
                 {isPark ? (
-                  <p style={{ fontSize: 11, color: '#6b7280', margin: 0 }}>
+                  <p style={{ fontSize: 14, fontWeight: 500, color: '#6b7280', margin: 0 }}>
                     {spot.businessHours || '未登録'}
                   </p>
                 ) : (
                   dateRange && (
-                    <p style={{ fontSize: 11, color: '#6b7280', margin: 0 }}>
+                    <p style={{ fontSize: 14, fontWeight: 500, color: '#6b7280', margin: 0 }}>
                       {dateRange}{timeRange ? ` ${timeRange}` : ''}
                     </p>
                   )
