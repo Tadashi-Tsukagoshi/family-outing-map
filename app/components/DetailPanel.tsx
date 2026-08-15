@@ -555,7 +555,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
         {/* コンテンツ層 */}
         <div style={{ padding: '0 16px 20px' }}>
         {spot.venue && (
-          <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#374151', margin: '0 0 8px' }}>
+          <p style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 12, color: '#374151', margin: '0 0 8px' }}>
             <span style={{
               display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
               background: badgeBg, color: badgeColor, fontSize: 12, fontWeight: 400,
@@ -567,7 +567,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
         )}
 
         {spot.address && (
-          <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#374151', margin: '0 0 8px' }}>
+          <p style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 12, color: '#374151', margin: '0 0 8px' }}>
             <span style={{
               display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
               background: badgeBg, color: badgeColor, fontSize: 12, fontWeight: 400,
@@ -578,7 +578,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
           </p>
         )}
 
-        <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#374151', margin: '0 0 8px' }}>
+        <p style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 12, color: '#374151', margin: '0 0 8px' }}>
           <span style={{
             display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
             background: badgeBg, color: badgeColor, fontSize: 12, fontWeight: 400,
@@ -588,7 +588,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
           {spot.fee && <span style={{ whiteSpace: 'pre-line' }}>{spot.fee}</span>}
         </p>
 
-        <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#4b5563', lineHeight: 1.65, margin: '0 0 14px' }}>
+        <p style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 12, color: '#4b5563', lineHeight: 1.65, margin: '0 0 14px' }}>
           <span style={{
             display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
             background: badgeBg, color: badgeColor, fontSize: 12, fontWeight: 400,
@@ -600,7 +600,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
 
         {spot.postedBy && (
           <>
-            <p style={{ display: 'flex', alignItems: 'center', fontSize: 11, color: '#6b7280', margin: '0 0 24px' }}>
+            <p style={{ display: 'flex', alignItems: 'baseline', fontSize: 11, color: '#6b7280', margin: '0 0 24px' }}>
               <span style={{
                 display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
                 background: badgeBg, color: badgeColor, fontSize: 12, fontWeight: 400,
