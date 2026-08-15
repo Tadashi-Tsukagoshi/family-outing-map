@@ -222,7 +222,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
               <div style={{ minWidth: 0 }}>
                 <h2 style={{
-                  fontSize: 18, fontWeight: 700, color: '#111', lineHeight: 1.4, margin: 0,
+                  fontSize: 18, fontWeight: 600, color: '#111', lineHeight: 1.4, margin: 0,
                   display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minWidth: 0,
                 }}>
                   {spot.name}
