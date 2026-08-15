@@ -311,10 +311,10 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
           {/* ④ キャプション層 */}
           <div style={{ padding: '0 16px 20px' }}>
             {spot.venue && (
-              <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 14, color: '#374151', margin: '0 0 8px' }}>
+              <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 14, fontWeight: 500, color: '#374151', margin: '0 0 8px' }}>
                 <span style={{
                   display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
-                  background: badgeBg, color: badgeColor, fontSize: 14, fontWeight: 400,
+                  background: badgeBg, color: badgeColor, fontSize: 14, fontWeight: 500,
                 }}>
                   会場
                 </span>
@@ -323,10 +323,10 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
             )}
 
             {spot.address && (
-              <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 14, color: '#374151', margin: '0 0 8px' }}>
+              <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 14, fontWeight: 500, color: '#374151', margin: '0 0 8px' }}>
                 <span style={{
                   display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
-                  background: badgeBg, color: badgeColor, fontSize: 14, fontWeight: 400,
+                  background: badgeBg, color: badgeColor, fontSize: 14, fontWeight: 500,
                 }}>
                   住所
                 </span>
@@ -334,20 +334,20 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
               </p>
             )}
 
-            <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 14, color: '#374151', margin: '0 0 8px' }}>
+            <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 14, fontWeight: 500, color: '#374151', margin: '0 0 8px' }}>
               <span style={{
                 display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
-                background: badgeBg, color: badgeColor, fontSize: 14, fontWeight: 400,
+                background: badgeBg, color: badgeColor, fontSize: 14, fontWeight: 500,
               }}>
                 料金
               </span>
               {spot.fee && <span style={{ whiteSpace: 'pre-line' }}>{spot.fee}</span>}
             </p>
 
-            <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 14, color: '#4b5563', lineHeight: 1.65, margin: '0 0 14px' }}>
+            <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 14, fontWeight: 500, color: '#4b5563', lineHeight: 1.65, margin: '0 0 14px' }}>
               <span style={{
                 display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
-                background: badgeBg, color: badgeColor, fontSize: 14, fontWeight: 400,
+                background: badgeBg, color: badgeColor, fontSize: 14, fontWeight: 500,
               }}>
                 説明
               </span>
@@ -359,7 +359,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                 <p style={{ display: 'flex', alignItems: 'center', fontSize: 11, color: '#6b7280', margin: '0 0 24px' }}>
                   <span style={{
                     display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
-                    background: badgeBg, color: badgeColor, fontSize: 14, fontWeight: 400,
+                    background: badgeBg, color: badgeColor, fontSize: 14, fontWeight: 500,
                   }}>
                     投稿
                   </span>
@@ -371,7 +371,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                       {POSTER_TYPE_LABELS[spot.posterType] ?? spot.posterType}
                     </span>
                   )}
-                  <span style={{ fontSize: 14, color: '#374151' }}>{spot.postedBy}</span>
+                  <span style={{ fontSize: 14, fontWeight: 500, color: '#374151' }}>{spot.postedBy}</span>
                 </p>
                 {spot.editedAt && spot.posterType !== 'staff' && (
                   <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#374151', margin: '-18px 0 24px' }}>
