@@ -494,7 +494,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
         ) : (
           dateRange && (
             <>
-              <p style={{ fontSize: 14, fontWeight: 400, color: '#111', margin: '1px 0 0' }}>
+              <p style={{ fontSize: 14, fontWeight: 600, color: '#111', margin: '1px 0 0' }}>
                 {dateRange}{timeRange ? ` ${timeRange}` : ''}
               </p>
               {showDisclaimer && (
