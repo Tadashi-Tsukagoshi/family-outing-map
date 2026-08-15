@@ -179,7 +179,6 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
   const statusCfg   = isPark ? { ...PARK_STATUS, label: spot.spotLabel || PARK_STATUS.label } : (status ? STATUS_CONFIG[status] : null)
   const image       = spot.imageUrl || ogpImage || null
   const badgeBg     = BADGE_BG_COLOR
-  const badgeColor  = '#374151'
 
   useEffect(() => {
     setImageLoadFailed(false)
@@ -475,16 +474,16 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
             )}
           </div>
         )}
-        <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111', lineHeight: 1.4, margin: 0 }}>
+        <h2 style={{ fontSize: 18, fontWeight: 600, color: '#111', lineHeight: 1.4, margin: 0 }}>
           {spot.name}
         </h2>
         {isPark ? (
-          <p style={{ fontSize: 12, color: '#6b7280', margin: '1px 0 0' }}>
+          <p style={{ fontSize: 14, fontWeight: 500, color: '#111', margin: '1px 0 0' }}>
             {spot.businessHours || '未登録'}
           </p>
         ) : (
           dateRange && (
-            <p style={{ fontSize: 12, color: '#6b7280', margin: '1px 0 0' }}>
+            <p style={{ fontSize: 14, fontWeight: 500, color: '#111', margin: '1px 0 0' }}>
               {dateRange}{timeRange ? ` ${timeRange}` : ''}
             </p>
           )
@@ -555,10 +554,10 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
         {/* コンテンツ層 */}
         <div style={{ padding: '0 16px 20px' }}>
         {spot.venue && (
-          <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#374151', margin: '0 0 8px' }}>
+          <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 14, fontWeight: 500, color: '#111', margin: '0 0 8px' }}>
             <span style={{
               display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
-              background: badgeBg, color: badgeColor, fontSize: 10, fontWeight: 400,
+              background: badgeBg, color: '#111', fontSize: 14, fontWeight: 500,
             }}>
               会場
             </span>
@@ -567,10 +566,10 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
         )}
 
         {spot.address && (
-          <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#374151', margin: '0 0 8px' }}>
+          <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 14, fontWeight: 500, color: '#111', margin: '0 0 8px' }}>
             <span style={{
               display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
-              background: badgeBg, color: badgeColor, fontSize: 10, fontWeight: 400,
+              background: badgeBg, color: '#111', fontSize: 14, fontWeight: 500,
             }}>
               住所
             </span>
@@ -578,20 +577,20 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
           </p>
         )}
 
-        <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#374151', margin: '0 0 8px' }}>
+        <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 14, fontWeight: 500, color: '#111', margin: '0 0 8px' }}>
           <span style={{
             display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
-            background: badgeBg, color: badgeColor, fontSize: 10, fontWeight: 400,
+            background: badgeBg, color: '#111', fontSize: 14, fontWeight: 500,
           }}>
             料金
           </span>
           {spot.fee && <span style={{ whiteSpace: 'pre-line' }}>{spot.fee}</span>}
         </p>
 
-        <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#4b5563', lineHeight: 1.65, margin: '0 0 14px' }}>
+        <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 14, fontWeight: 500, color: '#111', lineHeight: 1.65, margin: '0 0 14px' }}>
           <span style={{
             display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
-            background: badgeBg, color: badgeColor, fontSize: 10, fontWeight: 400,
+            background: badgeBg, color: '#111', fontSize: 14, fontWeight: 500,
           }}>
             説明
           </span>
@@ -600,10 +599,10 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
 
         {spot.postedBy && (
           <>
-            <p style={{ display: 'flex', alignItems: 'center', fontSize: 11, color: '#6b7280', margin: '0 0 24px' }}>
+            <p style={{ display: 'flex', alignItems: 'center', fontSize: 14, fontWeight: 500, color: '#111', margin: '0 0 24px' }}>
               <span style={{
                 display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
-                background: badgeBg, color: badgeColor, fontSize: 10, fontWeight: 400,
+                background: badgeBg, color: '#111', fontSize: 14, fontWeight: 500,
               }}>
                 投稿
               </span>
