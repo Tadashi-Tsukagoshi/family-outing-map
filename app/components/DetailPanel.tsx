@@ -228,12 +228,12 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                   {spot.name}
                 </h2>
                 {isPark ? (
-                  <p style={{ fontSize: 14, fontWeight: 500, color: '#6b7280', margin: 0 }}>
+                  <p style={{ fontSize: 14, fontWeight: 500, color: '#374151', margin: 0 }}>
                     {spot.businessHours || '未登録'}
                   </p>
                 ) : (
                   dateRange && (
-                    <p style={{ fontSize: 14, fontWeight: 500, color: '#6b7280', margin: 0 }}>
+                    <p style={{ fontSize: 14, fontWeight: 500, color: '#374151', margin: 0 }}>
                       {dateRange}{timeRange ? ` ${timeRange}` : ''}
                     </p>
                   )
@@ -344,7 +344,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
               {spot.fee && <span style={{ whiteSpace: 'pre-line' }}>{spot.fee}</span>}
             </p>
 
-            <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 14, fontWeight: 500, color: '#4b5563', lineHeight: 1.65, margin: '0 0 14px' }}>
+            <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 14, fontWeight: 500, color: '#374151', lineHeight: 1.65, margin: '0 0 14px' }}>
               <span style={{
                 display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
                 background: badgeBg, color: badgeColor, fontSize: 14, fontWeight: 500,
@@ -356,7 +356,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
 
             {spot.postedBy && (
               <>
-                <p style={{ display: 'flex', alignItems: 'center', fontSize: 11, color: '#6b7280', margin: '0 0 24px' }}>
+                <p style={{ display: 'flex', alignItems: 'center', fontSize: 11, color: '#374151', margin: '0 0 24px' }}>
                   <span style={{
                     display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
                     background: badgeBg, color: badgeColor, fontSize: 14, fontWeight: 500,
