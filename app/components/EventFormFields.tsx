@@ -718,12 +718,13 @@ export default function EventFormFields({
                 <span className="text-xs text-gray-500 flex-shrink-0" style={{ width: 92 }}>
                   {i + 1}枚目のキャプション
                 </span>
-                <Input
+                <Textarea
                   value={form.imageCaptions[i] ?? ''}
                   onChange={e => handleCaptionChange(i, e.target.value)}
                   placeholder={i === 0 ? '例：画像は○○のものです' : '例：写真提供 ○○市'}
                   disabled={disabled}
                   className="flex-1"
+                  rows={2}
                 />
               </div>
             ))}
