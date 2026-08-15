@@ -178,6 +178,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
   const timeRange   = fmtTimeRange(spot.startTime, spot.endTime)
   const statusCfg   = isPark ? { ...PARK_STATUS, label: spot.spotLabel || PARK_STATUS.label } : (status ? STATUS_CONFIG[status] : null)
   const showStatus  = isPark || status === 'ended'
+  const showDisclaimer = !isPark && status !== 'ended'
   const image       = spot.imageUrl || ogpImage || null
   const badgeBg     = BADGE_BG_COLOR
   const badgeColor  = '#4b5563'
@@ -234,9 +235,16 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                   </p>
                 ) : (
                   dateRange && (
-                    <p style={{ fontSize: 14, fontWeight: 500, color: '#111', margin: 0 }}>
-                      {dateRange}{timeRange ? ` ${timeRange}` : ''}
-                    </p>
+                    <>
+                      <p style={{ fontSize: 14, fontWeight: 500, color: '#111', margin: 0 }}>
+                        {dateRange}{timeRange ? ` ${timeRange}` : ''}
+                      </p>
+                      {showDisclaimer && (
+                        <p style={{ fontSize: 12, fontWeight: 500, color: '#111', margin: 0 }}>
+                          ※当日の開催状況は公式情報をご確認ください。
+                        </p>
+                      )}
+                    </>
                   )
                 )}
               </div>
@@ -485,9 +493,16 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
           </p>
         ) : (
           dateRange && (
-            <p style={{ fontSize: 14, fontWeight: 400, color: '#4b5563', margin: '1px 0 0' }}>
-              {dateRange}{timeRange ? ` ${timeRange}` : ''}
-            </p>
+            <>
+              <p style={{ fontSize: 14, fontWeight: 400, color: '#4b5563', margin: '1px 0 0' }}>
+                {dateRange}{timeRange ? ` ${timeRange}` : ''}
+              </p>
+              {showDisclaimer && (
+                <p style={{ fontSize: 12, fontWeight: 400, color: '#4b5563', margin: '1px 0 0' }}>
+                  ※当日の開催状況は公式情報をご確認ください。
+                </p>
+              )}
+            </>
           )
         )}
       </div>
