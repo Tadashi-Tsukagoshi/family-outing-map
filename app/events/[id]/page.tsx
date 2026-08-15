@@ -76,6 +76,7 @@ export default async function EventDetailPage({ params }: Props) {
   const status    = getEventStatus(spot.startDate, spot.endDate)
   const dateRange = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
   const statusCfg = isPermanent ? PERMANENT_STATUS : (status ? STATUS_CONFIG[status] : null)
+  const showStatus = isPermanent || status === 'ended'
   const catColor  = CATEGORY_COLORS[spot.category]
 
   return (
@@ -113,7 +114,7 @@ export default async function EventDetailPage({ params }: Props) {
               >
                 {CATEGORY_EMOJIS[spot.category]} {CATEGORY_LABELS[spot.category]}
               </span>
-              {statusCfg && (
+              {statusCfg && showStatus && (
                 <span
                   className="text-xs font-semibold px-2.5 py-1 rounded-full"
                   style={{ background: statusCfg.bg, color: statusCfg.color }}

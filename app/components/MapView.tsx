@@ -255,6 +255,7 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
   const dateRange = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
   const timeRange = fmtTimeRange(spot.startTime, spot.endTime)
   const statusCfg = isPark ? { ...PARK_STATUS, label: spot.spotLabel || PARK_STATUS.label } : (status ? STATUS_CONFIG[status] : null)
+  const showStatus = isPark || status === 'ended'
 
   return (
     <div
@@ -315,7 +316,7 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
             }}>
               {spot.name}
             </p>
-            {statusCfg && (
+            {statusCfg && showStatus && (
               <p style={{
                 fontSize: 11, margin: '-2px 0 8px',
                 fontWeight: 600, color: statusCfg.color,

@@ -177,6 +177,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
   const dateRange   = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
   const timeRange   = fmtTimeRange(spot.startTime, spot.endTime)
   const statusCfg   = isPark ? { ...PARK_STATUS, label: spot.spotLabel || PARK_STATUS.label } : (status ? STATUS_CONFIG[status] : null)
+  const showStatus  = isPark || status === 'ended'
   const image       = spot.imageUrl || ogpImage || null
   const badgeBg     = BADGE_BG_COLOR
   const badgeColor  = '#4b5563'
@@ -239,7 +240,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                   )
                 )}
               </div>
-              {statusCfg && (
+              {statusCfg && showStatus && (
                 <span style={{ fontSize: 14, fontWeight: 600, color: statusCfg.color, flexShrink: 0, whiteSpace: 'nowrap' }}>
                   {statusCfg.label}
                 </span>
@@ -461,9 +462,9 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
     <aside className="bg-white flex flex-col overflow-hidden w-80 h-full shadow-lg">
       {/* ヘッダー層（固定） */}
       <div className="shrink-0" style={{ borderBottom: '1px solid #f3f4f6', padding: '14px 16px 12px' }}>
-        {(statusCfg || (!statusCfg && spot.scheduleNote)) && (
+        {((statusCfg && showStatus) || (!statusCfg && spot.scheduleNote)) && (
           <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-            {statusCfg && (
+            {statusCfg && showStatus && (
               <span style={{ fontSize: 12, fontWeight: 600, color: statusCfg.color, whiteSpace: 'nowrap' }}>
                 {statusCfg.label}
               </span>
