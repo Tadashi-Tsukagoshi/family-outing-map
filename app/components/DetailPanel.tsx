@@ -475,7 +475,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
             )}
           </div>
         )}
-        <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111', lineHeight: 1.4, margin: 0 }}>
+        <h2 style={{ fontSize: 18, fontWeight: 600, color: '#111', lineHeight: 1.4, margin: 0 }}>
           {spot.name}
         </h2>
         {isPark ? (
