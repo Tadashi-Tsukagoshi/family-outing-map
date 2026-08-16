@@ -124,8 +124,7 @@ export default function Sidebar({
         <div className="p-4 pl-[22px] border-b border-gray-200">
           <h1 className="text-xl text-black" style={{ fontFamily: "'Shippori Mincho', serif" }}>群馬県おでかけまっぷ</h1>
           <p className="text-xs text-gray-400 mt-1 leading-relaxed">
-            今週末、家族でどこいく？<br />
-            県民がつくる、群馬のおでかけプラットフォーム
+            群馬県の週末おでかけプラットフォーム
           </p>
           <a
             href="/admin"
