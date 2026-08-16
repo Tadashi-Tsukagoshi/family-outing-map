@@ -1,10 +1,22 @@
 import { supabaseAdmin } from '@/lib/supabase'
 
+type EventDateRow = {
+  id: string | number
+  start_date: string
+  end_date: string
+  venue: string | null
+  address: string | null
+  lat: number | null
+  lng: number | null
+  note: string | null
+  sort_order: number
+}
+
 export async function GET() {
   const supabase = supabaseAdmin()
   const { data, error } = await supabase
     .from('events')
-    .select('id, name, description, start_date, end_date, start_time, end_time, business_hours, spot_label, schedule_note, venue, address, fee, image_url, lat, lng, category, type, url, collected_at, posted_by, poster_type, likes, edited_by, edited_at')
+    .select('id, name, description, start_date, end_date, start_time, end_time, business_hours, spot_label, schedule_note, venue, address, fee, image_url, lat, lng, category, type, url, collected_at, posted_by, poster_type, likes, edited_by, edited_at, event_dates(id, start_date, end_date, venue, address, lat, lng, note, sort_order)')
     .eq('status', 'approved')
     .order('start_date', { ascending: true })
 
@@ -39,6 +51,22 @@ export async function GET() {
     endTime:      e.end_time ?? undefined,
     businessHours: e.business_hours ?? undefined,
     spotLabel:    e.spot_label ?? undefined,
+    eventDates: Array.isArray(e.event_dates) && e.event_dates.length > 0
+      ? (e.event_dates as EventDateRow[])
+          .slice()
+          .sort((a, b) => (a.sort_order - b.sort_order) || a.start_date.localeCompare(b.start_date))
+          .map(d => ({
+            id:             String(d.id),
+            startDate:      d.start_date,
+            endDate:        d.end_date,
+            venue:          d.venue ?? '',
+            address:        d.address ?? '',
+            lat:            d.lat ?? null,
+            lng:            d.lng ?? null,
+            note:           d.note ?? '',
+            useCustomVenue: !!(d.venue || d.address),
+          }))
+      : undefined,
   }))
 
   return Response.json({ events, lastCollected: null })

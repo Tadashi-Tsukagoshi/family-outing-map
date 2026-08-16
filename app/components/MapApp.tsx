@@ -219,6 +219,33 @@ export default function MapApp() {
     })
   }, [allSpots, periodFilter, activeCategories])
 
+  // event_plus: 会場（lat/lng）が複数ある場合、地図には会場ごとに別ピンを表示する。
+  // サイドバー一覧（filteredSpots）は1件のまま変更しない。
+  const mapSpots = useMemo(() => {
+    const result: Spot[] = []
+    for (const spot of filteredSpots) {
+      const pins = spot.category === 'event_plus' ? spot.eventPlusPins : undefined
+      if (!pins || pins.length <= 1) {
+        result.push(spot)
+        continue
+      }
+      pins.forEach((pin, i) => {
+        result.push({
+          ...spot,
+          id: i === 0 ? spot.id : `${spot.id}::${i}`,
+          eventId: spot.id,
+          startDate: pin.startDate,
+          endDate: pin.endDate,
+          venue: pin.venue,
+          address: pin.address,
+          lat: pin.lat,
+          lng: pin.lng,
+        })
+      })
+    }
+    return result
+  }, [filteredSpots])
+
   const toggleCategory = (cat: Category) => {
     setActiveCategories((prev) => {
       const next = new Set(prev)
@@ -259,7 +286,7 @@ export default function MapApp() {
     return (
       <div className="relative h-full w-full">
         <MapView
-          spots={filteredSpots}
+          spots={mapSpots}
           selectedSpot={selectedSpot}
           onSpotSelect={setSelectedSpot}
           onDetailOpen={handleDetailOpen}
@@ -355,7 +382,7 @@ export default function MapApp() {
           </div>
         )}
         <MapView
-          spots={filteredSpots}
+          spots={mapSpots}
           selectedSpot={selectedSpot}
           onSpotSelect={setSelectedSpot}
           onDetailOpen={handleDetailOpen}

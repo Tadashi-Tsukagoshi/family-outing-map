@@ -1,5 +1,5 @@
 import type { Spot, Category, EventType, EventDateEntry } from './spots'
-import { normalizeCategory, normalizeEventType } from './spots'
+import { normalizeCategory, normalizeEventType, resolveEventPlusOccurrences } from './spots'
 
 export type CollectedEvent = {
   id: string
@@ -34,7 +34,7 @@ export type CollectedEvent = {
   endTime?: string
   businessHours?: string
   spotLabel?: string
-  /** category='event_plus' の複数日程（event_dates テーブル。API未実装のため常に undefined） */
+  /** category='event_plus' の複数日程（event_dates テーブル由来） */
   eventDates?: EventDateEntry[]
 }
 
@@ -57,7 +57,7 @@ export function eventToSpot(event: CollectedEvent): Spot {
   const start = event.startDate ?? event.date
   const end   = event.endDate   ?? event.date
 
-  return {
+  const spot: Spot = {
     id: event.id,
     name: event.name,
     category: normalizeCategory(event.category),
@@ -86,5 +86,26 @@ export function eventToSpot(event: CollectedEvent): Spot {
     endTime:      event.endTime,
     businessHours: event.businessHours,
     spotLabel:    event.spotLabel,
+    eventDates:   event.eventDates,
   }
+
+  // event_plus: event_dates から直近の次回開催日を選び、Spot本体の日程・会場・位置として使う
+  // （地図上の複数ピン表示は eventPlusPins を参照して呼び出し側で組み立てる）
+  if (spot.category === 'event_plus') {
+    const pins = resolveEventPlusOccurrences(spot)
+    spot.eventPlusPins = pins
+    if (pins.length > 0) {
+      const primary = pins[0]
+      spot.startDate = primary.startDate
+      spot.endDate   = primary.endDate
+      spot.venue     = primary.venue
+      spot.address   = primary.address
+      spot.lat       = primary.lat
+      spot.lng       = primary.lng
+      spot.date      = primary.endDate
+      spot.weekendDates = [primary.endDate]
+    }
+  }
+
+  return spot
 }

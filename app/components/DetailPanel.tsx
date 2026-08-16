@@ -74,6 +74,9 @@ type Props = {
 }
 
 export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expanded = false, mobile = false }: Props) {
+  // event_plus は複数ピンに分裂して spot.id がピンごとの合成idになるため、
+  // 画像・いいねなど実イベントに紐づくAPI呼び出しは常に eventId（実イベントのid）を使う
+  const eventId = spot.eventId ?? spot.id
   const [ogpImage, setOgpImage] = useState<string | null>(null)
   const [likes, setLikes] = useState(spot.likes ?? 0)
   const [liked, setLiked] = useState(false)
@@ -121,13 +124,13 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
 
   useEffect(() => {
     setGalleryImages([])
-    fetch(`/api/events/${spot.id}/images`)
+    fetch(`/api/events/${eventId}/images`)
       .then(r => r.json())
       .then(d => setGalleryImages(Array.isArray(d.images)
         ? d.images.map((img: { imageUrl: string; caption?: string | null }) => ({ imageUrl: img.imageUrl, caption: img.caption ?? null }))
         : []))
       .catch(() => {})
-  }, [spot.id])
+  }, [eventId])
 
   useEffect(() => {
     const zoomControl = document.querySelector('.mapboxgl-ctrl-top-right .mapboxgl-ctrl-group') as HTMLElement | null
@@ -143,8 +146,8 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
 
   useEffect(() => {
     setLikes(spot.likes ?? 0)
-    setLiked(hasLiked(spot.id))
-  }, [spot.id, spot.likes])
+    setLiked(hasLiked(eventId))
+  }, [eventId, spot.likes])
 
   useEffect(() => {
     return () => {
@@ -156,14 +159,14 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
     const next = !liked
     setLiked(next)
     setLikes((n) => n + (next ? 1 : -1))
-    if (next) rememberLiked(spot.id)
-    else      forgetLiked(spot.id)
+    if (next) rememberLiked(eventId)
+    else      forgetLiked(eventId)
 
     if (likeDebounceRef.current) clearTimeout(likeDebounceRef.current)
     likeDebounceRef.current = setTimeout(() => {
       likeDebounceRef.current = null
       const requestId = ++likeRequestIdRef.current
-      fetch(`/api/events/${spot.id}/like`, { method: next ? 'POST' : 'DELETE' })
+      fetch(`/api/events/${eventId}/like`, { method: next ? 'POST' : 'DELETE' })
         .then((res) => res.json())
         .then((d) => {
           if (requestId === likeRequestIdRef.current && typeof d.likes === 'number') setLikes(d.likes)

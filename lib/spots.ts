@@ -38,6 +38,13 @@ export type Spot = {
   likes?: number
   editedBy?: string
   editedAt?: string
+  /** category='event_plus' の複数日程（event_dates テーブル由来） */
+  eventDates?: EventDateEntry[]
+  /** eventDates をグルーピング・絞り込みした結果（地図の複数ピン表示用）。先頭が全体で最も近い開催日 */
+  eventPlusPins?: EventPlusOccurrence[]
+  /** 地図上で複数ピンに分裂した場合の実イベントid。id 自体はピンごとの合成id になるため、
+   *  画像・いいねなど実イベントに紐づくAPI呼び出しは eventId ?? id を使う */
+  eventId?: string
 }
 
 const VALID_CATEGORIES = new Set<string>(['event', 'event_plus', 'fireworks', 'festival', 'park', 'kumamoto_earthquake_r8'])
@@ -149,4 +156,63 @@ export type EventDateEntry = {
   lat: number | null
   lng: number | null
   note: string
+}
+
+/** event_plus の1回の開催（グルーピング・絞り込み後の event_dates の1件） */
+export type EventPlusOccurrence = {
+  startDate: string
+  endDate: string
+  venue: string
+  address: string
+  lat: number
+  lng: number
+}
+
+/**
+ * event_plus の eventDates を lat/lng でグルーピングし、各グループの直近の次回開催日（1件）を返す。
+ * - lat/lng が未入力の日程は親スポット（Spot自身）の lat/lng・venue・address を使う
+ * - 先頭要素が全体で最も近い開催日（Spot本体の startDate/endDate/venue/address/lat/lng に使う）
+ * - すべての日程が終了している場合は、全体で最後に終了した1件だけを返す
+ * - eventDates が無い場合は空配列を返す（呼び出し側で Spot 自身の日程にフォールバックする）
+ */
+export function resolveEventPlusOccurrences(spot: Spot): EventPlusOccurrence[] {
+  const dates = spot.eventDates ?? []
+  const effective = dates
+    .filter(d => d.startDate && d.endDate)
+    .map(d => ({
+      startDate: d.startDate,
+      endDate:   d.endDate,
+      venue:     d.venue   || spot.venue   || '',
+      address:   d.address || spot.address || '',
+      lat:       d.lat ?? spot.lat,
+      lng:       d.lng ?? spot.lng,
+    }))
+
+  if (effective.length === 0) return []
+
+  const groups = new Map<string, typeof effective>()
+  for (const d of effective) {
+    const key = `${d.lat.toFixed(6)},${d.lng.toFixed(6)}`
+    const group = groups.get(key)
+    if (group) group.push(d)
+    else groups.set(key, [d])
+  }
+
+  const todayStr = new Date().toISOString().split('T')[0]
+  const pins: typeof effective = []
+  for (const group of groups.values()) {
+    const upcoming = group
+      .filter(d => d.endDate >= todayStr)
+      .sort((a, b) => a.startDate.localeCompare(b.startDate))
+    if (upcoming.length > 0) pins.push(upcoming[0])
+  }
+
+  if (pins.length === 0) {
+    // すべての日程が終了 → 全体で最後に終了した1件だけ
+    const past = [...effective].sort((a, b) => b.endDate.localeCompare(a.endDate))
+    return [past[0]]
+  }
+
+  // 先頭が全体で最も近い開催日になるよう並べ替え
+  return pins.sort((a, b) => a.startDate.localeCompare(b.startDate))
 }

@@ -467,8 +467,9 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
   const handlePinnedHoverChange = useCallback((hover: HoverState | null) => {
     setPinnedHover(hover)
     if (hover) {
-      fetchGalleryFirst(hover.spot.id)
-      if (hover.spot.url && !hover.spot.imageUrl) fetchOgp(hover.spot.id, hover.spot.url)
+      const eventId = hover.spot.eventId ?? hover.spot.id
+      fetchGalleryFirst(eventId)
+      if (hover.spot.url && !hover.spot.imageUrl) fetchOgp(eventId, hover.spot.url)
     }
   }, [fetchOgp, fetchGalleryFirst])
 
@@ -476,8 +477,9 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
     if (Date.now() < suppressHoverUntil.current) return
     clearHide()
     setHovered({ spot, x, y })
-    fetchGalleryFirst(spot.id)
-    if (spot.url && !spot.imageUrl) fetchOgp(spot.id, spot.url)
+    const eventId = spot.eventId ?? spot.id
+    fetchGalleryFirst(eventId)
+    if (spot.url && !spot.imageUrl) fetchOgp(eventId, spot.url)
   }, [clearHide, fetchOgp, fetchGalleryFirst])
 
   const handleImmediateHide = useCallback(() => {
@@ -814,8 +816,8 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
             wrapperRef={wrapperRef}
             onMouseEnter={handleCardMouseEnter}
             onMouseLeave={scheduleHide}
-            ogpImage={ogpCache[activeHover.spot.id] ?? undefined}
-            galleryImage={galleryCache[activeHover.spot.id] ?? undefined}
+            ogpImage={ogpCache[activeHover.spot.eventId ?? activeHover.spot.id] ?? undefined}
+            galleryImage={galleryCache[activeHover.spot.eventId ?? activeHover.spot.id] ?? undefined}
             onDetailOpen={onDetailOpen}
           />
         )
