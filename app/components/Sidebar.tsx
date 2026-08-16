@@ -126,12 +126,6 @@ export default function Sidebar({
           <p className="text-xs text-gray-400 mt-1 leading-relaxed">
             群馬県の週末おでかけプラットフォーム
           </p>
-          <a
-            href="/admin"
-            className="inline-flex items-center gap-1 mt-3 px-4 py-2 rounded-full text-sm font-semibold text-white bg-[#3274b5] hover:bg-[#2b639a] transition-colors"
-          >
-            ＋ 投稿
-          </a>
         </div>
       )}
 

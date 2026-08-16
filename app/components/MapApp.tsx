@@ -309,15 +309,6 @@ export default function MapApp() {
           )}
         </div>
 
-        {/* イベント投稿ボタン */}
-        <a
-          href="/admin"
-          className="fixed top-4 right-4 inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold text-white cursor-pointer select-none bg-[#3274b5] hover:bg-[#2b639a] transition-colors"
-          style={{ boxShadow: '0 2px 6px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.15)', zIndex: 999 }}
-        >
-          ＋ 投稿
-        </a>
-
         <BottomSheet
           spotCount={filteredSpots.length}
           sheetState={sheetState}
