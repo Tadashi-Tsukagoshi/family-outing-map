@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
-import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, EVENT_TYPE_LABELS, EVENT_CATEGORIES, DISASTER_CATEGORIES, type AllCategory, type EventType } from '@/lib/spots'
+import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, EVENT_TYPE_LABELS, EVENT_CATEGORIES, DISASTER_CATEGORIES, type AllCategory, type EventType, type EventDateEntry } from '@/lib/spots'
 import { CategoryIcon } from './Sidebar'
 import type { CollectedEvent } from '@/lib/events'
 import { resizeImage } from '@/lib/image-utils'
@@ -23,6 +23,8 @@ export type FormState = {
   businessHours: string
   spotLabel:     string
   scheduleNote:  string
+  /** category='event_plus' 選択時の複数日程（event_dates テーブルに対応。保存処理は未実装） */
+  eventDates:    EventDateEntry[]
   venue:         string
   fee:           string
   imageUrl:      string
@@ -43,6 +45,14 @@ export type FormState = {
 type GeoStatus   = 'idle' | 'loading' | 'ok' | 'error'
 type ImageStatus = 'idle' | 'uploading' | 'ok' | 'error'
 
+/** 住所→緯度経度のジオコーディング（Google Geocoding API 経由）。単一の住所欄と日程ごとの住所欄で共用する */
+async function fetchGeocode(address: string): Promise<{ lat: number; lng: number; displayName: string }> {
+  const res  = await fetch(`/api/geocode?q=${encodeURIComponent(address + ' 日本')}`)
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.error ?? '取得失敗')
+  return { lat: data.lat, lng: data.lng, displayName: data.display_name }
+}
+
 const MAX_IMAGES = 5
 
 export const POSTER_TYPE_LABELS: Record<string, string> = {
@@ -57,6 +67,7 @@ export const INITIAL_FORM: FormState = {
   type: 'event',
   dateConfirmed: true,
   startDate: '', endDate: '', startTime: '', endTime: '', businessHours: '', spotLabel: '', scheduleNote: '',
+  eventDates: [],
   venue: '', fee: '', imageUrl: '', imageUrls: [], imageCaptions: [], address: '',
   lat: null, lng: null,
   description: '', url: '',
@@ -78,6 +89,7 @@ export function eventToFormState(ev: CollectedEvent): FormState {
     businessHours: ev.businessHours ?? '',
     spotLabel:     ev.spotLabel ?? '',
     scheduleNote:  ev.scheduleNote ?? '',
+    eventDates:    ev.eventDates ?? [],
     venue:         ev.venue,
     fee:           ev.fee ?? '',
     imageUrl:      ev.imageUrl ?? '',
@@ -218,18 +230,31 @@ export default function EventFormFields({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editing, eventId])
 
+  // 編集時：category='event_plus' の場合、event_dates に登録済みの日程を読み込む
+  useEffect(() => {
+    if (!editing || !eventId) return
+    fetch(`/api/event-dates?event_id=${encodeURIComponent(eventId)}`)
+      .then(r => r.json())
+      .then(d => {
+        const rows: Omit<EventDateEntry, 'useCustomVenue'>[] = Array.isArray(d.dates) ? d.dates : []
+        if (rows.length > 0) {
+          set('eventDates', rows.map(r => ({ ...r, useCustomVenue: !!(r.venue || r.address) })))
+        }
+      })
+      .catch(() => {})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editing, eventId])
+
   const geocode = async (address: string) => {
     if (!address.trim()) return
     setGeoStatus('loading')
     setGeoMessage('住所を検索中...')
     try {
-      const res  = await fetch(`/api/geocode?q=${encodeURIComponent(address + ' 日本')}`)
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? '取得失敗')
-      set('lat', data.lat)
-      set('lng', data.lng)
+      const { lat, lng, displayName } = await fetchGeocode(address)
+      set('lat', lat)
+      set('lng', lng)
       setGeoStatus('ok')
-      setGeoMessage(`📍 ${data.display_name}`)
+      setGeoMessage(`📍 ${displayName}`)
     } catch (e) {
       setGeoStatus('error')
       setGeoMessage(e instanceof Error ? e.message : '住所が見つかりませんでした')
@@ -238,11 +263,14 @@ export default function EventFormFields({
     }
   }
 
+  const isAddressComposing = useRef(false)
+
   const onAddressChange = (v: string) => {
     set('address', v)
     setGeoStatus('idle')
     setGeoMessage('')
     if (geoTimer.current) clearTimeout(geoTimer.current)
+    if (isAddressComposing.current) return
     if (v.trim().length >= 4) {
       geoTimer.current = setTimeout(() => geocode(v), 700)
     }
@@ -296,7 +324,71 @@ export default function EventFormFields({
     set('imageCaptions', next)
   }
 
-  const categories = form.type === 'disaster' ? DISASTER_CATEGORIES : EVENT_CATEGORIES
+  const categories = (form.type === 'disaster' ? DISASTER_CATEGORIES : EVENT_CATEGORIES)
+    .filter(cat => isStaffAdmin || cat !== 'event_plus')
+
+  const isEventPlus = form.category === 'event_plus'
+
+  // event_dates の保存（POST /api/event-dates）は送信元（AdminContent の handleSubmit）で
+  // イベント本体の保存成功後にまとめて行う。ここではステート管理のみ。
+  const addEventDate = () => {
+    set('eventDates', [
+      ...form.eventDates,
+      { id: crypto.randomUUID(), startDate: '', endDate: '', venue: '', address: '', note: '', useCustomVenue: false, lat: null, lng: null },
+    ])
+  }
+  const removeEventDate = (id: string) => {
+    set('eventDates', form.eventDates.filter(d => d.id !== id))
+  }
+  const updateEventDate = (id: string, patch: Partial<EventDateEntry>) => {
+    set('eventDates', form.eventDates.map(d => d.id === id ? { ...d, ...patch } : d))
+  }
+
+  // ─── 日程ごとの会場・住所（useCustomVenue=true の場合のみ） ─────────────
+  const [dateGeoStatus,  setDateGeoStatus]  = useState<Record<string, GeoStatus>>({})
+  const [dateGeoMessage, setDateGeoMessage] = useState<Record<string, string>>({})
+  const [dateMapPickerOpen, setDateMapPickerOpen] = useState<Record<string, boolean>>({})
+  const dateGeoTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
+  const dateAddressComposing = useRef<Record<string, boolean>>({})
+
+  const toggleDateMapPicker = (id: string) => setDateMapPickerOpen(s => ({ ...s, [id]: !s[id] }))
+
+  const geocodeDate = async (id: string, address: string) => {
+    if (!address.trim()) return
+    setDateGeoStatus(s => ({ ...s, [id]: 'loading' }))
+    setDateGeoMessage(s => ({ ...s, [id]: '住所を検索中...' }))
+    try {
+      const { lat, lng, displayName } = await fetchGeocode(address)
+      updateEventDate(id, { lat, lng })
+      setDateGeoStatus(s => ({ ...s, [id]: 'ok' }))
+      setDateGeoMessage(s => ({ ...s, [id]: `📍 ${displayName}` }))
+    } catch (e) {
+      setDateGeoStatus(s => ({ ...s, [id]: 'error' }))
+      setDateGeoMessage(s => ({ ...s, [id]: e instanceof Error ? e.message : '住所が見つかりませんでした' }))
+      updateEventDate(id, { lat: null, lng: null })
+    }
+  }
+
+  const onDateAddressChange = (id: string, v: string) => {
+    updateEventDate(id, { address: v })
+    setDateGeoStatus(s => ({ ...s, [id]: 'idle' }))
+    setDateGeoMessage(s => ({ ...s, [id]: '' }))
+    if (dateGeoTimers.current[id]) clearTimeout(dateGeoTimers.current[id])
+    if (dateAddressComposing.current[id]) return
+    if (v.trim().length >= 4) {
+      dateGeoTimers.current[id] = setTimeout(() => geocodeDate(id, v), 700)
+    }
+  }
+
+  const toggleDateCustomVenue = (id: string, checked: boolean) => {
+    if (checked) {
+      updateEventDate(id, { useCustomVenue: true })
+    } else {
+      updateEventDate(id, { useCustomVenue: false, venue: '', address: '', lat: null, lng: null })
+      setDateGeoStatus(s => ({ ...s, [id]: 'idle' }))
+      setDateGeoMessage(s => ({ ...s, [id]: '' }))
+    }
+  }
 
   const typeOptions: { value: EventType; label: string }[] = [
     { value: 'event',     label: EVENT_TYPE_LABELS.event },
@@ -409,6 +501,167 @@ export default function EventFormFields({
             />
           </div>
         </>
+      ) : isEventPlus ? (
+        <div>
+          <Label required>開催日程</Label>
+          <p className="text-xs text-gray-400 mb-2">
+            日程ごとに開始日・終了日・会場を登録できます（event_dates テーブルで管理）。
+          </p>
+          <div className="space-y-3">
+            {form.eventDates.map((d, i) => (
+              <div key={d.id} className="rounded-xl border border-gray-200 p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-gray-500">日程 {i + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeEventDate(d.id)}
+                    disabled={disabled}
+                    className="text-xs text-red-500 hover:text-red-700 disabled:opacity-40 cursor-pointer"
+                  >
+                    削除
+                  </button>
+                </div>
+                <div className="flex gap-3">
+                  <div style={{ width: 'calc(50% - 6px)' }}>
+                    <Label required>開始日</Label>
+                    <Input
+                      type="date"
+                      value={d.startDate}
+                      onChange={e => updateEventDate(d.id, { startDate: e.target.value })}
+                      required
+                      disabled={disabled}
+                      style={{ WebkitAppearance: 'none', width: '100%', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                  <div style={{ width: 'calc(50% - 6px)' }}>
+                    <Label required>終了日</Label>
+                    <Input
+                      type="date"
+                      value={d.endDate}
+                      min={d.startDate}
+                      onChange={e => updateEventDate(d.id, { endDate: e.target.value })}
+                      required
+                      disabled={disabled}
+                      style={{ WebkitAppearance: 'none', width: '100%', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                </div>
+                <label className="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={d.useCustomVenue}
+                    onChange={e => toggleDateCustomVenue(d.id, e.target.checked)}
+                    disabled={disabled}
+                    className="cursor-pointer"
+                  />
+                  会場が異なる場合
+                </label>
+                {d.useCustomVenue && (
+                  <>
+                    <div>
+                      <Label>会場</Label>
+                      <Input
+                        value={d.venue}
+                        onChange={e => updateEventDate(d.id, { venue: e.target.value })}
+                        placeholder="例：太田市総合体育館"
+                        disabled={disabled}
+                      />
+                    </div>
+                    <div>
+                      <Label>住所</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          value={d.address}
+                          onChange={e => onDateAddressChange(d.id, e.target.value)}
+                          onCompositionStart={() => { dateAddressComposing.current[d.id] = true }}
+                          onCompositionEnd={e => {
+                            dateAddressComposing.current[d.id] = false
+                            onDateAddressChange(d.id, e.currentTarget.value)
+                          }}
+                          placeholder="例：群馬県太田市飯塚町1059-1"
+                          disabled={disabled}
+                          className="flex-1"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => geocodeDate(d.id, d.address)}
+                          disabled={!d.address.trim() || dateGeoStatus[d.id] === 'loading' || disabled}
+                          className="flex-shrink-0 px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-600
+                            hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                        >
+                          {dateGeoStatus[d.id] === 'loading' ? '…' : '取得'}
+                        </button>
+                      </div>
+                      {dateGeoMessage[d.id] && (
+                        <p className={`mt-1.5 text-xs leading-snug
+                          ${dateGeoStatus[d.id] === 'ok'      ? 'text-green-600' : ''}
+                          ${dateGeoStatus[d.id] === 'error'   ? 'text-red-500'   : ''}
+                          ${dateGeoStatus[d.id] === 'loading' ? 'text-gray-400'  : ''}`}>
+                          {dateGeoMessage[d.id]}
+                        </p>
+                      )}
+                      {d.lat !== null && d.lng !== null && (
+                        <div className="mt-2 flex gap-2">
+                          <div className="flex-1">
+                            <span className="text-[10px] text-gray-400 block mb-0.5">緯度</span>
+                            <Input value={d.lat.toFixed(6)} readOnly className="bg-gray-50 text-gray-500 text-xs" />
+                          </div>
+                          <div className="flex-1">
+                            <span className="text-[10px] text-gray-400 block mb-0.5">経度</span>
+                            <Input value={d.lng.toFixed(6)} readOnly className="bg-gray-50 text-gray-500 text-xs" />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 地図ピッカー */}
+                      <button
+                        type="button"
+                        onClick={() => toggleDateMapPicker(d.id)}
+                        disabled={disabled}
+                        className="mt-2 text-xs text-blue-500 hover:text-blue-700 disabled:opacity-40 cursor-pointer"
+                      >
+                        {dateMapPickerOpen[d.id] ? '▲ 地図を閉じる' : '▼ 地図でピンを直接指定する'}
+                      </button>
+                      {dateMapPickerOpen[d.id] && (
+                        <div className="mt-2">
+                          <p className="text-xs text-gray-400 mb-1.5">地図をクリック、またはピンをドラッグして位置を指定してください。</p>
+                          <MapPicker
+                            key={dateMapPickerOpen[d.id] ? 'open' : 'closed'}
+                            lat={d.lat}
+                            lng={d.lng}
+                            onChange={(lat, lng) => {
+                              updateEventDate(d.id, { lat, lng })
+                              setDateGeoStatus(s => ({ ...s, [d.id]: 'ok' }))
+                              setDateGeoMessage(s => ({ ...s, [d.id]: `📍 地図でピンを指定しました（${lat.toFixed(5)}, ${lng.toFixed(5)}）` }))
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+                <div>
+                  <Label>備考</Label>
+                  <Input
+                    value={d.note}
+                    onChange={e => updateEventDate(d.id, { note: e.target.value })}
+                    placeholder="例：荒天時は翌日順延"
+                    disabled={disabled}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={addEventDate}
+            disabled={disabled}
+            className="mt-3 w-full py-2 rounded-xl border border-dashed border-gray-300 text-sm text-gray-500
+              hover:border-gray-400 hover:text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+          >
+            ＋ 日程を追加
+          </button>
+        </div>
       ) : (
         <div>
           <Label required>日程</Label>
@@ -553,6 +806,11 @@ export default function EventFormFields({
           <Input
             value={form.address}
             onChange={e => onAddressChange(e.target.value)}
+            onCompositionStart={() => { isAddressComposing.current = true }}
+            onCompositionEnd={e => {
+              isAddressComposing.current = false
+              onAddressChange(e.currentTarget.value)
+            }}
             placeholder="例：群馬県太田市飯塚町1059-1"
             disabled={disabled}
             className="flex-1"

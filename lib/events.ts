@@ -1,4 +1,4 @@
-import type { Spot, Category, EventType } from './spots'
+import type { Spot, Category, EventType, EventDateEntry } from './spots'
 import { normalizeCategory, normalizeEventType } from './spots'
 
 export type CollectedEvent = {
@@ -34,6 +34,8 @@ export type CollectedEvent = {
   endTime?: string
   businessHours?: string
   spotLabel?: string
+  /** category='event_plus' の複数日程（event_dates テーブル。API未実装のため常に undefined） */
+  eventDates?: EventDateEntry[]
 }
 
 export type EventsDatabase = {

@@ -178,7 +178,10 @@ export default function MapApp() {
 
   const filteredSpots = useMemo(() => {
     return allSpots.filter((spot) => {
-      if (!activeCategories.has(spot.category)) return false
+      const categoryActive = spot.category === 'event_plus'
+        ? activeCategories.has('event')
+        : activeCategories.has(spot.category)
+      if (!categoryActive) return false
 
       if (periodFilter === 'ended_2026') {
         if (spot.type === 'permanent') return false

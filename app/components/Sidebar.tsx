@@ -51,7 +51,7 @@ function Toggle({
   )
 }
 
-const ICON_RATIO: Record<AllCategory, number> = { event: 1, fireworks: 1.6, festival: 0.92, park: 0.92, kumamoto_earthquake_r8: 1 }
+const ICON_RATIO: Record<AllCategory, number> = { event: 1, event_plus: 1, fireworks: 1.6, festival: 0.92, park: 0.92, kumamoto_earthquake_r8: 1 }
 const GRADIENT_BORDER_BG: Partial<Record<Category, string>> = { fireworks: '#0a0a3c', festival: '#1e1614' }
 const GRADIENT_BORDER = 'conic-gradient(from 0deg, #ffd600 0deg, #ffd600 60deg, #ff8a00 120deg, #ea4335 200deg, #bc2a8d 280deg, #ffd600 360deg)'
 const GRADIENT_BORDER_WIDTH = 2.5 * 0.7
@@ -181,7 +181,7 @@ export default function Sidebar({
         <div>
           <span className="text-sm" style={{ color: '#1F1F1F' }}>カテゴリ</span>
           <div className="flex flex-wrap gap-1.5 mt-2">
-            {(Object.keys(CATEGORY_LABELS) as Category[]).map((cat) => {
+            {(Object.keys(CATEGORY_LABELS) as Category[]).filter((cat) => cat !== 'event_plus').map((cat) => {
               const active = activeCategories.has(cat)
               return (
                 <button

@@ -119,7 +119,7 @@ function pickIcon(category: Category): { src: string; bg: string; glow: string; 
   const src = getCategoryIconSrc(category) ?? ''
   if (category === 'fireworks') return { src, bg: '#0a0a3c', glow: '', ratio: 1.6 }
   if (category === 'festival')  return { src, bg: '#1e1614', glow: lanternGlow, ratio: 0.63 }
-  if (category === 'event')     return { src, bg: 'transparent', glow: '', ratio: 1 }
+  if (category === 'event' || category === 'event_plus') return { src, bg: 'transparent', glow: '', ratio: 1 }
   if (category === 'park')      return { src, bg: 'transparent', glow: '', ratio: 1 }
   if (category === 'kumamoto_earthquake_r8') return { src, bg: 'white', glow: '', ratio: 1.05 }
   return { src, bg: 'white', glow: '', ratio: 0.78 }
@@ -131,7 +131,7 @@ function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef
   const isActive = getEventStatus(spot.startDate, spot.endDate) === 'active'
   const wrapperCls = isActive ? ' class="pin-vibrate"' : ''
 
-  if (spot.category === 'event' || spot.category === 'park') {
+  if (spot.category === 'event' || spot.category === 'event_plus' || spot.category === 'park') {
     const { src: icon } = pickIcon(spot.category)
     const hit  = selected ? 48 : (isMobile ? 48 : 40)
     const size = selected ? 44 : 36

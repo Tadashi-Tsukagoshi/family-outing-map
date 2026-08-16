@@ -5,8 +5,21 @@ import { CategoryIcon } from './Sidebar'
 import EventFormFields, { type FormState, type PosterType, INITIAL_FORM, eventToFormState } from './EventFormFields'
 import PendingEventCard from './PendingEventCard'
 import { formatDateRange, type CollectedEvent } from '@/lib/events'
-import { CATEGORY_LABELS, type Category } from '@/lib/spots'
+import { CATEGORY_LABELS, type Category, type EventDateEntry } from '@/lib/spots'
 import { getEventStatus } from '@/lib/date-utils'
+
+/** event_plus の複数日程から「最も近い次回開催日」を選び、イベント本体の start_date/end_date に使う（ピンのステータス判定用） */
+function pickNearestEventDate(dates: EventDateEntry[]): { startDate: string; endDate: string } | null {
+  const valid = dates.filter(d => d.startDate && d.endDate)
+  if (valid.length === 0) return null
+  const todayStr = new Date().toISOString().split('T')[0]
+  const upcoming = valid
+    .filter(d => d.endDate >= todayStr)
+    .sort((a, b) => a.startDate.localeCompare(b.startDate))
+  if (upcoming.length > 0) return { startDate: upcoming[0].startDate, endDate: upcoming[0].endDate }
+  const past = [...valid].sort((a, b) => b.endDate.localeCompare(a.endDate))
+  return { startDate: past[0].startDate, endDate: past[0].endDate }
+}
 
 // ─── 型 ───────────────────────────────────────────────────────────
 type SubmitStatus = 'idle' | 'loading' | 'ok' | 'error'
@@ -249,6 +262,8 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
         if (token) headers['x-edit-token'] = token
       }
       const isPermanent = form.type === 'permanent'
+      const isEventPlus = form.category === 'event_plus'
+      const nearestDate = isEventPlus ? pickNearestEventDate(form.eventDates) : null
       const res = await fetch(url, {
         method,
         headers,
@@ -256,8 +271,8 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
         ...form,
         posterType:   fixedPosterType ?? form.posterType,
         scheduleNote: isPermanent ? '' : (form.dateConfirmed ? '' : form.scheduleNote),
-        startDate:    isPermanent ? '' : (form.dateConfirmed ? form.startDate : ''),
-        endDate:      isPermanent ? '' : (form.dateConfirmed ? form.endDate   : ''),
+        startDate:    isPermanent ? '' : isEventPlus ? (nearestDate?.startDate ?? '') : (form.dateConfirmed ? form.startDate : ''),
+        endDate:      isPermanent ? '' : isEventPlus ? (nearestDate?.endDate   ?? '') : (form.dateConfirmed ? form.endDate   : ''),
       }),
       })
       let data: Record<string, unknown> = {}
@@ -279,13 +294,41 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
         if (newId && newToken) setMyEvents(appendMyEvent(newId, newToken))
       }
 
+      let eventDatesWarning = ''
+      if (isEventPlus) {
+        const savedEventId = editingId ?? (data.event as { id?: string } | undefined)?.id
+        if (savedEventId) {
+          try {
+            const edRes = await fetch('/api/event-dates', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                event_id: savedEventId,
+                dates: form.eventDates.map(d => ({
+                  startDate: d.startDate,
+                  endDate:   d.endDate,
+                  venue:     d.useCustomVenue ? d.venue   : '',
+                  address:   d.useCustomVenue ? d.address : '',
+                  lat:       d.useCustomVenue ? d.lat : null,
+                  lng:       d.useCustomVenue ? d.lng : null,
+                  note:      d.note,
+                })),
+              }),
+            })
+            if (!edRes.ok) eventDatesWarning = '（日程の保存に失敗しました。もう一度保存してください）'
+          } catch {
+            eventDatesWarning = '（日程の保存に失敗しました。もう一度保存してください）'
+          }
+        }
+      }
+
       setSubmitStatus('ok')
       const eventName = (data.event as { name?: string } | undefined)?.name ?? form.name
-      setSubmitMessage(editingId
+      setSubmitMessage((editingId
         ? `「${eventName}」を更新しました！`
         : showApprovalNotice
           ? `「${eventName}」の投稿を受け付けました。運営が確認後、地図に掲載されます。`
-          : `「${eventName}」を登録しました！`)
+          : `「${eventName}」を登録しました！`) + eventDatesWarning)
       setForm({ ...INITIAL_FORM, posterType: getInitialPosterType() })
       setEditingId(null)
       setFormInstanceKey(k => k + 1)
@@ -398,7 +441,9 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
               type="submit"
               disabled={isSubmitting || imageUploading || !form.name ||
                 (form.type === 'permanent' ? false :
-                  !form.venue || (form.dateConfirmed ? (!form.startDate || !form.endDate) : !form.scheduleNote))}
+                  form.category === 'event_plus'
+                    ? (!form.venue || form.eventDates.length === 0)
+                    : (!form.venue || (form.dateConfirmed ? (!form.startDate || !form.endDate) : !form.scheduleNote)))}
               className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-colors cursor-pointer
                 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
