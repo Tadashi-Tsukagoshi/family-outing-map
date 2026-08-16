@@ -739,7 +739,7 @@ export default function EventFormFields({
           <Input
             value={form.postedBy}
             onChange={e => set('postedBy', e.target.value)}
-            placeholder="例：太田っ子、匿名　など"
+            placeholder="例：グンマニア、匿名　など"
             required
             disabled={disabled}
           />
