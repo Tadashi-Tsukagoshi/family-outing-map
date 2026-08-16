@@ -70,7 +70,7 @@ export async function POST(req: Request) {
     type,
     url:           ((b.url as string | undefined) ?? '').trim() || null,
     collected_at:  new Date().toISOString(),
-    posted_by:     ((b.postedBy as string | undefined) ?? '匿名').trim() || '匿名',
+    posted_by:     posterType === 'staff' ? 'おでかけまっぷ' : (((b.postedBy as string | undefined) ?? '匿名').trim() || '匿名'),
     email,
     poster_type:   posterType,
     edit_token:    editToken,

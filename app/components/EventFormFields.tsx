@@ -49,7 +49,7 @@ export const POSTER_TYPE_LABELS: Record<string, string> = {
   general:   '一般ユーザー',
   organizer: '主催者',
   business:  '事業者',
-  staff:     '運営',
+  staff:     'おでかけまっぷ',
 }
 
 export const INITIAL_FORM: FormState = {
@@ -732,17 +732,19 @@ export default function EventFormFields({
         )}
       </div>
 
-      {/* ニックネーム */}
-      <div>
-        <Label required>ニックネーム・ハンドルネーム</Label>
-        <Input
-          value={form.postedBy}
-          onChange={e => set('postedBy', e.target.value)}
-          placeholder="例：太田っ子、匿名　など"
-          required
-          disabled={disabled}
-        />
-      </div>
+      {/* ニックネーム（運営投稿時は非表示） */}
+      {fixedPosterType !== 'staff' && (
+        <div>
+          <Label required>ニックネーム・ハンドルネーム</Label>
+          <Input
+            value={form.postedBy}
+            onChange={e => set('postedBy', e.target.value)}
+            placeholder="例：太田っ子、匿名　など"
+            required
+            disabled={disabled}
+          />
+        </div>
+      )}
 
       {/* メールアドレス */}
       {showEmail && (
