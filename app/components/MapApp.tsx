@@ -290,8 +290,11 @@ export default function MapApp() {
                 padding: '6px 12px',
               }}
             >
+              <p className="text-sm font-bold text-gray-700 leading-relaxed" style={{ whiteSpace: 'nowrap' }}>
+                群馬県おでかけまっぷ
+              </p>
               <p className="text-xs text-gray-500 leading-relaxed" style={{ whiteSpace: 'nowrap' }}>
-                今週末、家族でどこいく？<br />県民がつくる、群馬のおでかけプラットフォーム
+                県民のための週末お出かけプラットフォーム
               </p>
               <a
                 href="https://docs.google.com/forms/d/e/1FAIpQLSfjd2ErqEMLI7gDMk4O5iutIRSUMI6AD0hkJSnN3tAT5UjIXA/viewform"
