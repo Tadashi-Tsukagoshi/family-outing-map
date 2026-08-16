@@ -49,7 +49,7 @@ export interface StatusConfig {
 
 export const STATUS_CONFIG: Record<EventStatus, StatusConfig> = {
   'active':    { label: '開催中',       bg: '#dcfce7', color: '#16a34a' },
-  'ended':     { label: '終了済み',     bg: '#f3f4f6', color: '#9ca3af' },
+  'ended':     { label: '終了',         bg: '#f3f4f6', color: '#9ca3af' },
   'upcoming':  { label: 'まもなく開催', bg: '#eff6ff', color: '#3b82f6' },
   'scheduled': { label: '開催予定',     bg: '#faf5ff', color: '#9333ea' },
 }
