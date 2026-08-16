@@ -294,7 +294,7 @@ export default function MapApp() {
                 群馬県おでかけまっぷ
               </p>
               <p className="text-xs text-gray-500 leading-relaxed" style={{ whiteSpace: 'nowrap' }}>
-                県民のための週末お出かけプラットフォーム
+                群馬県の週末おでかけプラットフォーム
               </p>
               <a
                 href="https://docs.google.com/forms/d/e/1FAIpQLSfjd2ErqEMLI7gDMk4O5iutIRSUMI6AD0hkJSnN3tAT5UjIXA/viewform"
