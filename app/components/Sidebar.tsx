@@ -22,35 +22,6 @@ type Props = {
   mode?: 'sidebar' | 'sheet'
 }
 
-function Toggle({
-  checked,
-  onChange,
-  disabled = false,
-}: {
-  checked: boolean
-  onChange: () => void
-  disabled?: boolean
-}) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      onClick={onChange}
-      disabled={disabled}
-      className={`relative inline-block h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors duration-200 focus-visible:outline-none disabled:cursor-wait disabled:opacity-50 ${
-        checked ? 'bg-blue-500' : 'bg-gray-300'
-      }`}
-    >
-      <span
-        className={`absolute top-[3px] h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-all duration-200 ${
-          checked ? 'left-[19px]' : 'left-[3px]'
-        }`}
-      />
-    </button>
-  )
-}
-
 const ICON_RATIO: Record<AllCategory, number> = { event: 1, event_plus: 1, fireworks: 1.6, festival: 0.92, park: 0.92, kumamoto_earthquake_r8: 1 }
 const GRADIENT_BORDER_BG: Partial<Record<Category, string>> = { fireworks: '#0a0a3c', festival: '#1e1614' }
 const GRADIENT_BORDER = 'conic-gradient(from 0deg, #ffd600 0deg, #ffd600 60deg, #ff8a00 120deg, #ea4335 200deg, #bc2a8d 280deg, #ffd600 360deg)'
@@ -144,38 +115,38 @@ export default function Sidebar({
           </select>
         </div>
 
-        <div>
-          <div className="flex items-center justify-between">
-            <span className="text-sm" style={{ color: '#1F1F1F' }}>現在地を表示</span>
-            <Toggle
-              checked={hasLocation || locateStatus === 'loading'}
-              onChange={hasLocation ? onLocateClear : onLocate}
+        <div className="flex items-center gap-2">
+          <span className="text-sm shrink-0" style={{ color: '#1F1F1F' }}>現在地を表示</span>
+          <div className="relative flex-1 min-w-0">
+            <input
+              type="range"
+              min={10}
+              max={60}
+              step={10}
+              value={locationRadius}
+              onChange={(e) => onRadiusChange(Number(e.target.value))}
+              disabled={!hasLocation}
+              className={`w-full cursor-pointer disabled:cursor-not-allowed ${hasLocation ? 'accent-blue-500' : 'accent-gray-400'}`}
+            />
+            {/* つまみ位置に重ねた透明ボタン：クリックで現在地表示のON/OFFを切り替える（線上クリックでの距離変更とは独立） */}
+            <button
+              type="button"
+              role="switch"
+              aria-checked={hasLocation}
+              aria-label="現在地を表示"
+              onClick={hasLocation ? onLocateClear : onLocate}
               disabled={locateStatus === 'loading'}
+              className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-transparent cursor-pointer disabled:cursor-wait"
+              style={{
+                left: `calc(${((locationRadius - 10) / 50) * 100}% + ${8 - ((locationRadius - 10) / 50) * 16}px)`,
+              }}
             />
           </div>
-
-          <div className={`${isSheet ? 'mt-3' : 'mt-2'} pt-5 transition-opacity ${hasLocation ? 'opacity-100' : 'opacity-40'}`}>
-            <div className="relative">
-              <div
-                className={`absolute -top-5 -translate-x-1/2 text-xs font-semibold tabular-nums pointer-events-none whitespace-nowrap ${hasLocation ? 'text-blue-600' : 'text-gray-400'}`}
-                style={{
-                  left: `calc(${((locationRadius - 10) / 50) * 100}% + ${8 - ((locationRadius - 10) / 50) * 16}px)`,
-                }}
-              >
-                {locationRadius} km
-              </div>
-              <input
-                type="range"
-                min={10}
-                max={60}
-                step={10}
-                value={locationRadius}
-                onChange={(e) => onRadiusChange(Number(e.target.value))}
-                disabled={!hasLocation}
-                className={`w-full cursor-pointer disabled:cursor-not-allowed ${hasLocation ? 'accent-blue-500' : 'accent-gray-400'}`}
-              />
-            </div>
-          </div>
+          <span
+            className={`w-9 shrink-0 text-right text-xs font-semibold tabular-nums ${hasLocation ? 'text-blue-600' : 'text-gray-400'}`}
+          >
+            {locationRadius} km
+          </span>
         </div>
 
         <div>
