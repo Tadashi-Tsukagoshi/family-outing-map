@@ -145,11 +145,9 @@ export default function Sidebar({
             ))}
           </select>
 
-          <div className="self-start pt-5">
+          <div className={`self-start pt-5 ${isSheet ? 'flex items-center gap-2' : ''}`}>
             <span className="-mt-0.5 flex h-5 items-center text-sm" style={{ color: '#1F1F1F' }}>現在地を表示</span>
-          </div>
-          <div className={`relative w-full self-start pt-5 ${isSheet ? 'flex items-center gap-2' : ''}`}>
-            {/* モバイルのみ：現在地表示のON/OFFトグル（つまみタップでの切り替えは操作しづらいため） */}
+            {/* モバイルのみ：現在地表示のON/OFFトグル（つまみタップでの切り替えは操作しづらいため）。ラベル列側に置き、スライダーの幅・右端はプルダウンと揃えたまま変えない */}
             {isSheet && (
               <Toggle
                 checked={hasLocation || locateStatus === 'loading'}
@@ -157,7 +155,9 @@ export default function Sidebar({
                 disabled={locateStatus === 'loading'}
               />
             )}
-            <div className={isSheet ? 'relative min-w-0 flex-1' : 'relative'}>
+          </div>
+          <div className="relative w-full self-start pt-5">
+            <div className="relative">
               <div
                 className={`absolute -top-5 -translate-x-1/2 text-xs font-semibold tabular-nums pointer-events-none whitespace-nowrap ${hasLocation ? 'text-blue-600' : 'text-gray-400'}`}
                 style={{
