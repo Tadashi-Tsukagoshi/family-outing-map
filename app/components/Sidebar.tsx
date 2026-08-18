@@ -116,7 +116,7 @@ export default function Sidebar({
           </select>
 
           <div className="self-start pt-5">
-            <span className="flex h-5 items-center text-sm" style={{ color: '#1F1F1F' }}>現在地を表示</span>
+            <span className="-mt-0.5 flex h-5 items-center text-sm" style={{ color: '#1F1F1F' }}>現在地を表示</span>
           </div>
           <div className="relative w-full self-start pt-5">
             <div className="relative">
