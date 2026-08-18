@@ -117,36 +117,41 @@ export default function Sidebar({
 
         <div className="flex items-center gap-2">
           <span className="text-sm shrink-0" style={{ color: '#1F1F1F' }}>現在地を表示</span>
-          <div className="relative flex-1 min-w-0">
-            <input
-              type="range"
-              min={10}
-              max={60}
-              step={10}
-              value={locationRadius}
-              onChange={(e) => onRadiusChange(Number(e.target.value))}
-              disabled={!hasLocation}
-              className={`w-full cursor-pointer disabled:cursor-not-allowed ${hasLocation ? 'accent-blue-500' : 'accent-gray-400'}`}
-            />
-            {/* つまみ位置に重ねた透明ボタン：クリックで現在地表示のON/OFFを切り替える（線上クリックでの距離変更とは独立） */}
-            <button
-              type="button"
-              role="switch"
-              aria-checked={hasLocation}
-              aria-label="現在地を表示"
-              onClick={hasLocation ? onLocateClear : onLocate}
-              disabled={locateStatus === 'loading'}
-              className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-transparent cursor-pointer disabled:cursor-wait"
-              style={{
-                left: `calc(${((locationRadius - 10) / 50) * 100}% + ${8 - ((locationRadius - 10) / 50) * 16}px)`,
-              }}
-            />
+          <div className="relative flex-1 min-w-0 pt-5">
+            <div className="relative">
+              <div
+                className={`absolute -top-5 -translate-x-1/2 text-xs font-semibold tabular-nums pointer-events-none whitespace-nowrap ${hasLocation ? 'text-blue-600' : 'text-gray-400'}`}
+                style={{
+                  left: `calc(${((locationRadius - 10) / 50) * 100}% + ${8 - ((locationRadius - 10) / 50) * 16}px)`,
+                }}
+              >
+                {locationRadius} km
+              </div>
+              <input
+                type="range"
+                min={10}
+                max={60}
+                step={10}
+                value={locationRadius}
+                onChange={(e) => onRadiusChange(Number(e.target.value))}
+                disabled={!hasLocation}
+                className={`w-full cursor-pointer disabled:cursor-not-allowed ${hasLocation ? 'accent-blue-500' : 'accent-gray-400'}`}
+              />
+              {/* つまみ位置に重ねた透明ボタン：クリックで現在地表示のON/OFFを切り替える（線上クリックでの距離変更とは独立） */}
+              <button
+                type="button"
+                role="switch"
+                aria-checked={hasLocation}
+                aria-label="現在地を表示"
+                onClick={hasLocation ? onLocateClear : onLocate}
+                disabled={locateStatus === 'loading'}
+                className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-transparent cursor-pointer disabled:cursor-wait"
+                style={{
+                  left: `calc(${((locationRadius - 10) / 50) * 100}% + ${8 - ((locationRadius - 10) / 50) * 16}px)`,
+                }}
+              />
+            </div>
           </div>
-          <span
-            className={`w-9 shrink-0 text-right text-xs font-semibold tabular-nums ${hasLocation ? 'text-blue-600' : 'text-gray-400'}`}
-          >
-            {locationRadius} km
-          </span>
         </div>
 
         <div>
