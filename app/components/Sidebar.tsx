@@ -121,7 +121,7 @@ export default function Sidebar({
 
       {/* タイトル（サイドバーモードのみ） */}
       {!isSheet && (
-        <div className="p-4 pl-[22px] border-b border-gray-200">
+        <div className="py-2.5 pr-4 pl-[22px] border-b border-gray-200">
           <h1 className="text-xl text-black" style={{ fontFamily: "'Shippori Mincho', serif" }}>群馬県おでかけまっぷ</h1>
           <p className="text-xs text-gray-400 mt-1 leading-relaxed">
             群馬県の週末おでかけプラットフォーム
@@ -130,7 +130,7 @@ export default function Sidebar({
       )}
 
       {/* フィルター */}
-      <div className="p-4 pl-[22px] space-y-3 border-b border-gray-100">
+      <div className={`pl-[22px] border-b border-gray-100 ${isSheet ? 'p-4 space-y-3' : 'py-2.5 pr-4 space-y-2'}`}>
         <div className="flex items-center justify-between">
           <span className="text-sm" style={{ color: '#1F1F1F' }}>表示期間</span>
           <select
@@ -154,7 +154,7 @@ export default function Sidebar({
             />
           </div>
 
-          <div className={`mt-3 pt-5 transition-opacity ${hasLocation ? 'opacity-100' : 'opacity-40'}`}>
+          <div className={`${isSheet ? 'mt-3' : 'mt-2'} pt-5 transition-opacity ${hasLocation ? 'opacity-100' : 'opacity-40'}`}>
             <div className="relative">
               <div
                 className={`absolute -top-5 -translate-x-1/2 text-xs font-semibold tabular-nums pointer-events-none whitespace-nowrap ${hasLocation ? 'text-blue-600' : 'text-gray-400'}`}
@@ -205,9 +205,9 @@ export default function Sidebar({
 
       {/* スポット一覧（サイドバーモードのみタイトル行を表示） */}
       <div className={`${isSheet ? '' : 'flex-1 min-h-0'} overflow-y-auto border-t border-gray-200`}>
-        <div className="py-3 pr-3">
+        <div className={`${isSheet ? 'py-3' : 'py-1.5'} pr-3`}>
           {!isSheet && (
-            <p className="text-sm mb-2" style={{ paddingLeft: 22, color: '#1F1F1F' }}>
+            <p className="text-sm mb-1.5" style={{ paddingLeft: 22, color: '#1F1F1F' }}>
               スポット一覧　<span className="text-xs text-gray-700">{spots.length}件表示中</span>
             </p>
           )}
@@ -253,18 +253,18 @@ export default function Sidebar({
       </div>
 
       {/* フッターリンク */}
-      <div className="border-t border-gray-200 flex flex-col mb-10">
+      <div className={`border-t border-gray-200 flex flex-col ${isSheet ? 'mb-10' : 'mb-1'}`}>
         {!isSheet && (
           <a
             href="https://docs.google.com/forms/d/e/1FAIpQLSfjd2ErqEMLI7gDMk4O5iutIRSUMI6AD0hkJSnN3tAT5UjIXA/viewform"
             target="_blank"
             rel="noopener noreferrer"
-            className="block text-sm text-blue-500 underline pl-[22px] pr-3 py-3"
+            className="block text-sm text-blue-500 underline pl-[22px] pr-3 py-1.5"
           >
             お問い合わせ
           </a>
         )}
-        <p className="text-[8px] text-gray-300 pl-[22px] pr-3 mt-auto pt-2">
+        <p className={`text-[8px] text-gray-300 pl-[22px] pr-3 mt-auto ${isSheet ? 'pt-2' : 'pt-1'}`}>
           アイコン: <a href="https://openmoji.org/" target="_blank" rel="noopener noreferrer" className="underline">OpenMoji</a> (CC BY-SA 4.0) / <a href="https://github.com/googlefonts/noto-emoji" target="_blank" rel="noopener noreferrer" className="underline">Noto Emoji</a> (Apache 2.0)
         </p>
       </div>
