@@ -412,6 +412,26 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                   公式サイトを開く
                 </a>
               )}
+              {spot.instagramUrl && (
+                <a
+                  href={spot.instagramUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: 12, fontWeight: 600, color: '#374151', textDecoration: 'none' }}
+                >
+                  Instagramを開く
+                </a>
+              )}
+              {spot.xUrl && (
+                <a
+                  href={spot.xUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: 12, fontWeight: 600, color: '#374151', textDecoration: 'none' }}
+                >
+                  Xを開く
+                </a>
+              )}
               <a
                 href={`https://maps.google.com/?q=${spot.lat},${spot.lng}`}
                 target="_blank"
@@ -663,6 +683,26 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
               style={{ fontSize: 12, fontWeight: 600, color: '#374151', textDecoration: 'none' }}
             >
               公式サイトを開く
+            </a>
+          )}
+          {spot.instagramUrl && (
+            <a
+              href={spot.instagramUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ fontSize: 12, fontWeight: 600, color: '#374151', textDecoration: 'none' }}
+            >
+              Instagramを開く
+            </a>
+          )}
+          {spot.xUrl && (
+            <a
+              href={spot.xUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ fontSize: 12, fontWeight: 600, color: '#374151', textDecoration: 'none' }}
+            >
+              Xを開く
             </a>
           )}
           <a

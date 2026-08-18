@@ -20,6 +20,8 @@ export type Spot = {
   description: string
   weekendDates: string[] // ISO date strings (e.g. "2026-05-16")
   url?: string
+  instagramUrl?: string
+  xUrl?: string
   imageUrl?: string
   source?: 'manual' | 'collected'
   date?: string      // 後方互換用（endDate の別名）

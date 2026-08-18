@@ -103,6 +103,8 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
       category:      normalizeCategory(b.category),
       type,
       url:           ((b.url      as string | undefined) ?? '').trim() || null,
+      instagram_url: ((b.instagram_url as string | undefined) ?? '').trim() || null,
+      x_url:         ((b.x_url         as string | undefined) ?? '').trim() || null,
       email,
       posted_by:     postedBy,
     }
@@ -162,6 +164,8 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
       businessHours: data.business_hours ?? undefined,
       spotLabel:   data.spot_label ?? undefined,
       url:         data.url ?? undefined,
+      instagramUrl: data.instagram_url ?? undefined,
+      xUrl:         data.x_url ?? undefined,
       collectedAt: data.collected_at,
       postedBy:     data.posted_by,
       email:        data.email ?? undefined,

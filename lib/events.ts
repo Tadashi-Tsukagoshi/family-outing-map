@@ -17,6 +17,8 @@ export type CollectedEvent = {
   lat: number
   lng: number
   url?: string
+  instagramUrl?: string
+  xUrl?: string
   imageUrl?: string
   category?: Category
   /** 'event'=期間限定イベント, 'permanent'=常設施設（未指定時は 'event' 扱い） */
@@ -68,6 +70,8 @@ export function eventToSpot(event: CollectedEvent): Spot {
     // weekendDates は旧スポット互換用。期間フィルタは startDate/endDate で行う
     weekendDates: end ? [end] : [],
     url: event.url,
+    instagramUrl: event.instagramUrl,
+    xUrl: event.xUrl,
     imageUrl: event.imageUrl,
     source: 'collected',
     date: end,       // 旧表示コード互換

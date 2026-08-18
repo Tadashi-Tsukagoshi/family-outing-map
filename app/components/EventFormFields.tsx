@@ -37,6 +37,8 @@ export type FormState = {
   lng:           number | null
   description:   string
   url:           string
+  instagramUrl:  string
+  xUrl:          string
   postedBy:      string
   email:         string
   posterType:    PosterType
@@ -70,7 +72,7 @@ export const INITIAL_FORM: FormState = {
   eventDates: [],
   venue: '', fee: '', imageUrl: '', imageUrls: [], imageCaptions: [], address: '',
   lat: null, lng: null,
-  description: '', url: '',
+  description: '', url: '', instagramUrl: '', xUrl: '',
   postedBy: '', email: '', posterType: 'general',
 }
 
@@ -100,6 +102,8 @@ export function eventToFormState(ev: CollectedEvent): FormState {
     lng:           ev.lng,
     description:   ev.description,
     url:           ev.url ?? '',
+    instagramUrl:  ev.instagramUrl ?? '',
+    xUrl:          ev.xUrl ?? '',
     postedBy:      ev.postedBy ?? '',
     email:         ev.email ?? '',
     posterType:    (ev.posterType as PosterType) ?? 'general',
@@ -922,6 +926,30 @@ export default function EventFormFields({
           value={form.url}
           onChange={e => set('url', e.target.value)}
           placeholder="https://example.com/event"
+          disabled={disabled}
+        />
+      </div>
+
+      {/* Instagram URL */}
+      <div>
+        <Label>Instagram URL</Label>
+        <Input
+          type="url"
+          value={form.instagramUrl}
+          onChange={e => set('instagramUrl', e.target.value)}
+          placeholder="https://instagram.com/..."
+          disabled={disabled}
+        />
+      </div>
+
+      {/* X URL */}
+      <div>
+        <Label>X URL</Label>
+        <Input
+          type="url"
+          value={form.xUrl}
+          onChange={e => set('xUrl', e.target.value)}
+          placeholder="https://x.com/..."
           disabled={disabled}
         />
       </div>

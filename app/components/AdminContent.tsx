@@ -273,6 +273,8 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
         scheduleNote: isPermanent ? '' : (form.dateConfirmed ? '' : form.scheduleNote),
         startDate:    isPermanent ? '' : isEventPlus ? (nearestDate?.startDate ?? '') : (form.dateConfirmed ? form.startDate : ''),
         endDate:      isPermanent ? '' : isEventPlus ? (nearestDate?.endDate   ?? '') : (form.dateConfirmed ? form.endDate   : ''),
+        instagram_url: form.instagramUrl.trim() || null,
+        x_url:         form.xUrl.trim() || null,
       }),
       })
       let data: Record<string, unknown> = {}
