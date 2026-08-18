@@ -22,36 +22,6 @@ type Props = {
   mode?: 'sidebar' | 'sheet'
 }
 
-/** モバイル（ボトムシート）でのみ使用：現在地表示のON/OFFトグル。PC版はスライダーのつまみクリックで切り替える */
-function Toggle({
-  checked,
-  onChange,
-  disabled = false,
-}: {
-  checked: boolean
-  onChange: () => void
-  disabled?: boolean
-}) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      onClick={onChange}
-      disabled={disabled}
-      className={`relative inline-block h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors duration-200 focus-visible:outline-none disabled:cursor-wait disabled:opacity-50 ${
-        checked ? 'bg-blue-500' : 'bg-gray-300'
-      }`}
-    >
-      <span
-        className={`absolute top-[3px] h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-all duration-200 ${
-          checked ? 'left-[19px]' : 'left-[3px]'
-        }`}
-      />
-    </button>
-  )
-}
-
 const ICON_RATIO: Record<AllCategory, number> = { event: 1, event_plus: 1, fireworks: 1.6, festival: 0.92, park: 0.92, kumamoto_earthquake_r8: 1 }
 const GRADIENT_BORDER_BG: Partial<Record<Category, string>> = { fireworks: '#0a0a3c', festival: '#1e1614' }
 const GRADIENT_BORDER = 'conic-gradient(from 0deg, #ffd600 0deg, #ffd600 60deg, #ff8a00 120deg, #ea4335 200deg, #bc2a8d 280deg, #ffd600 360deg)'
@@ -117,6 +87,11 @@ export default function Sidebar({
 }: Props) {
   const isSheet = mode === 'sheet'
 
+  // 現在地スライダー：つまみの中心位置（%）。モバイルはタップ領域拡大のためつまみを大きく描画するので、計算に使う幅もそれに合わせる
+  const radiusPercent    = (locationRadius - 10) / 50
+  const radiusThumbWidth = isSheet ? 22 : 16
+  const radiusThumbLeft  = `calc(${radiusPercent * 100}% + ${radiusThumbWidth / 2 - radiusPercent * radiusThumbWidth}px)`
+
   return (
     <aside className={`bg-white flex flex-col overflow-hidden ${isSheet ? 'w-full' : 'w-80 border-r border-gray-200'}`}>
 
@@ -145,24 +120,19 @@ export default function Sidebar({
             ))}
           </select>
 
-          <div className={`self-start pt-5 ${isSheet ? 'flex items-center gap-3' : ''}`}>
-            <span className="-mt-0.5 flex h-5 items-center text-sm" style={{ color: '#1F1F1F' }}>現在地を表示</span>
-            {/* モバイルのみ：現在地表示のON/OFFトグル（つまみタップでの切り替えは操作しづらいため）。ラベル列側に置き、スライダーの幅・右端はプルダウンと揃えたまま変えない */}
-            {isSheet && (
-              <Toggle
-                checked={hasLocation || locateStatus === 'loading'}
-                onChange={hasLocation ? onLocateClear : onLocate}
-                disabled={locateStatus === 'loading'}
-              />
-            )}
+          <div className="self-start pt-5">
+            <span
+              className={`-mt-0.5 flex items-center text-sm ${isSheet ? 'h-7' : 'h-5'}`}
+              style={{ color: '#1F1F1F' }}
+            >
+              現在地を表示
+            </span>
           </div>
           <div className="relative w-full self-start pt-5">
             <div className="relative">
               <div
                 className={`absolute -top-5 -translate-x-1/2 text-xs font-semibold tabular-nums pointer-events-none whitespace-nowrap ${hasLocation ? 'text-blue-600' : 'text-gray-400'}`}
-                style={{
-                  left: `calc(${((locationRadius - 10) / 50) * 100}% + ${8 - ((locationRadius - 10) / 50) * 16}px)`,
-                }}
+                style={{ left: radiusThumbLeft }}
               >
                 {locationRadius} km
               </div>
@@ -174,23 +144,19 @@ export default function Sidebar({
                 value={locationRadius}
                 onChange={(e) => onRadiusChange(Number(e.target.value))}
                 disabled={!hasLocation}
-                className={`h-5 w-full cursor-pointer disabled:cursor-not-allowed ${hasLocation ? 'accent-blue-500' : 'accent-gray-400'}`}
+                className={`w-full cursor-pointer disabled:cursor-not-allowed ${isSheet ? 'h-7 mobile-radius-slider' : 'h-5'} ${hasLocation ? 'accent-blue-500 text-blue-600' : 'accent-gray-400 text-gray-400'}`}
               />
-              {/* つまみ位置に重ねた透明ボタン（PC版のみ）：クリックで現在地表示のON/OFFを切り替える（線上クリックでの距離変更とは独立）。モバイルはトグルと二重操作になるため無効化 */}
-              {!isSheet && (
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={hasLocation}
-                  aria-label="現在地を表示"
-                  onClick={hasLocation ? onLocateClear : onLocate}
-                  disabled={locateStatus === 'loading'}
-                  className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-transparent cursor-pointer disabled:cursor-wait"
-                  style={{
-                    left: `calc(${((locationRadius - 10) / 50) * 100}% + ${8 - ((locationRadius - 10) / 50) * 16}px)`,
-                  }}
-                />
-              )}
+              {/* つまみ位置に重ねた透明ボタン：クリックで現在地表示のON/OFFを切り替える（線上クリックでの距離変更とは独立）。モバイルはタップしやすいよう大きめにする */}
+              <button
+                type="button"
+                role="switch"
+                aria-checked={hasLocation}
+                aria-label="現在地を表示"
+                onClick={hasLocation ? onLocateClear : onLocate}
+                disabled={locateStatus === 'loading'}
+                className={`absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-transparent cursor-pointer disabled:cursor-wait ${isSheet ? 'h-7 w-7' : 'h-4 w-4'}`}
+                style={{ left: radiusThumbLeft }}
+              />
             </div>
           </div>
         </div>

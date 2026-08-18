@@ -75,6 +75,41 @@ html, body {
   display: none;
 }
 
+/* ── モバイル版「現在地を表示」距離スライダー：タップ領域とトラックを太くする
+   （.mobile-radius-slider が付いた要素のみに適用。PC版のスライダーには影響しない） ── */
+.mobile-radius-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: #d1d5db;
+}
+.mobile-radius-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  margin-top: -8px;
+  border-radius: 9999px;
+  background: currentColor;
+  cursor: pointer;
+}
+.mobile-radius-slider::-moz-range-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: #d1d5db;
+}
+.mobile-radius-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  border: none;
+  background: currentColor;
+  cursor: pointer;
+}
+.mobile-radius-slider:disabled::-webkit-slider-thumb,
+.mobile-radius-slider:disabled::-moz-range-thumb {
+  cursor: not-allowed;
+}
+
 /* ── ホバーカード内の説明文（2行クリップ） ── */
 .ltt-desc {
   display: -webkit-box;
