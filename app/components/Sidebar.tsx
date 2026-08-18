@@ -102,22 +102,21 @@ export default function Sidebar({
 
       {/* フィルター */}
       <div className={`pl-[22px] border-b border-gray-100 ${isSheet ? 'p-4 space-y-3' : 'py-2.5 pr-4 space-y-2'}`}>
-        <div className="flex items-center justify-between">
+        {/* 表示期間・現在地を表示：同じグリッドの列として並べることで、プルダウンとスライダーの幅・右端を揃える */}
+        <div className={`grid grid-cols-[auto_auto] items-center justify-between ${isSheet ? 'gap-y-3' : 'gap-y-2'}`}>
           <span className="text-sm" style={{ color: '#1F1F1F' }}>表示期間</span>
           <select
             value={periodFilter}
             onChange={(e) => onPeriodChange(e.target.value as PeriodFilter)}
-            className="text-sm border border-gray-300 rounded-md px-2 py-1 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-400"
+            className="justify-self-end text-sm border border-gray-300 rounded-md px-2 py-1 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-400"
           >
             {(Object.keys(PERIOD_LABELS) as PeriodFilter[]).map((key) => (
               <option key={key} value={key}>{PERIOD_LABELS[key]}</option>
             ))}
           </select>
-        </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-sm shrink-0" style={{ color: '#1F1F1F' }}>現在地を表示</span>
-          <div className="relative flex-1 min-w-0 pt-5">
+          <span className="self-end text-sm" style={{ color: '#1F1F1F' }}>現在地を表示</span>
+          <div className="relative w-full self-end pt-5">
             <div className="relative">
               <div
                 className={`absolute -top-5 -translate-x-1/2 text-xs font-semibold tabular-nums pointer-events-none whitespace-nowrap ${hasLocation ? 'text-blue-600' : 'text-gray-400'}`}
@@ -135,7 +134,7 @@ export default function Sidebar({
                 value={locationRadius}
                 onChange={(e) => onRadiusChange(Number(e.target.value))}
                 disabled={!hasLocation}
-                className={`w-full cursor-pointer disabled:cursor-not-allowed ${hasLocation ? 'accent-blue-500' : 'accent-gray-400'}`}
+                className={`h-5 w-full cursor-pointer disabled:cursor-not-allowed ${hasLocation ? 'accent-blue-500' : 'accent-gray-400'}`}
               />
               {/* つまみ位置に重ねた透明ボタン：クリックで現在地表示のON/OFFを切り替える（線上クリックでの距離変更とは独立） */}
               <button
