@@ -340,6 +340,13 @@ export default function EventFormFields({
   const removeEventDate = (id: string) => {
     set('eventDates', form.eventDates.filter(d => d.id !== id))
   }
+  const moveEventDate = (index: number, direction: -1 | 1) => {
+    const target = index + direction
+    if (target < 0 || target >= form.eventDates.length) return
+    const next = [...form.eventDates]
+    ;[next[index], next[target]] = [next[target], next[index]]
+    set('eventDates', next)
+  }
   const updateEventDate = (id: string, patch: Partial<EventDateEntry>) => {
     set('eventDates', form.eventDates.map(d => d.id === id ? { ...d, ...patch } : d))
   }
@@ -512,14 +519,34 @@ export default function EventFormFields({
               <div key={d.id} className="rounded-xl border border-gray-200 p-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-gray-500">日程 {i + 1}</span>
-                  <button
-                    type="button"
-                    onClick={() => removeEventDate(d.id)}
-                    disabled={disabled}
-                    className="text-xs text-red-500 hover:text-red-700 disabled:opacity-40 cursor-pointer"
-                  >
-                    削除
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => moveEventDate(i, -1)}
+                      disabled={disabled || i === 0}
+                      aria-label="上へ移動"
+                      className="text-xs text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      ▲
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveEventDate(i, 1)}
+                      disabled={disabled || i === form.eventDates.length - 1}
+                      aria-label="下へ移動"
+                      className="text-xs text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      ▼
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeEventDate(d.id)}
+                      disabled={disabled}
+                      className="text-xs text-red-500 hover:text-red-700 disabled:opacity-40 cursor-pointer"
+                    >
+                      削除
+                    </button>
+                  </div>
                 </div>
                 <div className="flex gap-3">
                   <div style={{ width: 'calc(50% - 6px)' }}>
