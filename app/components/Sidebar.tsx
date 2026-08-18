@@ -115,8 +115,10 @@ export default function Sidebar({
             ))}
           </select>
 
-          <span className="self-end text-sm" style={{ color: '#1F1F1F' }}>現在地を表示</span>
-          <div className="relative w-full self-end pt-5">
+          <div className="self-start pt-5">
+            <span className="flex h-5 items-center text-sm" style={{ color: '#1F1F1F' }}>現在地を表示</span>
+          </div>
+          <div className="relative w-full self-start pt-5">
             <div className="relative">
               <div
                 className={`absolute -top-5 -translate-x-1/2 text-xs font-semibold tabular-nums pointer-events-none whitespace-nowrap ${hasLocation ? 'text-blue-600' : 'text-gray-400'}`}
