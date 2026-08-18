@@ -145,7 +145,7 @@ export default function Sidebar({
             ))}
           </select>
 
-          <div className={`self-start pt-5 ${isSheet ? 'flex items-center gap-2' : ''}`}>
+          <div className={`self-start pt-5 ${isSheet ? 'flex items-center gap-3' : ''}`}>
             <span className="-mt-0.5 flex h-5 items-center text-sm" style={{ color: '#1F1F1F' }}>現在地を表示</span>
             {/* モバイルのみ：現在地表示のON/OFFトグル（つまみタップでの切り替えは操作しづらいため）。ラベル列側に置き、スライダーの幅・右端はプルダウンと揃えたまま変えない */}
             {isSheet && (
