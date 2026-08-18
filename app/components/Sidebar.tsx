@@ -1,7 +1,13 @@
 'use client'
 
+import { useRef } from 'react'
 import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, PERIOD_LABELS, getCategoryIconSrc, isDarkPin, type Category, type AllCategory, type PeriodFilter, type Spot } from '@/lib/spots'
 import { getDateDisplay } from '@/lib/date-utils'
+
+// モバイル版の現在地スライダー：つまみタップ（動かさない）とドラッグ（動かす）を判別するための閾値
+const RADIUS_TAP_MAX_DISTANCE  = 10 // px。これ未満の移動は「タップ」とみなす
+const RADIUS_TAP_MAX_DURATION  = 300 // ms。これ未満の押下時間は「タップ」とみなす
+const RADIUS_THUMB_TAP_RADIUS  = 17 // px。つまみ中心からこの距離以内で押し始めたら「つまみタップ」候補とする
 
 type Props = {
   periodFilter: PeriodFilter
@@ -97,6 +103,37 @@ export default function Sidebar({
     ? `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${radiusPercent * 100}%, #d1d5db ${radiusPercent * 100}%, #d1d5db 100%)`
     : '#e5e7eb'
 
+  // モバイル版のスライダー：つまみタップ＝ON/OFF切り替え、ドラッグ・線上タップ＝距離変更（既存のonChangeに任せる）を両立させる。
+  // pointerdown時点のつまみ位置と押下座標から「つまみ付近で押し始めたか」を記録しておき、
+  // pointerupで移動量・経過時間が小さければ「タップ」と判定してON/OFFを切り替える。
+  // 移動量が閾値を超えた場合は「ドラッグ」とみなし、rangeのonChangeによる距離変更のみが働く（ここでは何もしない）。
+  const radiusPointerStart = useRef<{ x: number; y: number; time: number; onThumb: boolean } | null>(null)
+
+  const handleRadiusPointerDown = (e: React.PointerEvent<HTMLInputElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const thumbCenterPx = radiusPercent * rect.width + (radiusThumbWidth / 2 - radiusPercent * radiusThumbWidth)
+    const onThumb = Math.abs(e.clientX - rect.left - thumbCenterPx) <= RADIUS_THUMB_TAP_RADIUS
+    radiusPointerStart.current = { x: e.clientX, y: e.clientY, time: Date.now(), onThumb }
+  }
+
+  const handleRadiusPointerUp = (e: React.PointerEvent<HTMLInputElement>) => {
+    const start = radiusPointerStart.current
+    radiusPointerStart.current = null
+    if (!start || !start.onThumb || locateStatus === 'loading') return
+    const dx = e.clientX - start.x
+    const dy = e.clientY - start.y
+    const elapsed = Date.now() - start.time
+    const isTap = Math.sqrt(dx * dx + dy * dy) < RADIUS_TAP_MAX_DISTANCE && elapsed < RADIUS_TAP_MAX_DURATION
+    if (isTap) {
+      if (hasLocation) onLocateClear()
+      else onLocate()
+    }
+  }
+
+  const handleRadiusPointerCancel = () => {
+    radiusPointerStart.current = null
+  }
+
   return (
     <aside className={`bg-white flex flex-col overflow-hidden ${isSheet ? 'w-full' : 'w-80 border-r border-gray-200'}`}>
 
@@ -148,21 +185,27 @@ export default function Sidebar({
                 step={10}
                 value={locationRadius}
                 onChange={(e) => onRadiusChange(Number(e.target.value))}
-                disabled={!hasLocation}
+                disabled={isSheet ? false : !hasLocation}
+                onPointerDown={isSheet ? handleRadiusPointerDown : undefined}
+                onPointerUp={isSheet ? handleRadiusPointerUp : undefined}
+                onPointerCancel={isSheet ? handleRadiusPointerCancel : undefined}
                 className={`w-full cursor-pointer disabled:cursor-not-allowed ${isSheet ? 'h-7 mobile-radius-slider' : 'h-5'} ${hasLocation ? 'accent-blue-500 text-blue-600' : 'accent-gray-400 text-gray-400'}`}
                 style={{ '--mobile-track-fill': radiusTrackFill } as React.CSSProperties}
               />
-              {/* つまみ位置に重ねた透明ボタン：クリックで現在地表示のON/OFFを切り替える（線上クリックでの距離変更とは独立）。モバイルはタップしやすいよう大きめにする */}
-              <button
-                type="button"
-                role="switch"
-                aria-checked={hasLocation}
-                aria-label="現在地を表示"
-                onClick={hasLocation ? onLocateClear : onLocate}
-                disabled={locateStatus === 'loading'}
-                className={`absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-transparent cursor-pointer disabled:cursor-wait ${isSheet ? 'h-7 w-7' : 'h-4 w-4'}`}
-                style={{ left: radiusThumbLeft }}
-              />
+              {/* つまみ位置に重ねた透明ボタン（PC版のみ）：クリックで現在地表示のON/OFFを切り替える（線上クリックでの距離変更とは独立）。
+                  モバイルはこのボタンがつまみのドラッグ操作を奪ってしまうため描画せず、input側のpointerdown/upでタップ/ドラッグを判別する */}
+              {!isSheet && (
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={hasLocation}
+                  aria-label="現在地を表示"
+                  onClick={hasLocation ? onLocateClear : onLocate}
+                  disabled={locateStatus === 'loading'}
+                  className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-transparent cursor-pointer disabled:cursor-wait"
+                  style={{ left: radiusThumbLeft }}
+                />
+              )}
             </div>
           </div>
         </div>
