@@ -80,7 +80,7 @@ html, body {
 .mobile-radius-slider::-webkit-slider-runnable-track {
   height: 6px;
   border-radius: 9999px;
-  background: #d1d5db;
+  background: var(--mobile-track-fill, #d1d5db);
 }
 .mobile-radius-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -95,7 +95,7 @@ html, body {
 .mobile-radius-slider::-moz-range-track {
   height: 6px;
   border-radius: 9999px;
-  background: #d1d5db;
+  background: var(--mobile-track-fill, #d1d5db);
 }
 .mobile-radius-slider::-moz-range-thumb {
   width: 22px;

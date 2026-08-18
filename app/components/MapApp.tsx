@@ -272,7 +272,8 @@ export default function MapApp() {
         handleDetailClose()
       }
     },
-    onLocate: () => { handleLocate(); setSheetState('closed') },
+    // 現在地表示ONにする際はボトムシートを閉じず、閉じている/フルの場合は真ん中（mid）にする
+    onLocate: () => { handleLocate(); setSheetState('mid') },
     onLocateClear: handleLocateClear,
     hasLocation: userLocation !== null,
     locateStatus,

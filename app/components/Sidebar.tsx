@@ -91,6 +91,11 @@ export default function Sidebar({
   const radiusPercent    = (locationRadius - 10) / 50
   const radiusThumbWidth = isSheet ? 22 : 16
   const radiusThumbLeft  = `calc(${radiusPercent * 100}% + ${radiusThumbWidth / 2 - radiusPercent * radiusThumbWidth}px)`
+  // モバイル用トラックの塗り（つまみより左＝現在値まで を色付け）。CSS変数として渡し、globals.css側の
+  // ::-webkit-slider-runnable-track / ::-moz-range-track の background で参照する（PC版のトラックには影響しない）
+  const radiusTrackFill = hasLocation
+    ? `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${radiusPercent * 100}%, #d1d5db ${radiusPercent * 100}%, #d1d5db 100%)`
+    : '#e5e7eb'
 
   return (
     <aside className={`bg-white flex flex-col overflow-hidden ${isSheet ? 'w-full' : 'w-80 border-r border-gray-200'}`}>
@@ -145,6 +150,7 @@ export default function Sidebar({
                 onChange={(e) => onRadiusChange(Number(e.target.value))}
                 disabled={!hasLocation}
                 className={`w-full cursor-pointer disabled:cursor-not-allowed ${isSheet ? 'h-7 mobile-radius-slider' : 'h-5'} ${hasLocation ? 'accent-blue-500 text-blue-600' : 'accent-gray-400 text-gray-400'}`}
+                style={{ '--mobile-track-fill': radiusTrackFill } as React.CSSProperties}
               />
               {/* つまみ位置に重ねた透明ボタン：クリックで現在地表示のON/OFFを切り替える（線上クリックでの距離変更とは独立）。モバイルはタップしやすいよう大きめにする */}
               <button
