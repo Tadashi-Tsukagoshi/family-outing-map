@@ -424,7 +424,7 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
 /** 吹き出しの幅 */
 const BUBBLE_W = 240
 /** ピン中心から吹き出し端までのギャップ（グループピンは最大48pxあるため通常のGAPより広く取る） */
-const BUBBLE_GAP = 30
+const BUBBLE_GAP = 16
 
 type GroupBubbleProps = {
   group:          PinGroup
@@ -509,7 +509,7 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
           boxShadow:    '0 2px 8px rgba(0,0,0,0.15)',
         }}
       >
-        {group.spots.map(spot => {
+        {group.spots.map((spot, index) => {
           const selected = spot.id === selectedSpotId
           return (
             <div
@@ -522,6 +522,7 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
                 padding:    '11px 12px',
                 cursor:     'pointer',
                 background: selected ? '#eff6ff' : 'transparent',
+                ...(index > 0 ? { borderTop: '1px solid #e5e7eb' } : {}),
               }}
             >
               <span
