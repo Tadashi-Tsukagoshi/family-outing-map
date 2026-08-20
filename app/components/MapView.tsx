@@ -423,8 +423,8 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
 // ─── GroupBubble（座標一致ピンの吹き出しリスト） ──────────────────
 /** 吹き出しの幅 */
 const BUBBLE_W = 240
-/** ピン中心から吹き出し端までのギャップ（グループピンは最大48pxあるため通常のGAPより広く取る） */
-const BUBBLE_GAP = 32
+/** ピン中心から吹き出し端までのギャップ（グループピン通常サイズ40pxの半径20pxに合わせ、+1バッジが隠れない程度に近づける） */
+const BUBBLE_GAP = 20
 
 type GroupBubbleProps = {
   group:          PinGroup
@@ -604,7 +604,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
 
   const scheduleGroupHide = useCallback(() => {
     clearGroupHide()
-    groupHideTimer.current = setTimeout(() => setOpenGroupId(null), 300)
+    groupHideTimer.current = setTimeout(() => setOpenGroupId(null), 200)
   }, [clearGroupHide])
 
   const fetchOgp = useCallback(async (spotId: string, url: string) => {
