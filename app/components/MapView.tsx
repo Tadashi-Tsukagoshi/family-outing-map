@@ -702,10 +702,11 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
     const result: Record<string, IconDef> = {}
     for (const g of pinGroups) {
       const activeSpot = g.spots.find(s => s.id === selectedSpot?.id) ?? g.spots[0]
-      result[g.representativeId] = buildIconDef(activeSpot, activeSpot.id === selectedSpot?.id, isMobile)
+      const selected = activeSpot.id === selectedSpot?.id || g.representativeId === openGroupId
+      result[g.representativeId] = buildIconDef(activeSpot, selected, isMobile)
     }
     return result
-  }, [pinGroups, selectedSpot?.id, isMobile])
+  }, [pinGroups, selectedSpot?.id, isMobile, openGroupId])
 
   // ─── 地図の初期化 ────────────────────────────────────────────
   useEffect(() => {
@@ -838,7 +839,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
       el.style.width  = `${iconDef.hit}px`
       el.style.height = `${iconDef.hit}px`
 
-      const isGroupSelected = group.spots.some(s => s.id === selectedSpot?.id)
+      const isGroupSelected = group.spots.some(s => s.id === selectedSpot?.id) || group.representativeId === openGroupId
       const status = getEventStatus(repSpot.startDate, repSpot.endDate)
       el.style.zIndex =
         isGroupSelected ? '1000' :
@@ -852,7 +853,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
       const pinEl = el.firstElementChild as HTMLElement | null
       if (pinEl) pinEl.style.opacity = opacity
     }
-  }, [pinGroups, icons, selectedSpot?.id, mapReady])
+  }, [pinGroups, icons, selectedSpot?.id, mapReady, openGroupId])
 
   // ─── 現在地マーカー・円表示 ──────────────────────────────────
   useEffect(() => {
