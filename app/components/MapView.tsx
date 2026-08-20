@@ -4,7 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import mapboxgl from 'mapbox-gl'
 import { useRef, useState, useMemo, useCallback, useEffect, useLayoutEffect } from 'react'
 import { getCategoryIconSrc, BADGE_BG_COLOR, type Category, type Spot } from '@/lib/spots'
-import { getDateDisplay, getEventStatus, STATUS_CONFIG, PARK_STATUS, fmtTimeRange } from '@/lib/date-utils'
+import { getDateDisplay, getEventStatus, parseLocalDate, STATUS_CONFIG, PARK_STATUS, fmtTimeRange } from '@/lib/date-utils'
 import { type SheetState } from './BottomSheet'
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? ''
@@ -625,7 +625,12 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
       el.style.width  = `${iconDef.hit}px`
       el.style.height = `${iconDef.hit}px`
       const status = getEventStatus(spot.startDate, spot.endDate)
-      el.style.zIndex = spot.id === selectedSpot?.id ? '1000' : status === 'active' ? '500' : '0'
+      el.style.zIndex =
+        spot.id === selectedSpot?.id ? '1000' :
+        status === 'active' ? '500' :
+        (status === 'upcoming' || status === 'scheduled') && spot.startDate ?
+          String(Math.max(1, Math.min(499, 500 - Math.ceil((parseLocalDate(spot.startDate).getTime() - new Date().setHours(0, 0, 0, 0)) / 86400000)))) :
+        '0'
       // el（marker.getElement()）は Mapbox が map "move" イベントごとに
       // el.style.opacity を強制上書きするため、内側の描画用 div に設定する
       const opacity = selectedSpot && spot.id !== selectedSpot.id ? '0.6' : '1'
