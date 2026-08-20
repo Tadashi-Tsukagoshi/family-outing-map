@@ -566,6 +566,8 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
   const hideTimer            = useRef<ReturnType<typeof setTimeout> | null>(null)
   // グループピン吹き出しリスト（2件以上）をPCホバーで開閉する際の遅延クローズ用タイマー
   const groupHideTimer       = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // カーソルが吹き出し（GroupBubble）に乗っているか。地図mousemoveでの自動クローズ判定に使う
+  const isOverBubbleRef      = useRef(false)
 
   // グループピンの吹き出しリスト（2件以上の PinGroup をタップした時に開く）
   const [openGroupId,     setOpenGroupId]     = useState<string | null>(null)
@@ -603,6 +605,16 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
     clearGroupHide()
     groupHideTimer.current = setTimeout(() => setOpenGroupId(null), 200)
   }, [clearGroupHide])
+
+  const handleBubbleMouseEnter = useCallback(() => {
+    isOverBubbleRef.current = true
+    clearGroupHide()
+  }, [clearGroupHide])
+
+  const handleBubbleMouseLeave = useCallback(() => {
+    isOverBubbleRef.current = false
+    scheduleGroupHide()
+  }, [scheduleGroupHide])
 
   const fetchOgp = useCallback(async (spotId: string, url: string) => {
     if (spotId in ogpCacheRef.current) return
@@ -1037,6 +1049,25 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
     return () => { map.off('move', update) }
   }, [openGroupId, mapReady])
 
+  // ─── グループ吹き出し：PCでカーソルがピンにも吹き出しにも乗っていなければ閉じる ──
+  // マーカーの mouseleave では閉じない（吹き出しがピンに重なりチャタリングするため）。
+  // 地図全体の mousemove でピン近傍・吹き出し上のどちらでもないことを検出してクローズする。
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady || isMobile || !openGroupId) return
+
+    const PIN_HOVER_RADIUS = 28
+    const onMouseMove = (e: mapboxgl.MapMouseEvent) => {
+      const g = pinGroupsByRepIdRef.current[openGroupId]
+      if (!g) return
+      const pinPt = map.project(toLngLat(g.lat, g.lng))
+      const overPin = Math.hypot(e.point.x - pinPt.x, e.point.y - pinPt.y) <= PIN_HOVER_RADIUS
+      if (!overPin && !isOverBubbleRef.current) setOpenGroupId(null)
+    }
+    map.on('mousemove', onMouseMove)
+    return () => { map.off('mousemove', onMouseMove) }
+  }, [openGroupId, isMobile, mapReady])
+
   return (
     <div ref={wrapperRef} style={{ position: 'relative', height: '100%', width: '100%' }}>
       <div ref={containerRef} style={{ height: '100%', width: '100%' }} />
@@ -1073,8 +1104,8 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
             wrapperRef={wrapperRef}
             selectedSpotId={selectedSpot?.id}
             onSelectSpot={handlePinClick}
-            onMouseEnter={clearGroupHide}
-            onMouseLeave={scheduleGroupHide}
+            onMouseEnter={handleBubbleMouseEnter}
+            onMouseLeave={handleBubbleMouseLeave}
             isMobile={isMobile}
           />
         )
