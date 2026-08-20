@@ -419,7 +419,7 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
 
 // ─── GroupBubble（座標一致ピンの吹き出しリスト） ──────────────────
 /** 吹き出しの幅 */
-const BUBBLE_W = 200
+const BUBBLE_W = 240
 /** ピン中心から吹き出し端までのギャップ（グループピンは最大48pxあるため通常のGAPより広く取る） */
 const BUBBLE_GAP = 30
 
