@@ -127,7 +127,7 @@ function pickIcon(category: Category): { src: string; bg: string; glow: string; 
   return { src, bg: 'white', glow: '', ratio: 0.78 }
 }
 
-type IconDef = { html: string; hit: number; anchor?: 'center' }
+type IconDef = { html: string; hit: number; iconSize: number; anchor?: 'center' }
 
 function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef {
   const isActive = getEventStatus(spot.startDate, spot.endDate) === 'active'
@@ -140,6 +140,7 @@ function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef
     const cls  = selected ? ' class="pin-selected"' : ''
     return {
       hit,
+      iconSize: size,
       anchor: 'center',
       html: `<div${wrapperCls} style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;"><img${cls} src="${icon}" style="width:${size}px;height:${size}px;object-fit:contain;display:block;"></div>`,
     }
@@ -161,6 +162,7 @@ function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef
       : `<div class="pin-selected" style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2.5px solid ${borderColor};box-shadow:0 4px 12px rgba(0,0,0,.4);overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}"></div>`
     return {
       hit,
+      iconSize: size,
       html: `<div${wrapperCls} style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;">${circle}</div>`,
     }
   }
@@ -174,6 +176,7 @@ function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef
     : `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2.5px solid ${borderColor};box-shadow:0 2px 6px rgba(0,0,0,.25);overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}"></div>`
   return {
     hit,
+    iconSize: size,
     html: `<div${wrapperCls} style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;">${circle}</div>`,
   }
 }
@@ -825,8 +828,11 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
 
       const el = marker.getElement()
       const badgeCount = group.spots.length - 1
+      // アイコンはヒットエリア中央に配置されているため、ヒットエリアとアイコンの差の半分をオフセットとして
+      // バッジをアイコンの右上に寄せる（-4 はバッジがアイコンに少し被る分）
+      const badgeOffset = (iconDef.hit - iconDef.iconSize) / 2 - 4
       const badgeHtml = badgeCount > 0
-        ? `<span style="position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;font-size:10px;min-width:16px;height:16px;line-height:16px;text-align:center;border-radius:50%;padding:0 3px;">+${badgeCount}</span>`
+        ? `<span style="position:absolute;top:${badgeOffset}px;right:${badgeOffset}px;background:#ffffff;color:#000000;border:1px solid #d1d5db;font-size:10px;min-width:16px;height:16px;line-height:16px;text-align:center;border-radius:50%;padding:0 3px;">+${badgeCount}</span>`
         : ''
       el.innerHTML  = iconDef.html + badgeHtml
       el.style.width  = `${iconDef.hit}px`
