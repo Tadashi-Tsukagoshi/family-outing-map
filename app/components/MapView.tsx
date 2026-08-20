@@ -3,15 +3,17 @@
 import 'mapbox-gl/dist/mapbox-gl.css'
 import mapboxgl from 'mapbox-gl'
 import { useRef, useState, useMemo, useCallback, useEffect, useLayoutEffect } from 'react'
-import { getCategoryIconSrc, BADGE_BG_COLOR, type Category, type Spot } from '@/lib/spots'
+import { getCategoryIconSrc, CATEGORY_EMOJIS, BADGE_BG_COLOR, type Category, type Spot } from '@/lib/spots'
 import { getDateDisplay, getEventStatus, parseLocalDate, STATUS_CONFIG, PARK_STATUS, fmtTimeRange } from '@/lib/date-utils'
 import { type SheetState } from './BottomSheet'
+import { type PinGroup } from './MapApp'
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? ''
 
 // ─── Types ───────────────────────────────────────────────────────
 type Props = {
   spots: Spot[]
+  pinGroups: PinGroup[]
   onSpotSelect: (spot: Spot | null) => void
   selectedSpot: Spot | null
   userLocation?: [number, number] | null
@@ -393,6 +395,118 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
   )
 }
 
+// ─── GroupBubble（座標一致ピンの吹き出しリスト） ──────────────────
+/** 吹き出しの幅 */
+const BUBBLE_W = 200
+
+type GroupBubbleProps = {
+  group:          PinGroup
+  x:              number
+  y:              number
+  wrapperRef:     React.RefObject<HTMLDivElement | null>
+  selectedSpotId?: string
+  onSelectSpot:   (spot: Spot) => void
+}
+
+function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot }: GroupBubbleProps) {
+  const bubbleRef = useRef<HTMLDivElement>(null)
+  const aboveGap = GAP
+
+  const [pos, setPos] = useState<Pos>({ left: x, top: y - aboveGap, above: true, ready: false, cardH: 0 })
+
+  useLayoutEffect(() => {
+    const bubble  = bubbleRef.current
+    const wrapper = wrapperRef.current
+    if (!bubble || !wrapper) return
+
+    const cW    = wrapper.offsetWidth
+    const cH    = wrapper.offsetHeight
+    const cardH = bubble.offsetHeight
+
+    const above = cardH <= y - aboveGap
+    let top: number
+    if (above) {
+      top = y - aboveGap
+    } else {
+      top = y + GAP
+      if (top + cardH > cH - MARGIN) top = cH - MARGIN - cardH
+    }
+
+    const halfW = BUBBLE_W / 2
+    let left = x
+    if (left - halfW < MARGIN)      left = halfW + MARGIN
+    if (left + halfW > cW - MARGIN) left = cW - MARGIN - halfW
+
+    setPos({ left, top, above, ready: true, cardH })
+  }, [group, x, y, wrapperRef, aboveGap])
+
+  return (
+    <div
+      style={{
+        position:      'absolute',
+        left:          pos.left,
+        top:           pos.top,
+        transform:     `translate(-50%, ${pos.above ? '-100%' : '0%'})`,
+        opacity:       pos.ready ? 1 : 0,
+        width:         BUBBLE_W,
+        zIndex:        1000,
+        pointerEvents: 'all',
+      }}
+      onClick={e => e.stopPropagation()}
+    >
+      <style>{`
+        .group-bubble-arrow-down::after,
+        .group-bubble-arrow-up::after {
+          content: '';
+          position: absolute;
+          left: 50%;
+          transform: translateX(-50%);
+          border-left: 6px solid transparent;
+          border-right: 6px solid transparent;
+        }
+        .group-bubble-arrow-down::after { bottom: -6px; border-top: 6px solid white; }
+        .group-bubble-arrow-up::after   { top: -6px;    border-bottom: 6px solid white; }
+      `}</style>
+      <div
+        ref={bubbleRef}
+        className={pos.above ? 'group-bubble-arrow-down' : 'group-bubble-arrow-up'}
+        style={{
+          position:     'relative',
+          borderRadius: 8,
+          overflow:     'hidden',
+          background:   'white',
+          boxShadow:    '0 2px 8px rgba(0,0,0,0.15)',
+        }}
+      >
+        {group.spots.map(spot => {
+          const selected = spot.id === selectedSpotId
+          return (
+            <div
+              key={spot.id}
+              onClick={() => onSelectSpot(spot)}
+              style={{
+                display:    'flex',
+                alignItems: 'center',
+                gap:        6,
+                padding:    '6px 10px',
+                cursor:     'pointer',
+                background: selected ? '#eff6ff' : 'transparent',
+              }}
+            >
+              <span style={{ fontSize: 14, flexShrink: 0 }}>{CATEGORY_EMOJIS[spot.category]}</span>
+              <span style={{
+                fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>
+                {spot.name}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 const PEEK_HEIGHT = 72
 
 /** モバイル地図タップ判定：この距離を超えた移動はドラッグとみなす（px） */
@@ -401,7 +515,7 @@ const TAP_MAX_DISTANCE = 10
 const TAP_MAX_DURATION = 300
 
 // ─── MapView（メインコンポーネント） ─────────────────────────────
-export default function MapView({ spots, onSpotSelect, selectedSpot, userLocation = null, locationRadius = 60, recenterSignal = 0, onDetailOpen, onDetailClose, detailPanelOpen, isMobile = false, sheetState = 'closed', onMapTapClose }: Props) {
+export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, userLocation = null, locationRadius = 60, recenterSignal = 0, onDetailOpen, onDetailClose, detailPanelOpen, isMobile = false, sheetState = 'closed', onMapTapClose }: Props) {
   const wrapperRef       = useRef<HTMLDivElement>(null)
   const containerRef     = useRef<HTMLDivElement>(null)
   const mapRef           = useRef<mapboxgl.Map | null>(null)
@@ -414,6 +528,15 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
   const [hovered,      setHovered]      = useState<HoverState | null>(null)
   const [pinnedHover,  setPinnedHover]  = useState<HoverState | null>(null)
   const hideTimer            = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // グループピンの吹き出しリスト（2件以上の PinGroup をタップした時に開く）
+  const [openGroupId,     setOpenGroupId]     = useState<string | null>(null)
+  const [bubbleScreenPos, setBubbleScreenPos] = useState<{ x: number; y: number } | null>(null)
+  const pinGroupsByRepIdRef = useRef<Record<string, PinGroup>>({})
+  useEffect(() => {
+    pinGroupsByRepIdRef.current = Object.fromEntries(pinGroups.map(g => [g.representativeId, g]))
+  }, [pinGroups])
+
   // クリック直後のアイコン差し替えによる mouseover 再発火を抑制するタイムスタンプ
   const suppressHoverUntil  = useRef(0)
 
@@ -503,12 +626,21 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
     onDetailClose()
     if (isMobile) onSpotSelect(null)
     handleImmediateHide()
+    setOpenGroupId(null)
   }, [onDetailClose, isMobile, onSpotSelect, handleImmediateHide])
 
+  // グループピン（座標一致で束ねたピン）タップ時：先頭spotで選択・詳細を開き、2件以上なら吹き出しリストを開く
+  const handleGroupPinClick = useCallback((repId: string) => {
+    const group = pinGroupsByRepIdRef.current[repId]
+    if (!group || group.spots.length === 0) return
+    handlePinClick(group.spots[0])
+    setOpenGroupId(group.spots.length > 1 ? repId : null)
+  }, [handlePinClick])
+
   // マーカーのDOMイベントハンドラ・地図イベントハンドラから常に最新のコールバック・spotを参照するためのref
-  const handlersRef = useRef({ handleHoverIn, scheduleHide, handlePinClick, handleMapClick, handleImmediateHide, isMobile, onMapTapClose })
+  const handlersRef = useRef({ handleHoverIn, scheduleHide, handlePinClick, handleGroupPinClick, handleMapClick, handleImmediateHide, isMobile, onMapTapClose })
   useEffect(() => {
-    handlersRef.current = { handleHoverIn, scheduleHide, handlePinClick, handleMapClick, handleImmediateHide, isMobile, onMapTapClose }
+    handlersRef.current = { handleHoverIn, scheduleHide, handlePinClick, handleGroupPinClick, handleMapClick, handleImmediateHide, isMobile, onMapTapClose }
   })
   const spotsByIdRef = useRef<Record<string, Spot>>({})
   useEffect(() => {
@@ -517,11 +649,12 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
 
   const icons = useMemo(() => {
     const result: Record<string, IconDef> = {}
-    for (const s of spots) {
-      result[s.id] = buildIconDef(s, s.id === selectedSpot?.id, isMobile)
+    for (const g of pinGroups) {
+      const isGroupSelected = g.spots.some(s => s.id === selectedSpot?.id)
+      result[g.representativeId] = buildIconDef(g.spots[0], isGroupSelected, isMobile)
     }
     return result
-  }, [spots, selectedSpot, isMobile])
+  }, [pinGroups, selectedSpot?.id, isMobile])
 
   // ─── 地図の初期化 ────────────────────────────────────────────
   useEffect(() => {
@@ -583,27 +716,33 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
     }
   }, [isMobile, mapReady])
 
-  // ─── ピンマーカー同期 ────────────────────────────────────────
+  // ─── ピンマーカー同期（PinGroup 単位：グループの代表spotのみマーカーを作る） ──
   useEffect(() => {
     const map = mapRef.current
     if (!map || !mapReady) return
 
-    const currentIds = new Set(spots.map(s => s.id))
+    const representativeIds = new Set(pinGroups.map(g => g.representativeId))
     for (const id of Object.keys(markersRef.current)) {
-      if (!currentIds.has(id)) {
+      if (!representativeIds.has(id)) {
         markersRef.current[id].remove()
         delete markersRef.current[id]
       }
     }
 
-    for (const spot of spots) {
-      const iconDef = icons[spot.id]
-      let marker = markersRef.current[spot.id]
+    for (const group of pinGroups) {
+      const repId = group.representativeId
+      const repSpot = group.spots[0]
+      const iconDef = icons[repId]
+      if (!iconDef) continue
+
+      let marker = markersRef.current[repId]
       if (!marker) {
         const el = document.createElement('div')
         el.style.cursor = 'pointer'
+        el.style.position = 'relative'
         el.addEventListener('mouseenter', () => {
-          const cur = spotsByIdRef.current[spot.id]
+          const g = pinGroupsByRepIdRef.current[repId]
+          const cur = g ? g.spots[0] : spotsByIdRef.current[repId]
           const m = mapRef.current
           if (!cur || !m) return
           const pt = m.project(toLngLat(cur.lat, cur.lng))
@@ -612,32 +751,40 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
         el.addEventListener('mouseleave', () => handlersRef.current.scheduleHide())
         el.addEventListener('click', (e) => {
           e.stopPropagation()
-          const cur = spotsByIdRef.current[spot.id]
-          if (cur) handlersRef.current.handlePinClick(cur)
+          handlersRef.current.handleGroupPinClick(repId)
         })
         marker = new mapboxgl.Marker({ element: el, anchor: iconDef.anchor ?? 'center' })
-          .setLngLat(toLngLat(spot.lat, spot.lng))
+          .setLngLat(toLngLat(group.lat, group.lng))
           .addTo(map)
-        markersRef.current[spot.id] = marker
+        markersRef.current[repId] = marker
+      } else {
+        marker.setLngLat(toLngLat(group.lat, group.lng))
       }
+
       const el = marker.getElement()
-      el.innerHTML  = iconDef.html
+      const badgeCount = group.spots.length - 1
+      const badgeHtml = badgeCount > 0
+        ? `<span style="position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;font-size:10px;min-width:16px;height:16px;line-height:16px;text-align:center;border-radius:50%;padding:0 3px;">+${badgeCount}</span>`
+        : ''
+      el.innerHTML  = iconDef.html + badgeHtml
       el.style.width  = `${iconDef.hit}px`
       el.style.height = `${iconDef.hit}px`
-      const status = getEventStatus(spot.startDate, spot.endDate)
+
+      const isGroupSelected = group.spots.some(s => s.id === selectedSpot?.id)
+      const status = getEventStatus(repSpot.startDate, repSpot.endDate)
       el.style.zIndex =
-        spot.id === selectedSpot?.id ? '1000' :
+        isGroupSelected ? '1000' :
         status === 'active' ? '500' :
-        (status === 'upcoming' || status === 'scheduled') && spot.startDate ?
-          String(Math.max(1, Math.min(499, 500 - Math.ceil((parseLocalDate(spot.startDate).getTime() - new Date().setHours(0, 0, 0, 0)) / 86400000)))) :
+        (status === 'upcoming' || status === 'scheduled') && repSpot.startDate ?
+          String(Math.max(1, Math.min(499, 500 - Math.ceil((parseLocalDate(repSpot.startDate).getTime() - new Date().setHours(0, 0, 0, 0)) / 86400000)))) :
         '0'
       // el（marker.getElement()）は Mapbox が map "move" イベントごとに
       // el.style.opacity を強制上書きするため、内側の描画用 div に設定する
-      const opacity = selectedSpot && spot.id !== selectedSpot.id ? '0.6' : '1'
+      const opacity = selectedSpot && !isGroupSelected ? '0.6' : '1'
       const pinEl = el.firstElementChild as HTMLElement | null
       if (pinEl) pinEl.style.opacity = opacity
     }
-  }, [spots, icons, selectedSpot?.id, mapReady])
+  }, [pinGroups, icons, selectedSpot?.id, mapReady])
 
   // ─── 現在地マーカー・円表示 ──────────────────────────────────
   useEffect(() => {
@@ -806,13 +953,29 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
     }
   }, [selectedSpot, isMobile, detailPanelOpen, mapReady, handlePinnedHoverChange])
 
+  // ─── グループ吹き出しの画面座標追従（pan/zoom で再project） ──────
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady || !openGroupId) { setBubbleScreenPos(null); return }
+
+    const update = () => {
+      const g = pinGroupsByRepIdRef.current[openGroupId]
+      if (!g) { setBubbleScreenPos(null); return }
+      const pt = map.project(toLngLat(g.lat, g.lng))
+      setBubbleScreenPos({ x: pt.x, y: pt.y })
+    }
+    update()
+    map.on('move', update)
+    return () => { map.off('move', update) }
+  }, [openGroupId, mapReady])
+
   return (
     <div ref={wrapperRef} style={{ position: 'relative', height: '100%', width: '100%' }}>
       <div ref={containerRef} style={{ height: '100%', width: '100%' }} />
 
-      {/* モバイルはホバーカード不要。PC: hovered は常に表示、pinnedHover は詳細パネルが閉じている時のみ */}
+      {/* モバイルはホバーカード不要。PC: hovered は常に表示、pinnedHover は詳細パネルが閉じている時のみ。吹き出しリスト表示中は抑制 */}
       {(() => {
-        const activeHover = isMobile ? null : (hovered ?? (detailPanelOpen ? null : pinnedHover))
+        const activeHover = isMobile || openGroupId ? null : (hovered ?? (detailPanelOpen ? null : pinnedHover))
         if (!activeHover) return null
         return (
           <HoverCard
@@ -824,6 +987,24 @@ export default function MapView({ spots, onSpotSelect, selectedSpot, userLocatio
             ogpImage={ogpCache[activeHover.spot.eventId ?? activeHover.spot.id] ?? undefined}
             galleryImage={galleryCache[activeHover.spot.eventId ?? activeHover.spot.id] ?? undefined}
             onDetailOpen={onDetailOpen}
+          />
+        )
+      })()}
+
+      {/* グループピンの吹き出しリスト */}
+      {(() => {
+        if (!openGroupId || !bubbleScreenPos) return null
+        const group = pinGroups.find(g => g.representativeId === openGroupId)
+        if (!group || group.spots.length < 2) return null
+        return (
+          <GroupBubble
+            key={openGroupId}
+            group={group}
+            x={bubbleScreenPos.x}
+            y={bubbleScreenPos.y}
+            wrapperRef={wrapperRef}
+            selectedSpotId={selectedSpot?.id}
+            onSelectSpot={handlePinClick}
           />
         )
       })()}

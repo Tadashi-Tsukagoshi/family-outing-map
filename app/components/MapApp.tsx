@@ -7,7 +7,31 @@ import DetailPanel from './DetailPanel'
 import BottomSheet, { type SheetState } from './BottomSheet'
 import { CATEGORY_LABELS, type Category, type PeriodFilter, type Spot } from '@/lib/spots'
 import { eventToSpot, type EventsDatabase } from '@/lib/events'
-import { getEventStatus } from '@/lib/date-utils'
+import { getEventStatus, parseLocalDate } from '@/lib/date-utils'
+
+// ─── 地図ピンのグループ化（座標がほぼ一致するピンをまとめる） ──────────
+/** 同一グループとみなす緯度経度の許容誤差（EventFormFields.tsx の coordsMatch と同じ基準） */
+const GROUP_COORD_EPSILON = 1e-6
+
+export type PinGroup = {
+  /** 最前面（吹き出しの先頭）に表示する spot の id */
+  representativeId: string
+  /** グループ内の全 spot（開催日の近さ順にソート済み） */
+  spots: Spot[]
+  lat: number
+  lng: number
+}
+
+/** グループ内ソート用の優先度。値が大きいほど前面（先頭）。z-index 計算ロジックと同じ優先順位 */
+function pinSortRank(spot: Spot, todayStartMs: number): number {
+  const status = getEventStatus(spot.startDate, spot.endDate)
+  if (status === 'active') return 500
+  if ((status === 'upcoming' || status === 'scheduled') && spot.startDate) {
+    const daysUntil = Math.ceil((parseLocalDate(spot.startDate).getTime() - todayStartMs) / 86400000)
+    return Math.max(1, Math.min(499, 500 - daysUntil))
+  }
+  return 0
+}
 
 // ─── 設定の永続化 ────────────────────────────────────────────────
 const STORAGE_KEY = 'outing-map-settings'
@@ -246,6 +270,37 @@ export default function MapApp() {
     return result
   }, [filteredSpots])
 
+  // 座標がほぼ一致する mapSpots 同士をグループ化し、地図ピンのバッジ・吹き出しリストに使う
+  const pinGroups = useMemo<PinGroup[]>(() => {
+    const todayStartMs = new Date().setHours(0, 0, 0, 0)
+    const groups: PinGroup[] = []
+    const assigned = new Set<string>()
+
+    for (const spot of mapSpots) {
+      if (assigned.has(spot.id)) continue
+      const groupSpots: Spot[] = [spot]
+      assigned.add(spot.id)
+
+      for (const other of mapSpots) {
+        if (assigned.has(other.id)) continue
+        if (Math.abs(other.lat - spot.lat) <= GROUP_COORD_EPSILON && Math.abs(other.lng - spot.lng) <= GROUP_COORD_EPSILON) {
+          groupSpots.push(other)
+          assigned.add(other.id)
+        }
+      }
+
+      groupSpots.sort((a, b) => pinSortRank(b, todayStartMs) - pinSortRank(a, todayStartMs))
+      groups.push({
+        representativeId: groupSpots[0].id,
+        spots: groupSpots,
+        lat: groupSpots[0].lat,
+        lng: groupSpots[0].lng,
+      })
+    }
+
+    return groups
+  }, [mapSpots])
+
   const toggleCategory = (cat: Category) => {
     setActiveCategories((prev) => {
       const next = new Set(prev)
@@ -288,6 +343,7 @@ export default function MapApp() {
       <div className="relative h-full w-full">
         <MapView
           spots={mapSpots}
+          pinGroups={pinGroups}
           selectedSpot={selectedSpot}
           onSpotSelect={setSelectedSpot}
           onDetailOpen={handleDetailOpen}
@@ -384,6 +440,7 @@ export default function MapApp() {
         )}
         <MapView
           spots={mapSpots}
+          pinGroups={pinGroups}
           selectedSpot={selectedSpot}
           onSpotSelect={setSelectedSpot}
           onDetailOpen={handleDetailOpen}
