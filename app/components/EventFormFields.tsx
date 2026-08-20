@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, EVENT_TYPE_LABELS, EVENT_CATEGORIES, DISASTER_CATEGORIES, type AllCategory, type EventType, type EventDateEntry } from '@/lib/spots'
 import { CategoryIcon } from './Sidebar'
@@ -146,52 +146,124 @@ function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   )
 }
 
-/** 緯度・経度を「緯度,経度」形式でクリップボードにコピーするボタン */
-function CopyCoordsButton({ lat, lng }: { lat: number; lng: number }) {
-  const [copied, setCopied] = useState(false)
+/** 緯度経度が両方セットされているか（未設定イベントの除外用） */
+function hasCoords(ev: { lat: number | null | undefined; lng: number | null | undefined }): ev is { lat: number; lng: number } {
+  return typeof ev.lat === 'number' && typeof ev.lng === 'number' && Number.isFinite(ev.lat) && Number.isFinite(ev.lng)
+}
+
+/** 座標が同一地点とみなせるか（浮動小数点誤差を吸収） */
+function coordsMatch(lat1: number, lng1: number, lat2: number, lng2: number) {
+  return Math.abs(lat1 - lat2) < 1e-6 && Math.abs(lng1 - lng2) < 1e-6
+}
+
+/** 「既存スポットの座標を使う」モーダル：登録済みイベントから座標を選んで流用する */
+function ExistingSpotModal({ events, ensureLoaded, excludeId, onSelect, onClose }: {
+  events:       CollectedEvent[] | null
+  ensureLoaded: () => void
+  excludeId?:   string
+  onSelect:     (lat: number, lng: number) => void
+  onClose:      () => void
+}) {
+  const [search, setSearch] = useState('')
+
+  useEffect(() => { ensureLoaded() }, [ensureLoaded])
+
+  const filtered = (events ?? []).filter(ev =>
+    ev.id !== excludeId &&
+    hasCoords(ev) &&
+    ev.name.toLowerCase().includes(search.trim().toLowerCase())
+  )
+
   return (
-    <button
-      type="button"
-      onClick={async () => {
-        await navigator.clipboard.writeText(`${lat},${lng}`)
-        setCopied(true)
-        setTimeout(() => setCopied(false), 1500)
-      }}
-      className="text-xs text-blue-500 hover:text-blue-700 cursor-pointer"
-    >
-      {copied ? '✓ コピーしました' : '📋 座標をコピー'}
-    </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+      <div
+        className="w-full max-w-sm max-h-[70vh] rounded-xl bg-white shadow-xl flex flex-col overflow-hidden"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="p-3 border-b border-gray-200 flex-shrink-0">
+          <p className="text-sm font-medium text-gray-700 mb-2">既存スポットの座標を使う</p>
+          <Input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="イベント名で検索"
+            autoFocus
+          />
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          {events === null ? (
+            <p className="p-4 text-sm text-gray-400">読み込み中...</p>
+          ) : filtered.length === 0 ? (
+            <p className="p-4 text-sm text-gray-400">該当するイベントがありません</p>
+          ) : (
+            filtered.map(ev => (
+              <button
+                key={ev.id}
+                type="button"
+                onClick={() => { onSelect(ev.lat, ev.lng); onClose() }}
+                className="w-full text-left px-3 py-2 border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+              >
+                <p className="text-sm text-gray-800">{ev.name}</p>
+                <p className="text-xs text-gray-400">{ev.venue}</p>
+              </button>
+            ))
+          )}
+        </div>
+        <div className="p-2 border-t border-gray-200 flex-shrink-0">
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full py-1.5 text-xs text-gray-500 hover:text-gray-700 cursor-pointer"
+          >
+            閉じる
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 
-/** クリップボードの「緯度,経度」形式テキストを読み取って座標を設定するボタン */
-function PasteCoordsButton({ onPaste, disabled }: { onPaste: (lat: number, lng: number) => void; disabled?: boolean }) {
-  const [pasted, setPasted] = useState(false)
+/** 同一座標の他イベントを表示し、グループからの脱退（住所からの座標再取得）を行うセクション */
+function SpotGroupSection({ lat, lng, events, ensureLoaded, selfId, selfName, onLeaveGroup }: {
+  lat:          number
+  lng:          number
+  events:       CollectedEvent[] | null
+  ensureLoaded: () => void
+  selfId?:      string
+  selfName:     string
+  onLeaveGroup: () => void
+}) {
+  useEffect(() => { if (events === null) ensureLoaded() }, [events, ensureLoaded])
+
+  if (!events) return null
+  const others = events.filter(ev => ev.id !== selfId && hasCoords(ev) && coordsMatch(ev.lat, ev.lng, lat, lng))
+  if (others.length === 0) return null
+
+  const rows = selfId
+    ? [{ id: selfId, name: selfName, isSelf: true }, ...others.map(ev => ({ id: ev.id, name: ev.name, isSelf: false }))]
+    : others.map(ev => ({ id: ev.id, name: ev.name, isSelf: false }))
+
   return (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={async () => {
-        try {
-          const text = await navigator.clipboard.readText()
-          const parts = text.split(',').map(s => s.trim())
-          const lat = Number(parts[0])
-          const lng = Number(parts[1])
-          if (parts.length !== 2 || !Number.isFinite(lat) || !Number.isFinite(lng)) {
-            alert('座標の形式が正しくありません。「緯度,経度」の形式でコピーしてください。')
-            return
-          }
-          onPaste(lat, lng)
-          setPasted(true)
-          setTimeout(() => setPasted(false), 1500)
-        } catch {
-          alert('座標の形式が正しくありません。「緯度,経度」の形式でコピーしてください。')
-        }
-      }}
-      className="text-xs text-blue-500 hover:text-blue-700 disabled:opacity-40 cursor-pointer"
-    >
-      {pasted ? '✓ 貼り付けました' : '📌 座標を貼り付け'}
-    </button>
+    <div className="mt-2 rounded-lg bg-blue-50 p-3">
+      <p className="text-xs font-medium text-gray-600 mb-2">📌 この座標のグループ（{rows.length}件）</p>
+      <ul className="space-y-1 mb-2">
+        {rows.map(r => (
+          <li key={r.id} className="text-sm text-gray-700">
+            {r.name}
+            {r.isSelf && <span className="text-gray-400 text-xs ml-1">（このイベント）</span>}
+          </li>
+        ))}
+      </ul>
+      <button
+        type="button"
+        onClick={onLeaveGroup}
+        className="text-xs text-blue-600 hover:text-blue-800 cursor-pointer"
+      >
+        🔗 グループから外す（住所から座標を再取得）
+      </button>
+      <p className="mt-1 text-xs text-gray-400">
+        同じ住所では同じ座標になります。別の座標にするには地図ピッカーをご利用ください
+      </p>
+    </div>
   )
 }
 
@@ -264,6 +336,21 @@ export default function EventFormFields({
   const [imageMessage, setImageMessage] = useState('')
   const geoTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // 「既存スポットの座標を使う」モーダル・グループ一覧で共用する登録済みイベント一覧のキャッシュ
+  const [eventsCache, setEventsCache] = useState<CollectedEvent[] | null>(null)
+  const eventsCacheLoadingRef = useRef(false)
+  const ensureEventsLoaded = useCallback(() => {
+    if (eventsCache !== null || eventsCacheLoadingRef.current) return
+    eventsCacheLoadingRef.current = true
+    fetch('/api/events')
+      .then(r => r.json())
+      .then(d => setEventsCache(Array.isArray(d.events) ? d.events : []))
+      .catch(() => setEventsCache([]))
+      .finally(() => { eventsCacheLoadingRef.current = false })
+  }, [eventsCache])
+
+  const [spotPickerTarget, setSpotPickerTarget] = useState<null | { kind: 'main' } | { kind: 'date'; id: string }>(null)
+
   const set = onChange
   const isPermanent = form.type === 'permanent'
 
@@ -327,6 +414,27 @@ export default function EventFormFields({
     if (v.trim().length >= 4) {
       geoTimer.current = setTimeout(() => geocode(v), 700)
     }
+  }
+
+  const handleLeaveGroupMain = () => {
+    if (!form.address.trim()) { alert('住所を入力してから実行してください'); return }
+    geocode(form.address)
+  }
+
+  const handleSpotPickerSelect = (lat: number, lng: number) => {
+    if (!spotPickerTarget) return
+    if (spotPickerTarget.kind === 'main') {
+      set('lat', lat)
+      set('lng', lng)
+      setGeoStatus('ok')
+      setGeoMessage(`📍 既存スポットの座標を使用しました（${lat.toFixed(5)}, ${lng.toFixed(5)}）`)
+    } else {
+      const id = spotPickerTarget.id
+      updateEventDate(id, { lat, lng })
+      setDateGeoStatus(s => ({ ...s, [id]: 'ok' }))
+      setDateGeoMessage(s => ({ ...s, [id]: `📍 既存スポットの座標を使用しました（${lat.toFixed(5)}, ${lng.toFixed(5)}）` }))
+    }
+    setSpotPickerTarget(null)
   }
 
   const handleImagesAdd = async (fileList: FileList | null) => {
@@ -438,6 +546,11 @@ export default function EventFormFields({
     if (v.trim().length >= 4) {
       dateGeoTimers.current[id] = setTimeout(() => geocodeDate(id, v), 700)
     }
+  }
+
+  const handleLeaveGroupDate = (id: string, address: string) => {
+    if (!address.trim()) { alert('住所を入力してから実行してください'); return }
+    geocodeDate(id, address)
   }
 
   const toggleDateCustomVenue = (id: string, checked: boolean) => {
@@ -692,15 +805,27 @@ export default function EventFormFields({
                           </div>
                         </div>
                       )}
-                      <div className="mt-1.5 flex items-center gap-3">
-                        {d.lat !== null && d.lng !== null && (
-                          <CopyCoordsButton lat={d.lat} lng={d.lng} />
-                        )}
-                        <PasteCoordsButton
-                          disabled={disabled}
-                          onPaste={(lat, lng) => updateEventDate(d.id, { lat, lng })}
+                      {d.lat !== null && d.lng !== null && (
+                        <SpotGroupSection
+                          lat={d.lat}
+                          lng={d.lng}
+                          events={eventsCache}
+                          ensureLoaded={ensureEventsLoaded}
+                          selfId={editing ? eventId : undefined}
+                          selfName={form.name || '（無題のイベント）'}
+                          onLeaveGroup={() => handleLeaveGroupDate(d.id, d.address)}
                         />
-                      </div>
+                      )}
+
+                      {/* 既存スポットの座標を使う */}
+                      <button
+                        type="button"
+                        onClick={() => setSpotPickerTarget({ kind: 'date', id: d.id })}
+                        disabled={disabled}
+                        className="mt-2 block text-xs text-blue-500 hover:text-blue-700 disabled:opacity-40 cursor-pointer"
+                      >
+                        📍 既存スポットの座標を使う
+                      </button>
 
                       {/* 地図ピッカー */}
                       <button
@@ -936,15 +1061,27 @@ export default function EventFormFields({
             </div>
           </div>
         )}
-        <div className="mt-1.5 flex items-center gap-3">
-          {form.lat !== null && form.lng !== null && (
-            <CopyCoordsButton lat={form.lat} lng={form.lng} />
-          )}
-          <PasteCoordsButton
-            disabled={disabled}
-            onPaste={(lat, lng) => { set('lat', lat); set('lng', lng) }}
+        {form.lat !== null && form.lng !== null && (
+          <SpotGroupSection
+            lat={form.lat}
+            lng={form.lng}
+            events={eventsCache}
+            ensureLoaded={ensureEventsLoaded}
+            selfId={editing ? eventId : undefined}
+            selfName={form.name || '（無題のイベント）'}
+            onLeaveGroup={handleLeaveGroupMain}
           />
-        </div>
+        )}
+
+        {/* 既存スポットの座標を使う */}
+        <button
+          type="button"
+          onClick={() => setSpotPickerTarget({ kind: 'main' })}
+          disabled={disabled}
+          className="mt-2 block text-xs text-blue-500 hover:text-blue-700 disabled:opacity-40 cursor-pointer"
+        >
+          📍 既存スポットの座標を使う
+        </button>
 
         {/* 地図ピッカー */}
         <button
@@ -1173,6 +1310,16 @@ export default function EventFormFields({
           )}
         </div>
       </div>
+
+      {spotPickerTarget && (
+        <ExistingSpotModal
+          events={eventsCache}
+          ensureLoaded={ensureEventsLoaded}
+          excludeId={editing ? eventId : undefined}
+          onSelect={handleSpotPickerSelect}
+          onClose={() => setSpotPickerTarget(null)}
+        />
+      )}
     </>
   )
 }
