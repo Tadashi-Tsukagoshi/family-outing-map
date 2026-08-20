@@ -424,7 +424,7 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
 /** 吹き出しの幅 */
 const BUBBLE_W = 240
 /** ピン中心から吹き出し端までのギャップ（グループピンは最大48pxあるため通常のGAPより広く取る） */
-const BUBBLE_GAP = 16
+const BUBBLE_GAP = 32
 
 type GroupBubbleProps = {
   group:          PinGroup
@@ -498,6 +498,10 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
         .group-bubble-arrow-down::after { bottom: -6px; border-top: 6px solid white; }
         .group-bubble-arrow-up::after   { top: -6px;    border-bottom: 6px solid white; }
       `}</style>
+      {pos.above && (
+        // 吹き出し下端からピンまでの隙間を埋める透明ブリッジ：カーソルがこの隙間を通過してもホバーが途切れないようにする
+        <div style={{ position: 'absolute', left: 0, right: 0, bottom: -BUBBLE_GAP, height: BUBBLE_GAP, pointerEvents: 'all' }} />
+      )}
       <div
         ref={bubbleRef}
         className={pos.above ? 'group-bubble-arrow-down' : 'group-bubble-arrow-up'}
@@ -600,7 +604,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
 
   const scheduleGroupHide = useCallback(() => {
     clearGroupHide()
-    groupHideTimer.current = setTimeout(() => setOpenGroupId(null), 200)
+    groupHideTimer.current = setTimeout(() => setOpenGroupId(null), 300)
   }, [clearGroupHide])
 
   const fetchOgp = useCallback(async (spotId: string, url: string) => {
