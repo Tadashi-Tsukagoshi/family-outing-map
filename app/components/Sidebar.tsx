@@ -173,7 +173,7 @@ export default function Sidebar({
           <div className="relative w-full self-start pt-5">
             <div className="relative">
               <div
-                className={`absolute -top-5 -translate-x-1/2 text-xs font-semibold tabular-nums pointer-events-none whitespace-nowrap ${hasLocation ? 'text-blue-600' : 'text-gray-400'}`}
+                className={`absolute -top-5 -translate-x-1/2 text-xs ${isSheet ? 'font-semibold' : 'font-normal'} tabular-nums pointer-events-none whitespace-nowrap ${hasLocation ? 'text-blue-600' : 'text-gray-400'}`}
                 style={{ left: radiusThumbLeft }}
               >
                 半径{locationRadius}km
