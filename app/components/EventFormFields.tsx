@@ -146,6 +146,55 @@ function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   )
 }
 
+/** 緯度・経度を「緯度,経度」形式でクリップボードにコピーするボタン */
+function CopyCoordsButton({ lat, lng }: { lat: number; lng: number }) {
+  const [copied, setCopied] = useState(false)
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        await navigator.clipboard.writeText(`${lat},${lng}`)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 1500)
+      }}
+      className="text-xs text-blue-500 hover:text-blue-700 cursor-pointer"
+    >
+      {copied ? '✓ コピーしました' : '📋 座標をコピー'}
+    </button>
+  )
+}
+
+/** クリップボードの「緯度,経度」形式テキストを読み取って座標を設定するボタン */
+function PasteCoordsButton({ onPaste, disabled }: { onPaste: (lat: number, lng: number) => void; disabled?: boolean }) {
+  const [pasted, setPasted] = useState(false)
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={async () => {
+        try {
+          const text = await navigator.clipboard.readText()
+          const parts = text.split(',').map(s => s.trim())
+          const lat = Number(parts[0])
+          const lng = Number(parts[1])
+          if (parts.length !== 2 || !Number.isFinite(lat) || !Number.isFinite(lng)) {
+            alert('座標の形式が正しくありません。「緯度,経度」の形式でコピーしてください。')
+            return
+          }
+          onPaste(lat, lng)
+          setPasted(true)
+          setTimeout(() => setPasted(false), 1500)
+        } catch {
+          alert('座標の形式が正しくありません。「緯度,経度」の形式でコピーしてください。')
+        }
+      }}
+      className="text-xs text-blue-500 hover:text-blue-700 disabled:opacity-40 cursor-pointer"
+    >
+      {pasted ? '✓ 貼り付けました' : '📌 座標を貼り付け'}
+    </button>
+  )
+}
+
 const TIME_HOURS   = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
 const TIME_MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'))
 
@@ -643,6 +692,15 @@ export default function EventFormFields({
                           </div>
                         </div>
                       )}
+                      <div className="mt-1.5 flex items-center gap-3">
+                        {d.lat !== null && d.lng !== null && (
+                          <CopyCoordsButton lat={d.lat} lng={d.lng} />
+                        )}
+                        <PasteCoordsButton
+                          disabled={disabled}
+                          onPaste={(lat, lng) => updateEventDate(d.id, { lat, lng })}
+                        />
+                      </div>
 
                       {/* 地図ピッカー */}
                       <button
@@ -878,6 +936,15 @@ export default function EventFormFields({
             </div>
           </div>
         )}
+        <div className="mt-1.5 flex items-center gap-3">
+          {form.lat !== null && form.lng !== null && (
+            <CopyCoordsButton lat={form.lat} lng={form.lng} />
+          )}
+          <PasteCoordsButton
+            disabled={disabled}
+            onPaste={(lat, lng) => { set('lat', lat); set('lng', lng) }}
+          />
+        </div>
 
         {/* 地図ピッカー */}
         <button
