@@ -423,8 +423,8 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
 // ─── GroupBubble（座標一致ピンの吹き出しリスト） ──────────────────
 /** 吹き出しの幅 */
 const BUBBLE_W = 240
-/** ピン中心から吹き出し端までのギャップ（グループピン通常サイズ40pxの半径20pxに合わせ、+1バッジが隠れない程度に近づける） */
-const BUBBLE_GAP = 20
+/** ピン中心から吹き出し端までのギャップ（グループピン通常サイズ40pxの半径20pxに被らないよう近づける） */
+const BUBBLE_GAP = 22
 
 type GroupBubbleProps = {
   group:          PinGroup
@@ -435,13 +435,14 @@ type GroupBubbleProps = {
   onSelectSpot:   (spot: Spot) => void
   onMouseEnter?:  () => void
   onMouseLeave?:  () => void
+  isMobile:       boolean
 }
 
-function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, onMouseEnter, onMouseLeave }: GroupBubbleProps) {
+function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, onMouseEnter, onMouseLeave, isMobile }: GroupBubbleProps) {
   const bubbleRef = useRef<HTMLDivElement>(null)
   const aboveGap = BUBBLE_GAP
 
-  const [pos, setPos] = useState<Pos>({ left: x, top: y - aboveGap, above: true, ready: false, cardH: 0 })
+  const [pos, setPos] = useState<Pos>({ left: x, top: y, above: true, ready: false, cardH: 0 })
 
   useLayoutEffect(() => {
     const bubble  = bubbleRef.current
@@ -453,13 +454,10 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
     const cardH = bubble.offsetHeight
 
     const above = cardH <= y - aboveGap
-    let top: number
-    if (above) {
-      top = y - aboveGap
-    } else {
-      top = y + BUBBLE_GAP
-      if (top + cardH > cH - MARGIN) top = cH - MARGIN - cardH
-    }
+    // 外側divの上端/下端はピン中心(y)に固定し、padding分（BUBBLE_GAP）でカードとの隙間を作る。
+    // padding領域もdivのボックスに含まれるため、ピン⇔カード間のホバー判定が連続する。
+    let top = y
+    if (!above && top + BUBBLE_GAP + cardH > cH - MARGIN) top = cH - MARGIN - cardH - BUBBLE_GAP
 
     const halfW = BUBBLE_W / 2
     let left = x
@@ -480,10 +478,13 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
         width:         BUBBLE_W,
         zIndex:        1000,
         pointerEvents: 'all',
+        // padding領域がピンとカードの間の隙間を埋め、ホバー判定を連続させる（絶対配置のブリッジ要素は使わない）
+        paddingBottom: pos.above ? BUBBLE_GAP : 0,
+        paddingTop:    pos.above ? 0 : BUBBLE_GAP,
       }}
       onClick={e => e.stopPropagation()}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
+      onMouseEnter={isMobile ? undefined : onMouseEnter}
+      onMouseLeave={isMobile ? undefined : onMouseLeave}
     >
       <style>{`
         .group-bubble-arrow-down::after,
@@ -498,10 +499,6 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
         .group-bubble-arrow-down::after { bottom: -6px; border-top: 6px solid white; }
         .group-bubble-arrow-up::after   { top: -6px;    border-bottom: 6px solid white; }
       `}</style>
-      {pos.above && (
-        // 吹き出し下端からピンまでの隙間を埋める透明ブリッジ：カーソルがこの隙間を通過してもホバーが途切れないようにする
-        <div style={{ position: 'absolute', left: 0, right: 0, bottom: -BUBBLE_GAP, height: BUBBLE_GAP, pointerEvents: 'all' }} />
-      )}
       <div
         ref={bubbleRef}
         className={pos.above ? 'group-bubble-arrow-down' : 'group-bubble-arrow-up'}
@@ -801,6 +798,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
         el.addEventListener('mouseenter', () => {
           const g = pinGroupsByRepIdRef.current[repId]
           if (g && g.spots.length > 1) {
+            if (handlersRef.current.isMobile) return
             handlersRef.current.clearGroupHide()
             setOpenGroupId(repId)
             return
@@ -814,6 +812,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
         el.addEventListener('mouseleave', () => {
           const g = pinGroupsByRepIdRef.current[repId]
           if (g && g.spots.length > 1) {
+            if (handlersRef.current.isMobile) return
             handlersRef.current.scheduleGroupHide()
             return
           }
@@ -1080,6 +1079,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
             onSelectSpot={handlePinClick}
             onMouseEnter={clearGroupHide}
             onMouseLeave={scheduleGroupHide}
+            isMobile={isMobile}
           />
         )
       })()}
