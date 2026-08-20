@@ -656,13 +656,19 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
     setOpenGroupId(null)
   }, [onDetailClose, isMobile, onSpotSelect, handleImmediateHide])
 
-  // グループピン（座標一致で束ねたピン）タップ時：先頭spotで選択・詳細を開き、2件以上なら吹き出しリストを開く
+  // グループピン（座標一致で束ねたピン）タップ時：2件以上なら吹き出しリストのみ開き選択は解除、1件なら従来通り選択・詳細を開く
   const handleGroupPinClick = useCallback((repId: string) => {
     const group = pinGroupsByRepIdRef.current[repId]
     if (!group || group.spots.length === 0) return
+    if (group.spots.length > 1) {
+      onDetailClose()
+      if (isMobile) onSpotSelect(null)
+      setOpenGroupId(repId)
+      return
+    }
     handlePinClick(group.spots[0])
-    setOpenGroupId(group.spots.length > 1 ? repId : null)
-  }, [handlePinClick])
+    setOpenGroupId(null)
+  }, [handlePinClick, onDetailClose, isMobile, onSpotSelect])
 
   // マーカーのDOMイベントハンドラ・地図イベントハンドラから常に最新のコールバック・spotを参照するためのref
   const handlersRef = useRef({ handleHoverIn, scheduleHide, handlePinClick, handleGroupPinClick, handleMapClick, handleImmediateHide, isMobile, onMapTapClose })
