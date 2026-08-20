@@ -430,9 +430,11 @@ type GroupBubbleProps = {
   wrapperRef:     React.RefObject<HTMLDivElement | null>
   selectedSpotId?: string
   onSelectSpot:   (spot: Spot) => void
+  onMouseEnter?:  () => void
+  onMouseLeave?:  () => void
 }
 
-function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot }: GroupBubbleProps) {
+function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, onMouseEnter, onMouseLeave }: GroupBubbleProps) {
   const bubbleRef = useRef<HTMLDivElement>(null)
   const aboveGap = BUBBLE_GAP
 
@@ -477,6 +479,8 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot }: 
         pointerEvents: 'all',
       }}
       onClick={e => e.stopPropagation()}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       <style>{`
         .group-bubble-arrow-down::after,
@@ -555,6 +559,8 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
   const [hovered,      setHovered]      = useState<HoverState | null>(null)
   const [pinnedHover,  setPinnedHover]  = useState<HoverState | null>(null)
   const hideTimer            = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // グループピン吹き出しリスト（2件以上）をPCホバーで開閉する際の遅延クローズ用タイマー
+  const groupHideTimer       = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // グループピンの吹き出しリスト（2件以上の PinGroup をタップした時に開く）
   const [openGroupId,     setOpenGroupId]     = useState<string | null>(null)
@@ -583,6 +589,15 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
     clearHide()
     hideTimer.current = setTimeout(() => setHovered(null), 200)
   }, [clearHide])
+
+  const clearGroupHide = useCallback(() => {
+    if (groupHideTimer.current) { clearTimeout(groupHideTimer.current); groupHideTimer.current = null }
+  }, [])
+
+  const scheduleGroupHide = useCallback(() => {
+    clearGroupHide()
+    groupHideTimer.current = setTimeout(() => setOpenGroupId(null), 200)
+  }, [clearGroupHide])
 
   const fetchOgp = useCallback(async (spotId: string, url: string) => {
     if (spotId in ogpCacheRef.current) return
@@ -671,9 +686,9 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
   }, [handlePinClick, onDetailClose, isMobile, onSpotSelect])
 
   // マーカーのDOMイベントハンドラ・地図イベントハンドラから常に最新のコールバック・spotを参照するためのref
-  const handlersRef = useRef({ handleHoverIn, scheduleHide, handlePinClick, handleGroupPinClick, handleMapClick, handleImmediateHide, isMobile, onMapTapClose })
+  const handlersRef = useRef({ handleHoverIn, scheduleHide, clearGroupHide, scheduleGroupHide, handlePinClick, handleGroupPinClick, handleMapClick, handleImmediateHide, isMobile, onMapTapClose })
   useEffect(() => {
-    handlersRef.current = { handleHoverIn, scheduleHide, handlePinClick, handleGroupPinClick, handleMapClick, handleImmediateHide, isMobile, onMapTapClose }
+    handlersRef.current = { handleHoverIn, scheduleHide, clearGroupHide, scheduleGroupHide, handlePinClick, handleGroupPinClick, handleMapClick, handleImmediateHide, isMobile, onMapTapClose }
   })
   const spotsByIdRef = useRef<Record<string, Spot>>({})
   useEffect(() => {
@@ -777,13 +792,25 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
         // Marker の transform 位置合わせ（zoom/pan追従）が壊れるため、ここでは設定しない。
         el.addEventListener('mouseenter', () => {
           const g = pinGroupsByRepIdRef.current[repId]
+          if (g && g.spots.length > 1) {
+            handlersRef.current.clearGroupHide()
+            setOpenGroupId(repId)
+            return
+          }
           const cur = g ? g.spots[0] : spotsByIdRef.current[repId]
           const m = mapRef.current
           if (!cur || !m) return
           const pt = m.project(toLngLat(cur.lat, cur.lng))
           handlersRef.current.handleHoverIn(cur, pt.x, pt.y)
         })
-        el.addEventListener('mouseleave', () => handlersRef.current.scheduleHide())
+        el.addEventListener('mouseleave', () => {
+          const g = pinGroupsByRepIdRef.current[repId]
+          if (g && g.spots.length > 1) {
+            handlersRef.current.scheduleGroupHide()
+            return
+          }
+          handlersRef.current.scheduleHide()
+        })
         el.addEventListener('click', (e) => {
           e.stopPropagation()
           handlersRef.current.handleGroupPinClick(repId)
@@ -1040,6 +1067,8 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
             wrapperRef={wrapperRef}
             selectedSpotId={selectedSpot?.id}
             onSelectSpot={handlePinClick}
+            onMouseEnter={clearGroupHide}
+            onMouseLeave={scheduleGroupHide}
           />
         )
       })()}
