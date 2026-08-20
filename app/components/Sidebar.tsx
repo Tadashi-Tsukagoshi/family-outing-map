@@ -167,7 +167,7 @@ export default function Sidebar({
               className={`-mt-0.5 flex items-center text-sm ${isSheet ? 'h-7' : 'h-5'}`}
               style={{ color: '#1F1F1F' }}
             >
-              現在地を表示
+              現在地・距離円
             </span>
           </div>
           <div className="relative w-full self-start pt-5">
@@ -176,7 +176,7 @@ export default function Sidebar({
                 className={`absolute -top-5 -translate-x-1/2 text-xs font-semibold tabular-nums pointer-events-none whitespace-nowrap ${hasLocation ? 'text-blue-600' : 'text-gray-400'}`}
                 style={{ left: radiusThumbLeft }}
               >
-                {locationRadius} km
+                半径{locationRadius}km
               </div>
               <input
                 type="range"
