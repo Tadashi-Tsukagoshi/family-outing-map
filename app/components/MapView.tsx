@@ -811,11 +811,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
         })
         el.addEventListener('mouseleave', () => {
           const g = pinGroupsByRepIdRef.current[repId]
-          if (g && g.spots.length > 1) {
-            if (handlersRef.current.isMobile) return
-            handlersRef.current.scheduleGroupHide()
-            return
-          }
+          if (g && g.spots.length > 1) return
           handlersRef.current.scheduleHide()
         })
         el.addEventListener('click', (e) => {
