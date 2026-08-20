@@ -739,7 +739,9 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
       if (!marker) {
         const el = document.createElement('div')
         el.style.cursor = 'pointer'
-        el.style.position = 'relative'
+        // el は mapbox-gl.css の .mapboxgl-marker クラスにより position:absolute が付与済みで、
+        // バッジ（position:absolute）の配置起点として機能する。position を上書きすると
+        // Marker の transform 位置合わせ（zoom/pan追従）が壊れるため、ここでは設定しない。
         el.addEventListener('mouseenter', () => {
           const g = pinGroupsByRepIdRef.current[repId]
           const cur = g ? g.spots[0] : spotsByIdRef.current[repId]
