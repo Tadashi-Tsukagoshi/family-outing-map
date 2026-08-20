@@ -519,7 +519,7 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
                 display:    'flex',
                 alignItems: 'center',
                 gap:        6,
-                padding:    '6px 10px',
+                padding:    '11px 12px',
                 cursor:     'pointer',
                 background: selected ? '#eff6ff' : 'transparent',
               }}
