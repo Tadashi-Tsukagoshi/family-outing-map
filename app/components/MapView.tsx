@@ -3,7 +3,7 @@
 import 'mapbox-gl/dist/mapbox-gl.css'
 import mapboxgl from 'mapbox-gl'
 import { useRef, useState, useMemo, useCallback, useEffect, useLayoutEffect } from 'react'
-import { getCategoryIconSrc, CATEGORY_EMOJIS, BADGE_BG_COLOR, type Category, type Spot } from '@/lib/spots'
+import { getCategoryIconSrc, BADGE_BG_COLOR, type Category, type Spot } from '@/lib/spots'
 import { getDateDisplay, getEventStatus, parseLocalDate, STATUS_CONFIG, PARK_STATUS, fmtTimeRange } from '@/lib/date-utils'
 import { type SheetState } from './BottomSheet'
 import { type PinGroup } from './MapApp'
@@ -176,6 +176,28 @@ function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef
     hit,
     html: `<div${wrapperCls} style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;">${circle}</div>`,
   }
+}
+
+/** 地図ピンと同じビジュアルの20x20小型アイコンHTML（選択状態は反映しない）。吹き出しリストの行アイコンに使う */
+function buildSmallIconHtml(spot: Spot): string {
+  const SIZE = 20
+
+  if (spot.category === 'event' || spot.category === 'event_plus' || spot.category === 'park') {
+    const { src: icon } = pickIcon(spot.category)
+    return `<img src="${icon}" style="width:${SIZE}px;height:${SIZE}px;object-fit:contain;display:block;">`
+  }
+
+  const { src: icon, bg, glow, ratio } = pickIcon(spot.category)
+  const borderColor = '#9ca3af'
+  const useGradientBorder = spot.category === 'fireworks' || spot.category === 'festival' || spot.category === 'kumamoto_earthquake_r8'
+  const gradientBorder = 'conic-gradient(from 0deg, #ffd600 0deg, #ffd600 60deg, #ff8a00 120deg, #ea4335 200deg, #bc2a8d 280deg, #ffd600 360deg)'
+  const borderWidth = 1.2
+  const img = Math.round(SIZE * ratio)
+  const inner = SIZE - borderWidth * 2
+
+  return useGradientBorder
+    ? `<div style="width:${SIZE}px;height:${SIZE}px;border-radius:50%;background:${gradientBorder};display:flex;align-items:center;justify-content:center;"><div style="width:${inner}px;height:${inner}px;margin:${borderWidth}px;border-radius:50%;background:${bg};overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}"></div></div>`
+    : `<div style="width:${SIZE}px;height:${SIZE}px;border-radius:50%;background:${bg};border:1px solid ${borderColor};overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="${icon}" style="width:${img}px;height:${img}px;object-fit:contain;display:block;${glow}"></div>`
 }
 
 // ─── HoverCard ───────────────────────────────────────────────────
@@ -398,6 +420,8 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, ogpImage, 
 // ─── GroupBubble（座標一致ピンの吹き出しリスト） ──────────────────
 /** 吹き出しの幅 */
 const BUBBLE_W = 200
+/** ピン中心から吹き出し端までのギャップ（グループピンは最大48pxあるため通常のGAPより広く取る） */
+const BUBBLE_GAP = 30
 
 type GroupBubbleProps = {
   group:          PinGroup
@@ -410,7 +434,7 @@ type GroupBubbleProps = {
 
 function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot }: GroupBubbleProps) {
   const bubbleRef = useRef<HTMLDivElement>(null)
-  const aboveGap = GAP
+  const aboveGap = BUBBLE_GAP
 
   const [pos, setPos] = useState<Pos>({ left: x, top: y - aboveGap, above: true, ready: false, cardH: 0 })
 
@@ -428,7 +452,7 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot }: 
     if (above) {
       top = y - aboveGap
     } else {
-      top = y + GAP
+      top = y + BUBBLE_GAP
       if (top + cardH > cH - MARGIN) top = cH - MARGIN - cardH
     }
 
@@ -493,7 +517,10 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot }: 
                 background: selected ? '#eff6ff' : 'transparent',
               }}
             >
-              <span style={{ fontSize: 14, flexShrink: 0 }}>{CATEGORY_EMOJIS[spot.category]}</span>
+              <span
+                style={{ width: 20, height: 20, display: 'inline-flex', flexShrink: 0 }}
+                dangerouslySetInnerHTML={{ __html: buildSmallIconHtml(spot) }}
+              />
               <span style={{
                 fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               }}>
@@ -650,8 +677,8 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
   const icons = useMemo(() => {
     const result: Record<string, IconDef> = {}
     for (const g of pinGroups) {
-      const isGroupSelected = g.spots.some(s => s.id === selectedSpot?.id)
-      result[g.representativeId] = buildIconDef(g.spots[0], isGroupSelected, isMobile)
+      const activeSpot = g.spots.find(s => s.id === selectedSpot?.id) ?? g.spots[0]
+      result[g.representativeId] = buildIconDef(activeSpot, activeSpot.id === selectedSpot?.id, isMobile)
     }
     return result
   }, [pinGroups, selectedSpot?.id, isMobile])
