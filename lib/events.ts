@@ -28,6 +28,8 @@ export type CollectedEvent = {
   email?: string
   posterType?: 'general' | 'organizer' | 'business' | 'staff'
   scheduleNote?: string
+  /** カンマ区切りの個別指定日（例："2026-09-12,2026-09-16"） */
+  specificDates?: string | null
   notice?: string
   likes?: number
   editedBy?: string
@@ -84,6 +86,7 @@ export function eventToSpot(event: CollectedEvent): Spot {
     postedBy:     event.postedBy,
     posterType:   event.posterType,
     scheduleNote: event.scheduleNote,
+    specificDates: event.specificDates,
     notice:       event.notice,
     likes:        event.likes,
     editedBy:     event.editedBy,

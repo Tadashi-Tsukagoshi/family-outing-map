@@ -32,6 +32,7 @@ async function getSpot(id: string): Promise<Spot | null> {
     postedBy:     data.posted_by,
     posterType:   data.poster_type,
     scheduleNote: data.schedule_note ?? undefined,
+    specificDates: data.specific_dates ?? undefined,
     notice:       data.notice ?? undefined,
     likes:        data.likes ?? 0,
   })
@@ -75,7 +76,7 @@ export default async function EventDetailPage({ params }: Props) {
 
   const isPermanent = spot.type === 'permanent'
   const status    = getEventStatus(spot.startDate, spot.endDate)
-  const dateRange = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
+  const dateRange = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate, spot.specificDates)
   const statusCfg = isPermanent ? PERMANENT_STATUS : (status ? STATUS_CONFIG[status] : null)
   const showStatus = isPermanent || status === 'ended'
   const catColor  = CATEGORY_COLORS[spot.category]

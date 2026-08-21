@@ -37,6 +37,8 @@ export type Spot = {
   postedBy?: string
   posterType?: 'general' | 'organizer' | 'business' | 'staff'
   scheduleNote?: string
+  /** カンマ区切りの個別指定日（例："2026-09-12,2026-09-16"）。未設定時は startDate〜endDate の期間指定 */
+  specificDates?: string | null
   notice?: string
   likes?: number
   editedBy?: string

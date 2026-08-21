@@ -20,9 +20,24 @@ export function fmtDateRange(start?: string, end?: string): string | null {
   return fmt(start ?? end!)
 }
 
-/** schedule_note があればそれを、なければ開始日〜終了日の範囲文字列を返す */
-export function getDateDisplay(scheduleNote?: string, startDate?: string, endDate?: string): string | null {
+/** カンマ区切りの個別指定日を "M/D(曜), M/D(曜), ..." 形式にフォーマット */
+export function fmtSpecificDates(specificDates?: string | null): string | null {
+  if (!specificDates) return null
+  const dates = specificDates.split(',').map(s => s.trim()).filter(Boolean).sort()
+  if (dates.length === 0) return null
+  return dates
+    .map(iso => {
+      const d = parseLocalDate(iso)
+      return `${d.getMonth() + 1}/${d.getDate()}(${DOW_JA[d.getDay()]})`
+    })
+    .join(', ')
+}
+
+/** schedule_note があればそれを、個別指定日があればそれを、なければ開始日〜終了日の範囲文字列を返す */
+export function getDateDisplay(scheduleNote?: string, startDate?: string, endDate?: string, specificDates?: string | null): string | null {
   if (scheduleNote) return scheduleNote
+  const specific = fmtSpecificDates(specificDates)
+  if (specific) return specific
   return fmtDateRange(startDate, endDate)
 }
 

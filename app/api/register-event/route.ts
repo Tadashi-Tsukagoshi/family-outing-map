@@ -28,6 +28,7 @@ export async function POST(req: Request) {
   const startDate    = (b.startDate    as string | undefined)?.trim()
   const endDate      = (b.endDate      as string | undefined)?.trim()
   const scheduleNote = (b.scheduleNote as string | undefined)?.trim() || null
+  const specificDates = (b.specificDates as string | null | undefined)?.trim() || null
   const notice       = (b.notice       as string | undefined)?.trim() || null
   const startTime     = (b.startTime     as string | undefined)?.trim() || null
   const endTime       = (b.endTime       as string | undefined)?.trim() || null
@@ -61,6 +62,7 @@ export async function POST(req: Request) {
     business_hours: isPermanent ? businessHours : null,
     spot_label:    isPermanent ? spotLabel : null,
     schedule_note: isPermanent ? null : scheduleNote,
+    specific_dates: isPermanent || scheduleNote ? null : specificDates,
     notice,
     venue,
     address,
@@ -120,6 +122,7 @@ export async function POST(req: Request) {
     endTime:     newEvent.end_time ?? undefined,
     businessHours: newEvent.business_hours ?? undefined,
     spotLabel:   newEvent.spot_label ?? undefined,
+    specificDates: newEvent.specific_dates ?? undefined,
     notice:      newEvent.notice ?? undefined,
     url:         newEvent.url ?? undefined,
     instagramUrl: newEvent.instagram_url ?? undefined,

@@ -6,6 +6,7 @@ import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, EVENT_TYPE_LABELS, EV
 import { CategoryIcon } from './Sidebar'
 import type { CollectedEvent } from '@/lib/events'
 import { resizeImage } from '@/lib/image-utils'
+import { parseLocalDate, DOW_JA } from '@/lib/date-utils'
 
 const MapPicker = dynamic(() => import('./MapPicker'), { ssr: false })
 
@@ -23,6 +24,8 @@ export type FormState = {
   businessHours: string
   spotLabel:     string
   scheduleNote:  string
+  /** カンマ区切りの個別指定日（例："2026-09-12,2026-09-16"）。null の場合は開始日〜終了日の期間指定 */
+  specificDates: string | null
   /** category='event_plus' 選択時の複数日程（event_dates テーブルに対応。保存処理は未実装） */
   eventDates:    EventDateEntry[]
   notice:        string
@@ -70,6 +73,7 @@ export const INITIAL_FORM: FormState = {
   type: 'event',
   dateConfirmed: true,
   startDate: '', endDate: '', startTime: '', endTime: '', businessHours: '', spotLabel: '', scheduleNote: '',
+  specificDates: null,
   eventDates: [],
   notice: DEFAULT_NOTICE,
   venue: '', fee: '', imageUrl: '', imageUrls: [], imageCaptions: [], address: '',
@@ -93,6 +97,7 @@ export function eventToFormState(ev: CollectedEvent): FormState {
     businessHours: ev.businessHours ?? '',
     spotLabel:     ev.spotLabel ?? '',
     scheduleNote:  ev.scheduleNote ?? '',
+    specificDates: ev.specificDates ?? null,
     eventDates:    ev.eventDates ?? [],
     notice:        ev.notice || DEFAULT_NOTICE,
     venue:         ev.venue,
@@ -356,6 +361,42 @@ export default function EventFormFields({
 
   const set = onChange
   const isPermanent = form.type === 'permanent'
+
+  // ─── 日程（期間指定 / 日付個別指定） ─────────────────────────────
+  const [dateMode, setDateMode] = useState<'range' | 'specific'>(() => form.specificDates ? 'specific' : 'range')
+  const [newSpecificDate, setNewSpecificDate] = useState('')
+  const specificDatesList = form.specificDates ? form.specificDates.split(',').map(s => s.trim()).filter(Boolean) : []
+
+  const formatSpecificDate = (iso: string) => {
+    const d = parseLocalDate(iso)
+    return `${d.getMonth() + 1}/${d.getDate()}(${DOW_JA[d.getDay()]})`
+  }
+
+  const addSpecificDate = () => {
+    if (!newSpecificDate || specificDatesList.includes(newSpecificDate)) return
+    const next = [...specificDatesList, newSpecificDate].sort()
+    set('specificDates', next.join(','))
+    set('startDate', next[0])
+    set('endDate', next[next.length - 1])
+    setNewSpecificDate('')
+  }
+
+  const removeSpecificDate = (iso: string) => {
+    const next = specificDatesList.filter(d => d !== iso)
+    set('specificDates', next.length > 0 ? next.join(',') : null)
+    set('startDate', next[0] ?? '')
+    set('endDate', next[next.length - 1] ?? '')
+  }
+
+  const selectDateMode = (mode: 'range' | 'specific') => {
+    setDateMode(mode)
+    if (mode === 'range') {
+      set('specificDates', null)
+    } else if (specificDatesList.length === 0) {
+      set('startDate', '')
+      set('endDate', '')
+    }
+  }
 
   // 編集時：event_images に既存の画像があれば読み込んでプレビューに反映する（無ければ events.image_url を1枚目として使う初期値のまま）
   useEffect(() => {
@@ -901,31 +942,101 @@ export default function EventFormFields({
 
           {form.dateConfirmed ? (
             <>
-              <div className="flex gap-3">
-                <div style={{ width: 'calc(50% - 6px)' }}>
-                  <Label required>開始日</Label>
-                  <Input
-                    type="date"
-                    value={form.startDate}
-                    onChange={e => set('startDate', e.target.value)}
-                    required
+              <div className="flex gap-2 mb-3">
+                {([
+                  { value: 'range' as const,    label: '期間指定' },
+                  { value: 'specific' as const, label: '日付個別指定' },
+                ]).map(opt => (
+                  <button
+                    key={opt.value}
+                    type="button"
                     disabled={disabled}
-                    style={{ WebkitAppearance: 'none', width: '100%', boxSizing: 'border-box' }}
-                  />
-                </div>
-                <div style={{ width: 'calc(50% - 6px)' }}>
-                  <Label required>終了日</Label>
-                  <Input
-                    type="date"
-                    value={form.endDate}
-                    min={form.startDate}
-                    onChange={e => set('endDate', e.target.value)}
-                    required
-                    disabled={disabled}
-                    style={{ WebkitAppearance: 'none', width: '100%', boxSizing: 'border-box' }}
-                  />
-                </div>
+                    onClick={() => selectDateMode(opt.value)}
+                    className={`flex-1 py-2 rounded-xl border text-sm font-medium transition-colors cursor-pointer
+                      ${dateMode === opt.value
+                        ? 'border-green-400 bg-green-50 text-green-700'
+                        : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
               </div>
+
+              {dateMode === 'range' ? (
+                <div className="flex gap-3">
+                  <div style={{ width: 'calc(50% - 6px)' }}>
+                    <Label required>開始日</Label>
+                    <Input
+                      type="date"
+                      value={form.startDate}
+                      onChange={e => set('startDate', e.target.value)}
+                      required
+                      disabled={disabled}
+                      style={{ WebkitAppearance: 'none', width: '100%', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                  <div style={{ width: 'calc(50% - 6px)' }}>
+                    <Label required>終了日</Label>
+                    <Input
+                      type="date"
+                      value={form.endDate}
+                      min={form.startDate}
+                      onChange={e => set('endDate', e.target.value)}
+                      required
+                      disabled={disabled}
+                      style={{ WebkitAppearance: 'none', width: '100%', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <Label required>開催日</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="date"
+                      value={newSpecificDate}
+                      onChange={e => setNewSpecificDate(e.target.value)}
+                      disabled={disabled}
+                      className="flex-1"
+                      style={{ WebkitAppearance: 'none' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={addSpecificDate}
+                      disabled={disabled || !newSpecificDate || specificDatesList.includes(newSpecificDate)}
+                      className="flex-shrink-0 px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-600
+                        hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                    >
+                      追加
+                    </button>
+                  </div>
+                  {specificDatesList.length > 0 ? (
+                    <ul className="mt-2 flex flex-wrap gap-2">
+                      {specificDatesList.map(iso => (
+                        <li
+                          key={iso}
+                          className="flex items-center gap-1 rounded-full border border-gray-300 pl-3 pr-1.5 py-1 text-sm text-gray-700"
+                        >
+                          {formatSpecificDate(iso)}
+                          <button
+                            type="button"
+                            onClick={() => removeSpecificDate(iso)}
+                            disabled={disabled}
+                            aria-label={`${formatSpecificDate(iso)}を削除`}
+                            className="w-4 h-4 flex items-center justify-center rounded-full text-gray-400
+                              hover:text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                          >
+                            ×
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="mt-1.5 text-xs text-gray-400">少なくとも1つ日付を追加してください</p>
+                  )}
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-3 mt-3">
                 <div>
                   <Label>開始時刻</Label>
