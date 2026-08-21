@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { CategoryIcon } from './Sidebar'
 import EventFormFields, { type FormState, type PosterType, INITIAL_FORM, eventToFormState } from './EventFormFields'
 import PendingEventCard from './PendingEventCard'
+import DuplicateEventModal from './DuplicateEventModal'
 import { formatDateRange, type CollectedEvent } from '@/lib/events'
 import { CATEGORY_LABELS, type Category, type EventDateEntry } from '@/lib/spots'
 import { getEventStatus } from '@/lib/date-utils'
@@ -84,6 +85,8 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
   const [pendingActionId, setPendingActionId] = useState<string | null>(null)
   const [expandedPendingId, setExpandedPendingId] = useState<string | null>(null)
   const formRef = useRef<HTMLFormElement>(null)
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false)
+  const [duplicatingImage, setDuplicatingImage] = useState(false)
 
   useEffect(() => {
     if (restrictEditToOwn) setMyEvents(readMyEvents())
@@ -218,6 +221,44 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
     setSubmitStatus('idle')
     setSubmitMessage('')
     setFormInstanceKey(k => k + 1)
+  }
+
+  /** 既存イベントを複製し、新規登録フォームにプリフィルする（id/created_at は投稿時に新規発行される） */
+  const handleDuplicate = async (ev: CollectedEvent) => {
+    setShowDuplicateModal(false)
+    setEditingId(null)
+    const base = eventToFormState(ev)
+    setForm({
+      ...base,
+      postedBy:   '',
+      email:      '',
+      posterType: getInitialPosterType(),
+    })
+    setSubmitStatus('idle')
+    setSubmitMessage('')
+    setFormInstanceKey(k => k + 1)
+    setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
+
+    if (ev.imageUrl) {
+      setDuplicatingImage(true)
+      try {
+        const res  = await fetch('/api/duplicate-image', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ url: ev.imageUrl }),
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error((data.error as string | undefined) ?? '画像の複製に失敗しました')
+        const newUrl = data.url as string
+        setForm(f => ({ ...f, imageUrl: newUrl, imageUrls: [newUrl], imageCaptions: [''] }))
+      } catch (e) {
+        // 複製に失敗した場合、複製元と同じ画像を誤って参照したまま投稿されないよう画像欄は空にする
+        setForm(f => ({ ...f, imageUrl: '', imageUrls: [], imageCaptions: [] }))
+        alert(e instanceof Error ? e.message : '画像の複製に失敗しました。画像以外の項目は複製されています。画像は手動でアップロードしてください')
+      } finally {
+        setDuplicatingImage(false)
+      }
+    }
   }
 
   const handleDelete = async (ev: CollectedEvent) => {
@@ -395,6 +436,22 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
           <h2 className="text-sm font-semibold text-gray-700 mb-3">
             {editingId ? 'スポットを編集' : '新規登録'}
           </h2>
+          {showApprovalSection && !editingId && (
+            <div className="mb-3">
+              <button
+                type="button"
+                onClick={() => setShowDuplicateModal(true)}
+                disabled={duplicatingImage}
+                className="text-xs px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600
+                  hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              >
+                📋 既存イベントから複製
+              </button>
+              {duplicatingImage && (
+                <span className="ml-2 text-xs text-gray-400">画像を複製中...</span>
+              )}
+            </div>
+          )}
           {showApprovalNotice && !editingId && (
             <p className="mb-3 text-xs text-gray-900 leading-relaxed">
               ※ 投稿いただいた内容は、運営の確認後に地図に掲載されます
@@ -441,7 +498,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
             {/* 送信ボタン */}
             <button
               type="submit"
-              disabled={isSubmitting || imageUploading || !form.name ||
+              disabled={isSubmitting || imageUploading || duplicatingImage || !form.name ||
                 (form.type === 'permanent' ? false :
                   form.category === 'event_plus'
                     ? (!form.venue || form.eventDates.length === 0)
@@ -559,6 +616,13 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
 
       </main>
 
+      {showDuplicateModal && (
+        <DuplicateEventModal
+          events={events}
+          onSelect={handleDuplicate}
+          onClose={() => setShowDuplicateModal(false)}
+        />
+      )}
 
     </div>
   )
