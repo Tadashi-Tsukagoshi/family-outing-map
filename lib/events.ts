@@ -28,6 +28,7 @@ export type CollectedEvent = {
   email?: string
   posterType?: 'general' | 'organizer' | 'business' | 'staff'
   scheduleNote?: string
+  notice?: string
   likes?: number
   editedBy?: string
   editedAt?: string
@@ -83,6 +84,7 @@ export function eventToSpot(event: CollectedEvent): Spot {
     postedBy:     event.postedBy,
     posterType:   event.posterType,
     scheduleNote: event.scheduleNote,
+    notice:       event.notice,
     likes:        event.likes,
     editedBy:     event.editedBy,
     editedAt:     event.editedAt,

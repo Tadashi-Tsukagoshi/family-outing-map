@@ -37,6 +37,7 @@ export type Spot = {
   postedBy?: string
   posterType?: 'general' | 'organizer' | 'business' | 'staff'
   scheduleNote?: string
+  notice?: string
   likes?: number
   editedBy?: string
   editedAt?: string
@@ -113,6 +114,9 @@ export const EVENT_TYPE_LABELS: Record<EventType, string> = {
 }
 
 export const BADGE_BG_COLOR = '#dbeafe'
+
+/** 注意書きの初期値・フォールバック表示（spot.notice が未設定の場合に使用） */
+export const DEFAULT_NOTICE = '※当日の開催状況は公式情報をご確認ください。'
 
 export type PeriodFilter = 'all' | '2w' | '1m' | '3m' | 'ended_2026'
 

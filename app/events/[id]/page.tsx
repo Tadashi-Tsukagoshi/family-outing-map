@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { CATEGORY_LABELS, CATEGORY_COLORS, CATEGORY_EMOJIS, CATEGORY_IMAGES, type Spot } from '@/lib/spots'
+import { CATEGORY_LABELS, CATEGORY_COLORS, CATEGORY_EMOJIS, CATEGORY_IMAGES, DEFAULT_NOTICE, type Spot } from '@/lib/spots'
 import { eventToSpot } from '@/lib/events'
 import { getDateDisplay, getEventStatus, STATUS_CONFIG, PERMANENT_STATUS } from '@/lib/date-utils'
 import { supabaseAdmin } from '@/lib/supabase'
@@ -32,6 +32,7 @@ async function getSpot(id: string): Promise<Spot | null> {
     postedBy:     data.posted_by,
     posterType:   data.poster_type,
     scheduleNote: data.schedule_note ?? undefined,
+    notice:       data.notice ?? undefined,
     likes:        data.likes ?? 0,
   })
 }
@@ -143,6 +144,12 @@ export default async function EventDetailPage({ params }: Props) {
                   </div>
                 )}
               </dl>
+            )}
+
+            {!isPermanent && status !== 'ended' && (
+              <p className="text-xs text-gray-500 whitespace-pre-line">
+                {spot.notice || DEFAULT_NOTICE}
+              </p>
             )}
 
             <hr className="border-gray-100" />

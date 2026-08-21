@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect, useCallback } from 'react'
 import dynamic from 'next/dynamic'
-import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, EVENT_TYPE_LABELS, EVENT_CATEGORIES, DISASTER_CATEGORIES, type AllCategory, type EventType, type EventDateEntry } from '@/lib/spots'
+import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, EVENT_TYPE_LABELS, EVENT_CATEGORIES, DISASTER_CATEGORIES, DEFAULT_NOTICE, type AllCategory, type EventType, type EventDateEntry } from '@/lib/spots'
 import { CategoryIcon } from './Sidebar'
 import type { CollectedEvent } from '@/lib/events'
 import { resizeImage } from '@/lib/image-utils'
@@ -25,6 +25,7 @@ export type FormState = {
   scheduleNote:  string
   /** category='event_plus' 選択時の複数日程（event_dates テーブルに対応。保存処理は未実装） */
   eventDates:    EventDateEntry[]
+  notice:        string
   venue:         string
   fee:           string
   imageUrl:      string
@@ -70,6 +71,7 @@ export const INITIAL_FORM: FormState = {
   dateConfirmed: true,
   startDate: '', endDate: '', startTime: '', endTime: '', businessHours: '', spotLabel: '', scheduleNote: '',
   eventDates: [],
+  notice: DEFAULT_NOTICE,
   venue: '', fee: '', imageUrl: '', imageUrls: [], imageCaptions: [], address: '',
   lat: null, lng: null,
   description: '', url: '', instagramUrl: '', xUrl: '',
@@ -92,6 +94,7 @@ export function eventToFormState(ev: CollectedEvent): FormState {
     spotLabel:     ev.spotLabel ?? '',
     scheduleNote:  ev.scheduleNote ?? '',
     eventDates:    ev.eventDates ?? [],
+    notice:        ev.notice || DEFAULT_NOTICE,
     venue:         ev.venue,
     fee:           ev.fee ?? '',
     imageUrl:      ev.imageUrl ?? '',
@@ -980,6 +983,18 @@ export default function EventFormFields({
           )}
         </div>
       )}
+
+      {/* 注意書き */}
+      <div>
+        <Label>注意書き</Label>
+        <Textarea
+          value={form.notice}
+          onChange={e => set('notice', e.target.value)}
+          rows={2}
+          disabled={disabled}
+          style={{ resize: 'vertical' }}
+        />
+      </div>
 
       {/* 会場名 */}
       <div className={isPermanent ? 'opacity-40' : undefined}>

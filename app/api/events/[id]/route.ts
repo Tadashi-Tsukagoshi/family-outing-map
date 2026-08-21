@@ -67,6 +67,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
     const startDate    = (b.startDate    as string | undefined)?.trim()
     const endDate      = (b.endDate      as string | undefined)?.trim()
     const scheduleNote = (b.scheduleNote as string | undefined)?.trim() || null
+    const notice       = (b.notice       as string | undefined)?.trim() || null
     const startTime     = (b.startTime     as string | undefined)?.trim() || null
     const endTime       = (b.endTime       as string | undefined)?.trim() || null
     const businessHours = (b.businessHours as string | undefined)?.trim() || null
@@ -94,6 +95,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
       business_hours: isPermanent ? businessHours : null,
       spot_label:    isPermanent ? spotLabel : null,
       schedule_note: isPermanent ? null : scheduleNote,
+      notice,
       venue,
       address,
       fee,
@@ -163,6 +165,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
       endTime:     data.end_time ?? undefined,
       businessHours: data.business_hours ?? undefined,
       spotLabel:   data.spot_label ?? undefined,
+      notice:      data.notice ?? undefined,
       url:         data.url ?? undefined,
       instagramUrl: data.instagram_url ?? undefined,
       xUrl:         data.x_url ?? undefined,

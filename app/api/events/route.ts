@@ -16,7 +16,7 @@ export async function GET() {
   const supabase = supabaseAdmin()
   const { data, error } = await supabase
     .from('events')
-    .select('id, name, description, start_date, end_date, start_time, end_time, business_hours, spot_label, schedule_note, venue, address, fee, image_url, lat, lng, category, type, url, instagram_url, x_url, collected_at, posted_by, poster_type, likes, edited_by, edited_at, event_dates(id, start_date, end_date, venue, address, lat, lng, note, sort_order)')
+    .select('id, name, description, start_date, end_date, start_time, end_time, business_hours, spot_label, schedule_note, notice, venue, address, fee, image_url, lat, lng, category, type, url, instagram_url, x_url, collected_at, posted_by, poster_type, likes, edited_by, edited_at, event_dates(id, start_date, end_date, venue, address, lat, lng, note, sort_order)')
     .eq('status', 'approved')
     .order('start_date', { ascending: true })
 
@@ -46,6 +46,7 @@ export async function GET() {
     postedBy:     e.posted_by,
     posterType:   e.poster_type,
     scheduleNote: e.schedule_note ?? undefined,
+    notice:       e.notice ?? undefined,
     likes:        e.likes ?? 0,
     editedBy:     e.edited_by ?? undefined,
     editedAt:     e.edited_at ?? undefined,

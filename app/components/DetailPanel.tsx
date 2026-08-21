@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { createPortal } from 'react-dom'
-import { BADGE_BG_COLOR, type Spot } from '@/lib/spots'
+import { BADGE_BG_COLOR, DEFAULT_NOTICE, type Spot } from '@/lib/spots'
 import { getDateDisplay, getEventStatus, STATUS_CONFIG, PARK_STATUS, fmtTimeRange } from '@/lib/date-utils'
 import PhotoCarousel from './PhotoCarousel'
 import PinchZoomImage from './PinchZoomImage'
@@ -243,8 +243,8 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                         {dateRange}{timeRange ? ` ${timeRange}` : ''}
                       </p>
                       {showDisclaimer && (
-                        <p style={{ fontSize: 12, fontWeight: 500, color: '#111', margin: 0 }}>
-                          ※当日の開催状況は公式情報をご確認ください。
+                        <p style={{ fontSize: 12, fontWeight: 500, color: '#111', margin: 0, whiteSpace: 'pre-line' }}>
+                          {spot.notice || DEFAULT_NOTICE}
                         </p>
                       )}
                     </>
@@ -523,8 +523,8 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                 {dateRange}{timeRange ? ` ${timeRange}` : ''}
               </p>
               {showDisclaimer && (
-                <p style={{ fontSize: 12, fontWeight: 400, color: '#4b5563', margin: '1px 0 0' }}>
-                  ※当日の開催状況は公式情報をご確認ください。
+                <p style={{ fontSize: 12, fontWeight: 400, color: '#4b5563', margin: '1px 0 0', whiteSpace: 'pre-line' }}>
+                  {spot.notice || DEFAULT_NOTICE}
                 </p>
               )}
             </>
