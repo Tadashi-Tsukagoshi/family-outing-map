@@ -239,25 +239,54 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
     setFormInstanceKey(k => k + 1)
     setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
 
-    if (ev.imageUrl) {
-      setDuplicatingImage(true)
-      try {
-        const res  = await fetch('/api/duplicate-image', {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ url: ev.imageUrl }),
-        })
-        const data = await res.json()
-        if (!res.ok) throw new Error((data.error as string | undefined) ?? '画像の複製に失敗しました')
-        const newUrl = data.url as string
-        setForm(f => ({ ...f, imageUrl: newUrl, imageUrls: [newUrl], imageCaptions: [''] }))
-      } catch (e) {
-        // 複製に失敗した場合、複製元と同じ画像を誤って参照したまま投稿されないよう画像欄は空にする
-        setForm(f => ({ ...f, imageUrl: '', imageUrls: [], imageCaptions: [] }))
-        alert(e instanceof Error ? e.message : '画像の複製に失敗しました。画像以外の項目は複製されています。画像は手動でアップロードしてください')
-      } finally {
-        setDuplicatingImage(false)
+    // 複製元の全画像（event_images）を取得。event_images が空（旧データ等）の場合は events.image_url 1枚にフォールバック
+    let sourceImages: { imageUrl: string; caption: string }[] = []
+    try {
+      const res  = await fetch(`/api/events/${ev.id}/images`)
+      const data = await res.json()
+      const rows: { imageUrl: string; caption?: string | null }[] = Array.isArray(data.images) ? data.images : []
+      sourceImages = rows.map(r => ({ imageUrl: r.imageUrl, caption: r.caption ?? '' }))
+    } catch {
+      sourceImages = []
+    }
+    if (sourceImages.length === 0 && ev.imageUrl) {
+      sourceImages = [{ imageUrl: ev.imageUrl, caption: '' }]
+    }
+    if (sourceImages.length === 0) return
+
+    setDuplicatingImage(true)
+    try {
+      // 各画像の複製は自身で失敗を吸収し、他の画像の複製結果に影響しないようにする
+      const results = await Promise.all(sourceImages.map(async img => {
+        try {
+          const res  = await fetch('/api/duplicate-image', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ url: img.imageUrl }),
+          })
+          const data = await res.json()
+          if (!res.ok) throw new Error((data.error as string | undefined) ?? '画像の複製に失敗しました')
+          return { ok: true as const, url: data.url as string, caption: img.caption }
+        } catch {
+          return { ok: false as const }
+        }
+      }))
+
+      const succeeded  = results.filter((r): r is { ok: true; url: string; caption: string } => r.ok)
+      const failedCount = results.length - succeeded.length
+
+      setForm(f => ({
+        ...f,
+        imageUrl:      succeeded[0]?.url ?? '',
+        imageUrls:     succeeded.map(r => r.url),
+        imageCaptions: succeeded.map(r => r.caption),
+      }))
+
+      if (failedCount > 0) {
+        alert(`画像${failedCount}枚の複製に失敗しました。失敗した画像は手動でアップロードしてください（他の画像は複製済みです）`)
       }
+    } finally {
+      setDuplicatingImage(false)
     }
   }
 
