@@ -361,9 +361,9 @@ export default function MapApp() {
           <button
             onClick={() => setHeaderExpanded(v => !v)}
             className="block cursor-pointer select-none overflow-hidden rounded-full"
-            style={{ width: 40, height: 40, boxShadow: '0 2px 6px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.15)' }}
+            style={{ width: 52, height: 52, boxShadow: '0 2px 6px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.15)' }}
           >
-            <img src="/icon-192.png" alt="群馬県おでかけまっぷ" width={40} height={40} className="h-full w-full object-cover" />
+            <img src="/gunmap_icon_01.png" alt="GUNMAP" width={52} height={52} className="h-full w-full object-cover" />
           </button>
           {/* ポップアップ */}
           {headerExpanded && (
@@ -378,7 +378,7 @@ export default function MapApp() {
               }}
             >
               <p className="text-sm font-bold text-gray-700 leading-relaxed" style={{ whiteSpace: 'nowrap' }}>
-                群馬県おでかけまっぷ
+                GUNMAP / グンマップ
               </p>
               <p className="text-xs text-gray-500 leading-relaxed" style={{ whiteSpace: 'nowrap' }}>
                 群馬県の週末おでかけプラットフォーム
