@@ -139,9 +139,9 @@ export default function Sidebar({
 
       {/* タイトル（サイドバーモードのみ） */}
       {!isSheet && (
-        <div className="py-2.5 pr-4 pl-[22px] border-b border-gray-200">
-          <h1 className="text-xl text-black" style={{ fontFamily: "'Shippori Mincho', serif" }}>群馬県おでかけまっぷ</h1>
-          <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+        <div className="pt-1 pb-4 pr-4 pl-[22px] border-b border-gray-200">
+          <img src="/logo-pc_01.png" alt="GUNMAP" className="h-[52px] w-auto -ml-[23px]" />
+          <p className="text-xs text-black -mt-3 leading-relaxed ml-[36px]">
             群馬県の週末おでかけプラットフォーム
           </p>
         </div>
