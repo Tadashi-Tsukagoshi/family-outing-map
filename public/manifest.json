@@ -1,6 +1,6 @@
 {
-  "name": "群馬県おでかけまっぷ",
-  "short_name": "おでかけまっぷ",
+  "name": "GUNMAP / グンマップ",
+  "short_name": "GUNMAP",
   "description": "群馬県のイベントを地図で発見！",
   "start_url": "/",
   "display": "standalone",

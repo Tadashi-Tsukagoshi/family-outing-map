@@ -12,7 +12,7 @@ const POSTER_TYPE_LABELS: Record<string, string> = {
   general:   '一般ユーザー',
   organizer: '主催者',
   business:  '事業者',
-  staff:     'おでかけまっぷ',
+  staff:     'GUNMAP',
 }
 
 const CONTACT_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfjd2ErqEMLI7gDMk4O5iutIRSUMI6AD0hkJSnN3tAT5UjIXA/viewform'

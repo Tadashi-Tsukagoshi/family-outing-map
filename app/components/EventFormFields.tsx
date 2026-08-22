@@ -65,7 +65,7 @@ export const POSTER_TYPE_LABELS: Record<string, string> = {
   general:   '一般ユーザー',
   organizer: '主催者',
   business:  '事業者',
-  staff:     'おでかけまっぷ',
+  staff:     'GUNMAP',
 }
 
 export const INITIAL_FORM: FormState = {
