@@ -2,7 +2,7 @@
 
 import { useRef } from 'react'
 import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, PERIOD_LABELS, getCategoryIconSrc, isDarkPin, type Category, type AllCategory, type PeriodFilter, type Spot } from '@/lib/spots'
-import { getDateDisplay } from '@/lib/date-utils'
+import { getDateDisplay, fmtTimeRange } from '@/lib/date-utils'
 
 // モバイル版の現在地スライダー：つまみタップ（動かさない）とドラッグ（動かす）を判別するための閾値
 const RADIUS_TAP_MAX_DISTANCE  = 10 // px。これ未満の移動は「タップ」とみなす
@@ -246,6 +246,7 @@ export default function Sidebar({
           <div className="space-y-0">
             {spots.map((spot) => {
               const dateDisplay = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
+              const timeDisplay = fmtTimeRange(spot.startTime, spot.endTime)
               return (
                 <button
                   key={spot.id}
@@ -270,7 +271,9 @@ export default function Sidebar({
                     </span>
                   </div>
                   {dateDisplay && (
-                    <p className="text-[11px] text-gray-500 truncate mt-0.5 pl-7">{dateDisplay}</p>
+                    <p className="text-[11px] text-gray-500 truncate mt-0.5 pl-7">
+                      {dateDisplay}{timeDisplay ? ` ${timeDisplay}` : ''}
+                    </p>
                   )}
                 </button>
               )
