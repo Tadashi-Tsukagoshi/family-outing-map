@@ -77,7 +77,6 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
   // event_plus は複数ピンに分裂して spot.id がピンごとの合成idになるため、
   // 画像・いいねなど実イベントに紐づくAPI呼び出しは常に eventId（実イベントのid）を使う
   const eventId = spot.eventId ?? spot.id
-  const [ogpImage, setOgpImage] = useState<string | null>(null)
   const [likes, setLikes] = useState(spot.likes ?? 0)
   const [liked, setLiked] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
@@ -108,15 +107,6 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
       else onClose()
     }
   }
-
-  useEffect(() => {
-    setOgpImage(null)
-    if (!spot.url || spot.imageUrl) return
-    fetch(`/api/ogp?url=${encodeURIComponent(spot.url)}`)
-      .then(r => r.json())
-      .then(d => setOgpImage((d.imageUrl as string | null) ?? null))
-      .catch(() => {})
-  }, [spot.id, spot.url, spot.imageUrl])
 
   useEffect(() => {
     setLightboxIndex(null)
@@ -182,7 +172,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
   const statusCfg   = isPark ? { ...PARK_STATUS, label: spot.spotLabel || PARK_STATUS.label } : (status ? STATUS_CONFIG[status] : null)
   const showStatus  = isPark || status === 'ended'
   const showDisclaimer = !isPark && status !== 'ended'
-  const image       = spot.imageUrl || ogpImage || null
+  const image       = spot.imageUrl || null
   const badgeBg     = BADGE_BG_COLOR
   const badgeColor  = '#4b5563'
 
@@ -197,14 +187,11 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
 
   const hasGallery    = galleryImages.length > 0
   const isManualImage = !!spot.imageUrl
-  const isOgpImage    = !spot.imageUrl && !!ogpImage && !!spot.url
   const lightboxImages = hasGallery ? galleryImages.map(g => g.imageUrl) : (spot.imageUrl ? [spot.imageUrl] : [])
 
   const handleImageClick = () => {
     if (isManualImage) {
       setLightboxIndex(0)
-    } else if (isOgpImage) {
-      window.open(spot.url, '_blank', 'noopener,noreferrer')
     }
   }
 
@@ -550,11 +537,11 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
             <img
               src={image}
               alt=""
-              onClick={(isManualImage || isOgpImage) ? handleImageClick : undefined}
+              onClick={isManualImage ? handleImageClick : undefined}
               className="bg-gray-100"
               style={{
                 display: 'block', width: '100%', height: 'auto',
-                cursor: (isManualImage || isOgpImage) ? 'pointer' : undefined,
+                cursor: isManualImage ? 'pointer' : undefined,
               }}
               onError={() => setImageLoadFailed(true)}
             />

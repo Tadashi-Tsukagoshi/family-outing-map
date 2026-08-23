@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { CATEGORY_LABELS, CATEGORY_COLORS, CATEGORY_EMOJIS, CATEGORY_IMAGES, DEFAULT_NOTICE, type Spot } from '@/lib/spots'
+import { CATEGORY_LABELS, CATEGORY_COLORS, CATEGORY_EMOJIS, DEFAULT_NOTICE, type Spot } from '@/lib/spots'
 import { eventToSpot } from '@/lib/events'
 import { getDateDisplay, getEventStatus, STATUS_CONFIG, PERMANENT_STATUS } from '@/lib/date-utils'
 import { supabaseAdmin } from '@/lib/supabase'
@@ -38,23 +38,6 @@ async function getSpot(id: string): Promise<Spot | null> {
   })
 }
 
-async function fetchOgpImage(url: string): Promise<string | null> {
-  try {
-    const res = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; OGPFetcher/1.0)' },
-      signal: AbortSignal.timeout(4000),
-    })
-    if (!res.ok) return null
-    const html = await res.text()
-    const match =
-      html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ??
-      html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
-    return match?.[1] ?? null
-  } catch {
-    return null
-  }
-}
-
 type Props = { params: Promise<{ id: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -69,10 +52,7 @@ export default async function EventDetailPage({ params }: Props) {
   const spot = await getSpot(id)
   if (!spot) notFound()
 
-  const heroImage =
-    spot.imageUrl ||
-    (spot.url ? await fetchOgpImage(spot.url) : null) ||
-    CATEGORY_IMAGES[spot.category]
+  const heroImage = spot.imageUrl
 
   const isPermanent = spot.type === 'permanent'
   const status    = getEventStatus(spot.startDate, spot.endDate)
