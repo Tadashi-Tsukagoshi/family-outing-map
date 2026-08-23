@@ -378,7 +378,7 @@ export default function MapApp() {
               }}
             >
               <p className="text-sm font-bold text-gray-700 leading-relaxed" style={{ whiteSpace: 'nowrap' }}>
-                GUNMAP / グンマップ
+                GUNMAP ｜グンマップ
               </p>
               <p className="text-xs text-gray-500 leading-relaxed" style={{ whiteSpace: 'nowrap' }}>
                 群馬県の週末おでかけプラットフォーム
