@@ -273,8 +273,11 @@ export default function MapApp() {
     return result
   }, [filteredSpots])
 
-  // 同じ groupId の mapSpots 同士をグループ化し、地図ピンのバッジ・吹き出しリストに使う。
-  // ズームインしてメンバー間の画面ピクセル距離が DISSOLVE_PX を超えるとグループを解除し、各spotが個別座標で表示される
+  // 1) 同じ groupId の mapSpots 同士をグループ化（ズームインしてメンバー間の画面ピクセル距離が
+  //    DISSOLVE_PX を超えるとグループを解除し、各spotが個別座標で表示される）。
+  // 2) group_id を持たない残りの spot は、座標完全一致（1e-6 tolerance）でグループ化する
+  //    （座標が同一のためズームでは解除しない）。
+  // 3) どちらにも属さない spot は個別の PinGroup。
   const pinGroups = useMemo<PinGroup[]>(() => {
     const todayStartMs = new Date().setHours(0, 0, 0, 0)
     const pixelsPerDeg = 256 * Math.pow(2, zoomLevel) / 360
@@ -287,9 +290,21 @@ export default function MapApp() {
       lng: spot.lng,
     })
 
+    const buildGroup = (members: Spot[]): PinGroup => {
+      const sorted = [...members].sort((a, b) => pinSortRank(b, todayStartMs) - pinSortRank(a, todayStartMs))
+      return {
+        representativeId: sorted[0].id,
+        spots: sorted,
+        lat: members.reduce((s, m) => s + m.lat, 0) / members.length,
+        lng: members.reduce((s, m) => s + m.lng, 0) / members.length,
+      }
+    }
+
+    // ─── 1. group_id ベースのグルーピング（ズーム連動で解除） ─────────
     const byGroupId = new Map<string, Spot[]>()
+    const remaining: Spot[] = []
     for (const spot of mapSpots) {
-      if (!spot.groupId) { groups.push(buildSingle(spot)); continue }
+      if (!spot.groupId) { remaining.push(spot); continue }
       const members = byGroupId.get(spot.groupId)
       if (members) members.push(spot)
       else byGroupId.set(spot.groupId, [spot])
@@ -311,13 +326,26 @@ export default function MapApp() {
         continue
       }
 
-      const sorted = [...members].sort((a, b) => pinSortRank(b, todayStartMs) - pinSortRank(a, todayStartMs))
-      groups.push({
-        representativeId: sorted[0].id,
-        spots: sorted,
-        lat: members.reduce((s, m) => s + m.lat, 0) / members.length,
-        lng: members.reduce((s, m) => s + m.lng, 0) / members.length,
-      })
+      groups.push(buildGroup(members))
+    }
+
+    // ─── 2. 残りの spot を座標完全一致でグルーピング（ズームでは解除しない） ─
+    const assigned = new Set<string>()
+    for (const spot of remaining) {
+      if (assigned.has(spot.id)) continue
+      const coordGroup: Spot[] = [spot]
+      assigned.add(spot.id)
+
+      for (const other of remaining) {
+        if (assigned.has(other.id)) continue
+        if (Math.abs(other.lat - spot.lat) <= 1e-6 && Math.abs(other.lng - spot.lng) <= 1e-6) {
+          coordGroup.push(other)
+          assigned.add(other.id)
+        }
+      }
+
+      // ─── 3. マッチする座標がなければ個別の PinGroup ───────────────
+      groups.push(coordGroup.length > 1 ? buildGroup(coordGroup) : buildSingle(spot))
     }
 
     return groups
