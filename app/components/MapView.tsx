@@ -511,13 +511,15 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
       >
         {group.spots.map((spot, index) => {
           const selected = spot.id === selectedSpotId
+          const dateDisplay = spot.type === 'permanent' ? '' : getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate, spot.specificDates)
+          const timeDisplay = spot.type === 'permanent' ? '' : fmtTimeRange(spot.startTime, spot.endTime)
           return (
             <div
               key={spot.id}
               onClick={() => onSelectSpot(spot)}
               style={{
                 display:    'flex',
-                alignItems: 'center',
+                alignItems: 'flex-start',
                 gap:        6,
                 padding:    '11px 12px',
                 cursor:     'pointer',
@@ -526,14 +528,24 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
               }}
             >
               <span
-                style={{ width: 20, height: 20, display: 'inline-flex', flexShrink: 0 }}
+                style={{ width: 20, height: 20, display: 'inline-flex', flexShrink: 0, marginTop: 2 }}
                 dangerouslySetInnerHTML={{ __html: buildSmallIconHtml(spot) }}
               />
-              <span style={{
-                fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              }}>
-                {spot.name}
-              </span>
+              <div style={{ minWidth: 0 }}>
+                <span style={{
+                  display: 'block', fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                }}>
+                  {spot.name}
+                </span>
+                {dateDisplay && (
+                  <span style={{
+                    display: 'block', fontSize: 11, color: '#9ca3af',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>
+                    {dateDisplay}{timeDisplay ? ` ${timeDisplay}` : ''}
+                  </span>
+                )}
+              </div>
             </div>
           )
         })}

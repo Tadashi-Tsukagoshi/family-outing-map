@@ -218,7 +218,7 @@ export function resolveEventPlusOccurrences(spot: Spot): EventPlusOccurrence[] {
     const upcoming = group
       .filter(d => d.endDate >= todayStr)
       .sort((a, b) => a.startDate.localeCompare(b.startDate))
-    if (upcoming.length > 0) pins.push(upcoming[0])
+    if (upcoming.length > 0) pins.push(...upcoming)
   }
 
   if (pins.length === 0) {
