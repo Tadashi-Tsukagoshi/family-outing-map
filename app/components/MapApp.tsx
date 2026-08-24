@@ -11,7 +11,7 @@ import { getEventStatus, parseLocalDate } from '@/lib/date-utils'
 
 // ─── 地図ピンのグループ化（同じ groupId のイベントをまとめる） ──────────
 /** グループ内メンバー間の画面ピクセル距離がこれを超えるとズームインでグループ解除する */
-const DISSOLVE_PX = 40
+const DISSOLVE_PX = 15
 
 export type PinGroup = {
   /** 最前面（吹き出しの先頭）に表示する spot の id */
