@@ -142,7 +142,7 @@ export default function Sidebar({
         <div className="pt-1 pb-4 pr-4 pl-[22px] border-b border-gray-200">
           <img src="/logo-pc_05.png" alt="GUNMAP" className="h-[52px] w-auto -ml-[8px]" />
           <p className="text-xs -mt-1 leading-relaxed ml-[39px]" style={{ color: '#1F1F1F' }}>
-            群馬県の週末おでかけプラットフォーム
+            群馬の週末おでかけプラットフォーム
           </p>
         </div>
       )}
