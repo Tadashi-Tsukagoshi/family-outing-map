@@ -52,6 +52,8 @@ export type Spot = {
   eventId?: string
   /** category='event_plus' のときの見た目カテゴリ（event/festival/fireworks）。未設定時は'event'扱い */
   subCategory?: string
+  /** 地図ピンを手動でグルーピングするためのID。同じ groupId のイベント同士がグループ表示される */
+  groupId?: string
 }
 
 const VALID_CATEGORIES = new Set<string>(['event', 'event_plus', 'fireworks', 'festival', 'park', 'kumamoto_earthquake_r8'])

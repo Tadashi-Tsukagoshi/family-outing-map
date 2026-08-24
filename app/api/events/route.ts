@@ -18,7 +18,7 @@ export async function GET() {
   const supabase = supabaseAdmin()
   const { data, error } = await supabase
     .from('events')
-    .select('id, name, description, start_date, end_date, start_time, end_time, business_hours, spot_label, schedule_note, specific_dates, notice, venue, address, fee, image_url, lat, lng, category, sub_category, type, url, instagram_url, x_url, collected_at, posted_by, poster_type, likes, edited_by, edited_at, event_dates(id, start_date, end_date, start_time, end_time, venue, address, lat, lng, note, sort_order)')
+    .select('id, name, description, start_date, end_date, start_time, end_time, business_hours, spot_label, schedule_note, specific_dates, notice, venue, address, fee, image_url, lat, lng, category, sub_category, group_id, type, url, instagram_url, x_url, collected_at, posted_by, poster_type, likes, edited_by, edited_at, event_dates(id, start_date, end_date, start_time, end_time, venue, address, lat, lng, note, sort_order)')
     .eq('status', 'approved')
     .order('start_date', { ascending: true })
 
@@ -41,6 +41,7 @@ export async function GET() {
     lng: e.lng,
     category: e.category,
     subCategory: e.sub_category ?? undefined,
+    groupId: e.group_id ?? undefined,
     type: e.type ?? 'event',
     url: e.url,
     instagramUrl: e.instagram_url ?? undefined,

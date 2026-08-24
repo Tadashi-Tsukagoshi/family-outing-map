@@ -17,6 +17,8 @@ export type FormState = {
   category:      AllCategory
   /** category='event_plus' 選択時の見た目カテゴリ（event/festival/fireworks） */
   subCategory:   string
+  /** 地図ピンを手動でグルーピングするためのID。未設定は '' */
+  groupId:       string
   type:          EventType
   dateConfirmed: boolean
   startDate:     string
@@ -73,6 +75,7 @@ export const POSTER_TYPE_LABELS: Record<string, string> = {
 export const INITIAL_FORM: FormState = {
   name: '', category: 'event',
   subCategory: '',
+  groupId: '',
   type: 'event',
   dateConfirmed: true,
   startDate: '', endDate: '', startTime: '', endTime: '', businessHours: '', spotLabel: '', scheduleNote: '',
@@ -92,6 +95,7 @@ export function eventToFormState(ev: CollectedEvent): FormState {
     name:          ev.name,
     category:      ev.category ?? 'event',
     subCategory:   ev.subCategory ?? '',
+    groupId:       ev.groupId ?? '',
     type:          ev.type ?? 'event',
     dateConfirmed: !hasScheduleNote,
     startDate:     ev.startDate ?? ev.date ?? '',
@@ -163,11 +167,6 @@ function hasCoords(ev: { lat: number | null | undefined; lng: number | null | un
   return typeof ev.lat === 'number' && typeof ev.lng === 'number' && Number.isFinite(ev.lat) && Number.isFinite(ev.lng)
 }
 
-/** 座標が同一地点とみなせるか（浮動小数点誤差を吸収） */
-function coordsMatch(lat1: number, lng1: number, lat2: number, lng2: number) {
-  return Math.abs(lat1 - lat2) < 1e-6 && Math.abs(lng1 - lng2) < 1e-6
-}
-
 /** 「既存スポットの座標を使う」モーダル：登録済みイベントから座標を選んで流用する */
 function ExistingSpotModal({ events, ensureLoaded, excludeId, onSelect, onClose }: {
   events:       CollectedEvent[] | null
@@ -234,10 +233,74 @@ function ExistingSpotModal({ events, ensureLoaded, excludeId, onSelect, onClose 
   )
 }
 
-/** 同一座標の他イベントを表示し、グループからの脱退（住所からの座標再取得）を行うセクション */
-function SpotGroupSection({ lat, lng, events, ensureLoaded, selfId, selfName, onLeaveGroup }: {
-  lat:          number
-  lng:          number
+/** 「グループに追加」モーダル：登録済みイベントを選んで group_id でグルーピングする */
+function GroupPickerModal({ events, ensureLoaded, excludeId, onSelect, onClose }: {
+  events:       CollectedEvent[] | null
+  ensureLoaded: () => void
+  excludeId?:   string
+  onSelect:     (groupId: string, targetEventId: string, targetHasGroupId: boolean) => void
+  onClose:      () => void
+}) {
+  const [search, setSearch] = useState('')
+
+  useEffect(() => { ensureLoaded() }, [ensureLoaded])
+
+  const filtered = (events ?? []).filter(ev =>
+    ev.id !== excludeId &&
+    ev.name.toLowerCase().includes(search.trim().toLowerCase())
+  )
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+      <div
+        className="w-full max-w-sm max-h-[70vh] rounded-xl bg-white shadow-xl flex flex-col overflow-hidden"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="p-3 border-b border-gray-200 flex-shrink-0">
+          <p className="text-sm font-medium text-gray-700 mb-2">グループに追加</p>
+          <Input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="イベント名で検索"
+            autoFocus
+          />
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          {events === null ? (
+            <p className="p-4 text-sm text-gray-400">読み込み中...</p>
+          ) : filtered.length === 0 ? (
+            <p className="p-4 text-sm text-gray-400">該当するイベントがありません</p>
+          ) : (
+            filtered.map(ev => (
+              <button
+                key={ev.id}
+                type="button"
+                onClick={() => { onSelect(ev.groupId ?? '', ev.id, !!ev.groupId); onClose() }}
+                className="w-full text-left px-3 py-2 border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+              >
+                <p className="text-sm text-gray-800">{ev.name}</p>
+                <p className="text-xs text-gray-400">{ev.venue}</p>
+              </button>
+            ))
+          )}
+        </div>
+        <div className="p-2 border-t border-gray-200 flex-shrink-0">
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full py-1.5 text-xs text-gray-500 hover:text-gray-700 cursor-pointer"
+          >
+            閉じる
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/** 同じ group_id の他イベントを表示し、グループからの脱退を行うセクション */
+function SpotGroupSection({ groupId, events, ensureLoaded, selfId, selfName, onLeaveGroup }: {
+  groupId:      string
   events:       CollectedEvent[] | null
   ensureLoaded: () => void
   selfId?:      string
@@ -247,7 +310,7 @@ function SpotGroupSection({ lat, lng, events, ensureLoaded, selfId, selfName, on
   useEffect(() => { if (events === null) ensureLoaded() }, [events, ensureLoaded])
 
   if (!events) return null
-  const others = events.filter(ev => ev.id !== selfId && hasCoords(ev) && coordsMatch(ev.lat, ev.lng, lat, lng))
+  const others = events.filter(ev => ev.id !== selfId && ev.groupId === groupId)
   if (others.length === 0) return null
 
   const rows = selfId
@@ -256,7 +319,7 @@ function SpotGroupSection({ lat, lng, events, ensureLoaded, selfId, selfName, on
 
   return (
     <div className="mt-2 rounded-lg bg-blue-50 p-3">
-      <p className="text-xs font-medium text-gray-600 mb-2">📌 この座標のグループ（{rows.length}件）</p>
+      <p className="text-xs font-medium text-gray-600 mb-2">📌 このグループ（{rows.length}件）</p>
       <ul className="space-y-1 mb-2">
         {rows.map(r => (
           <li key={r.id} className="text-sm text-gray-700">
@@ -270,11 +333,8 @@ function SpotGroupSection({ lat, lng, events, ensureLoaded, selfId, selfName, on
         onClick={onLeaveGroup}
         className="text-xs text-blue-600 hover:text-blue-800 cursor-pointer"
       >
-        🔗 グループから外す（住所から座標を再取得）
+        🔗 グループから外す
       </button>
-      <p className="mt-1 text-xs text-gray-400">
-        同じ住所では同じ座標になります。別の座標にするには地図ピッカーをご利用ください
-      </p>
     </div>
   )
 }
@@ -361,7 +421,8 @@ export default function EventFormFields({
       .finally(() => { eventsCacheLoadingRef.current = false })
   }, [eventsCache])
 
-  const [spotPickerTarget, setSpotPickerTarget] = useState<null | { kind: 'main' } | { kind: 'date'; id: string }>(null)
+  const [spotPickerTarget, setSpotPickerTarget] = useState<null | { kind: 'date'; id: string }>(null)
+  const [showGroupPicker, setShowGroupPicker] = useState(false)
 
   const set = onChange
   const isPermanent = form.type === 'permanent'
@@ -464,25 +525,33 @@ export default function EventFormFields({
     }
   }
 
-  const handleLeaveGroupMain = () => {
-    if (!form.address.trim()) { alert('住所を入力してから実行してください'); return }
-    geocode(form.address)
-  }
-
   const handleSpotPickerSelect = (lat: number, lng: number) => {
     if (!spotPickerTarget) return
-    if (spotPickerTarget.kind === 'main') {
-      set('lat', lat)
-      set('lng', lng)
-      setGeoStatus('ok')
-      setGeoMessage(`📍 既存スポットの座標を使用しました（${lat.toFixed(5)}, ${lng.toFixed(5)}）`)
-    } else {
-      const id = spotPickerTarget.id
-      updateEventDate(id, { lat, lng })
-      setDateGeoStatus(s => ({ ...s, [id]: 'ok' }))
-      setDateGeoMessage(s => ({ ...s, [id]: `📍 既存スポットの座標を使用しました（${lat.toFixed(5)}, ${lng.toFixed(5)}）` }))
-    }
+    const id = spotPickerTarget.id
+    updateEventDate(id, { lat, lng })
+    setDateGeoStatus(s => ({ ...s, [id]: 'ok' }))
+    setDateGeoMessage(s => ({ ...s, [id]: `📍 既存スポットの座標を使用しました（${lat.toFixed(5)}, ${lng.toFixed(5)}）` }))
     setSpotPickerTarget(null)
+  }
+
+  const handleGroupPickerSelect = async (groupId: string, targetEventId: string, targetHasGroupId: boolean) => {
+    if (targetHasGroupId) {
+      set('groupId', groupId)
+      return
+    }
+    const newGroupId = crypto.randomUUID()
+    try {
+      const res = await fetch(`/api/events/${targetEventId}/group`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ group_id: newGroupId }),
+      })
+      if (!res.ok) throw new Error()
+    } catch {
+      alert('グループ設定に失敗しました')
+      return
+    }
+    set('groupId', newGroupId)
   }
 
   const handleImagesAdd = async (fileList: FileList | null) => {
@@ -594,11 +663,6 @@ export default function EventFormFields({
     if (v.trim().length >= 4) {
       dateGeoTimers.current[id] = setTimeout(() => geocodeDate(id, v), 700)
     }
-  }
-
-  const handleLeaveGroupDate = (id: string, address: string) => {
-    if (!address.trim()) { alert('住所を入力してから実行してください'); return }
-    geocodeDate(id, address)
   }
 
   const toggleDateCustomVenue = (id: string, checked: boolean) => {
@@ -888,18 +952,6 @@ export default function EventFormFields({
                           </div>
                         </div>
                       )}
-                      {d.lat !== null && d.lng !== null && (
-                        <SpotGroupSection
-                          lat={d.lat}
-                          lng={d.lng}
-                          events={eventsCache}
-                          ensureLoaded={ensureEventsLoaded}
-                          selfId={editing ? eventId : undefined}
-                          selfName={form.name || '（無題のイベント）'}
-                          onLeaveGroup={() => handleLeaveGroupDate(d.id, d.address)}
-                        />
-                      )}
-
                       {/* 既存スポットの座標を使う */}
                       <button
                         type="button"
@@ -1226,26 +1278,25 @@ export default function EventFormFields({
             </div>
           </div>
         )}
-        {form.lat !== null && form.lng !== null && (
+        {form.groupId && (
           <SpotGroupSection
-            lat={form.lat}
-            lng={form.lng}
+            groupId={form.groupId}
             events={eventsCache}
             ensureLoaded={ensureEventsLoaded}
             selfId={editing ? eventId : undefined}
             selfName={form.name || '（無題のイベント）'}
-            onLeaveGroup={handleLeaveGroupMain}
+            onLeaveGroup={() => set('groupId', '')}
           />
         )}
 
-        {/* 既存スポットの座標を使う */}
+        {/* グループに追加 */}
         <button
           type="button"
-          onClick={() => setSpotPickerTarget({ kind: 'main' })}
+          onClick={() => setShowGroupPicker(true)}
           disabled={disabled}
           className="mt-2 block text-xs text-blue-500 hover:text-blue-700 disabled:opacity-40 cursor-pointer"
         >
-          📍 既存スポットの座標を使う
+          📌 グループに追加
         </button>
 
         {/* 地図ピッカー */}
@@ -1483,6 +1534,16 @@ export default function EventFormFields({
           excludeId={editing ? eventId : undefined}
           onSelect={handleSpotPickerSelect}
           onClose={() => setSpotPickerTarget(null)}
+        />
+      )}
+
+      {showGroupPicker && (
+        <GroupPickerModal
+          events={eventsCache}
+          ensureLoaded={ensureEventsLoaded}
+          excludeId={editing ? eventId : undefined}
+          onSelect={handleGroupPickerSelect}
+          onClose={() => setShowGroupPicker(false)}
         />
       )}
     </>

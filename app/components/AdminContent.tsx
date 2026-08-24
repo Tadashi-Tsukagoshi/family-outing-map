@@ -346,6 +346,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
         instagram_url: form.instagramUrl.trim() || null,
         x_url:         form.xUrl.trim() || null,
         sub_category:  form.subCategory || null,
+        group_id:      form.groupId || null,
       }),
       })
       let data: Record<string, unknown> = {}

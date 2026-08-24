@@ -9,11 +9,9 @@ import { CATEGORY_LABELS, getVisualCategory, type Category, type PeriodFilter, t
 import { eventToSpot, type EventsDatabase } from '@/lib/events'
 import { getEventStatus, parseLocalDate } from '@/lib/date-utils'
 
-// ─── 地図ピンのグループ化（画面上のピクセル距離が近いピンをまとめる） ──────
-/** クラスタリングの基準となる画面ピクセル距離 */
-const CLUSTER_PX = 3
-/** これ以上離れたピンは低ズームでもグループ化しない（≈165m） */
-const MAX_CLUSTER_DEG = 0.0015
+// ─── 地図ピンのグループ化（同じ groupId のイベントをまとめる） ──────────
+/** グループ内メンバー間の画面ピクセル距離がこれを超えるとズームインでグループ解除する */
+const DISSOLVE_PX = 40
 
 export type PinGroup = {
   /** 最前面（吹き出しの先頭）に表示する spot の id */
@@ -275,34 +273,50 @@ export default function MapApp() {
     return result
   }, [filteredSpots])
 
-  // 画面上のピクセル距離が近い mapSpots 同士をグループ化し、地図ピンのバッジ・吹き出しリストに使う
-  // ズームインするほど許容誤差（度単位）が小さくなり、グループが解除されて個別ピンになる
+  // 同じ groupId の mapSpots 同士をグループ化し、地図ピンのバッジ・吹き出しリストに使う。
+  // ズームインしてメンバー間の画面ピクセル距離が DISSOLVE_PX を超えるとグループを解除し、各spotが個別座標で表示される
   const pinGroups = useMemo<PinGroup[]>(() => {
     const todayStartMs = new Date().setHours(0, 0, 0, 0)
     const pixelsPerDeg = 256 * Math.pow(2, zoomLevel) / 360
-    const epsilon = Math.max(1e-6, Math.min(MAX_CLUSTER_DEG, CLUSTER_PX / pixelsPerDeg))
     const groups: PinGroup[] = []
-    const assigned = new Set<string>()
 
+    const buildSingle = (spot: Spot): PinGroup => ({
+      representativeId: spot.id,
+      spots: [spot],
+      lat: spot.lat,
+      lng: spot.lng,
+    })
+
+    const byGroupId = new Map<string, Spot[]>()
     for (const spot of mapSpots) {
-      if (assigned.has(spot.id)) continue
-      const groupSpots: Spot[] = [spot]
-      assigned.add(spot.id)
+      if (!spot.groupId) { groups.push(buildSingle(spot)); continue }
+      const members = byGroupId.get(spot.groupId)
+      if (members) members.push(spot)
+      else byGroupId.set(spot.groupId, [spot])
+    }
 
-      for (const other of mapSpots) {
-        if (assigned.has(other.id)) continue
-        if (Math.abs(other.lat - spot.lat) <= epsilon && Math.abs(other.lng - spot.lng) <= epsilon) {
-          groupSpots.push(other)
-          assigned.add(other.id)
+    for (const members of byGroupId.values()) {
+      if (members.length === 1) { groups.push(buildSingle(members[0])); continue }
+
+      let maxDistPx = 0
+      for (let i = 0; i < members.length; i++) {
+        for (let j = i + 1; j < members.length; j++) {
+          const distPx = Math.hypot(members[i].lat - members[j].lat, members[i].lng - members[j].lng) * pixelsPerDeg
+          if (distPx > maxDistPx) maxDistPx = distPx
         }
       }
 
-      groupSpots.sort((a, b) => pinSortRank(b, todayStartMs) - pinSortRank(a, todayStartMs))
+      if (maxDistPx > DISSOLVE_PX) {
+        for (const spot of members) groups.push(buildSingle(spot))
+        continue
+      }
+
+      const sorted = [...members].sort((a, b) => pinSortRank(b, todayStartMs) - pinSortRank(a, todayStartMs))
       groups.push({
-        representativeId: groupSpots[0].id,
-        spots: groupSpots,
-        lat: groupSpots[0].lat,
-        lng: groupSpots[0].lng,
+        representativeId: sorted[0].id,
+        spots: sorted,
+        lat: members.reduce((s, m) => s + m.lat, 0) / members.length,
+        lng: members.reduce((s, m) => s + m.lng, 0) / members.length,
       })
     }
 

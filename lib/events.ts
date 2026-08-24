@@ -43,6 +43,8 @@ export type CollectedEvent = {
   eventDates?: EventDateEntry[]
   /** category='event_plus' のときの見た目カテゴリ（event/festival/fireworks） */
   subCategory?: string
+  /** 地図ピンを手動でグルーピングするためのID */
+  groupId?: string
 }
 
 export type EventsDatabase = {
@@ -99,6 +101,7 @@ export function eventToSpot(event: CollectedEvent): Spot {
     spotLabel:    event.spotLabel,
     eventDates:   event.eventDates,
     subCategory:  event.subCategory,
+    groupId:      event.groupId,
   }
 
   // event_plus: event_dates から直近の次回開催日を選び、Spot本体の日程・会場・位置として使う
