@@ -579,6 +579,7 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
                     gap:        6,
                     padding:    '11px 12px',
                     cursor:     'default',
+                    background: '#f3f4f6',
                   }}
                 >
                   <span
