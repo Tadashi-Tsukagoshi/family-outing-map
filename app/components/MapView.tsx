@@ -25,6 +25,7 @@ type Props = {
   isMobile?: boolean
   sheetState?: SheetState
   onMapTapClose?: () => void
+  onZoomChange?: (zoom: number) => void
 }
 
 type HoverState = { spot: Spot; x: number; y: number }
@@ -635,7 +636,7 @@ const TAP_MAX_DISTANCE = 10
 const TAP_MAX_DURATION = 300
 
 // ─── MapView（メインコンポーネント） ─────────────────────────────
-export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, userLocation = null, locationRadius = 60, recenterSignal = 0, onDetailOpen, onDetailClose, detailPanelOpen, isMobile = false, sheetState = 'closed', onMapTapClose }: Props) {
+export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, userLocation = null, locationRadius = 60, recenterSignal = 0, onDetailOpen, onDetailClose, detailPanelOpen, isMobile = false, sheetState = 'closed', onMapTapClose, onZoomChange }: Props) {
   const wrapperRef       = useRef<HTMLDivElement>(null)
   const containerRef     = useRef<HTMLDivElement>(null)
   const mapRef           = useRef<mapboxgl.Map | null>(null)
@@ -766,9 +767,9 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
   }, [handlePinClick, onDetailClose, isMobile, onSpotSelect])
 
   // マーカーのDOMイベントハンドラ・地図イベントハンドラから常に最新のコールバック・spotを参照するためのref
-  const handlersRef = useRef({ handleHoverIn, scheduleHide, clearGroupHide, scheduleGroupHide, handlePinClick, handleGroupPinClick, handleMapClick, handleImmediateHide, isMobile, onMapTapClose })
+  const handlersRef = useRef({ handleHoverIn, scheduleHide, clearGroupHide, scheduleGroupHide, handlePinClick, handleGroupPinClick, handleMapClick, handleImmediateHide, isMobile, onMapTapClose, onZoomChange })
   useEffect(() => {
-    handlersRef.current = { handleHoverIn, scheduleHide, clearGroupHide, scheduleGroupHide, handlePinClick, handleGroupPinClick, handleMapClick, handleImmediateHide, isMobile, onMapTapClose }
+    handlersRef.current = { handleHoverIn, scheduleHide, clearGroupHide, scheduleGroupHide, handlePinClick, handleGroupPinClick, handleMapClick, handleImmediateHide, isMobile, onMapTapClose, onZoomChange }
   })
   const spotsByIdRef = useRef<Record<string, Spot>>({})
   useEffect(() => {
@@ -813,10 +814,12 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
       })
 
       setMapReady(true)
+      handlersRef.current.onZoomChange?.(map.getZoom())
     })
 
     map.on('movestart', () => handlersRef.current.handleImmediateHide())
     map.on('zoomstart', () => handlersRef.current.handleImmediateHide())
+    map.on('zoomend', () => handlersRef.current.onZoomChange?.(map.getZoom()))
     map.on('click', () => handlersRef.current.handleMapClick())
 
     return () => {

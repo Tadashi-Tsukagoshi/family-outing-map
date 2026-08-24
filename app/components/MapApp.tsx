@@ -9,9 +9,11 @@ import { CATEGORY_LABELS, getVisualCategory, type Category, type PeriodFilter, t
 import { eventToSpot, type EventsDatabase } from '@/lib/events'
 import { getEventStatus, parseLocalDate } from '@/lib/date-utils'
 
-// ─── 地図ピンのグループ化（座標がほぼ一致するピンをまとめる） ──────────
-/** 同一グループとみなす緯度経度の許容誤差（EventFormFields.tsx の coordsMatch と同じ基準） */
-const GROUP_COORD_EPSILON = 1e-6
+// ─── 地図ピンのグループ化（画面上のピクセル距離が近いピンをまとめる） ──────
+/** クラスタリングの基準となる画面ピクセル距離 */
+const CLUSTER_PX = 35
+/** これ以上離れたピンは低ズームでもグループ化しない（≈55m） */
+const MAX_CLUSTER_DEG = 0.0005
 
 export type PinGroup = {
   /** 最前面（吹き出しの先頭）に表示する spot の id */
@@ -95,6 +97,7 @@ export default function MapApp() {
   const [locateStatus,  setLocateStatus]    = useState<'idle' | 'loading'>('idle')
   const [locationRadius, setLocationRadius] = useState(20)
   const [recenterSignal, setRecenterSignal] = useState(0)
+  const [zoomLevel, setZoomLevel] = useState(12)
 
   // ハイドレーション後にlocalStorageから設定を復元
   useEffect(() => {
@@ -272,9 +275,12 @@ export default function MapApp() {
     return result
   }, [filteredSpots])
 
-  // 座標がほぼ一致する mapSpots 同士をグループ化し、地図ピンのバッジ・吹き出しリストに使う
+  // 画面上のピクセル距離が近い mapSpots 同士をグループ化し、地図ピンのバッジ・吹き出しリストに使う
+  // ズームインするほど許容誤差（度単位）が小さくなり、グループが解除されて個別ピンになる
   const pinGroups = useMemo<PinGroup[]>(() => {
     const todayStartMs = new Date().setHours(0, 0, 0, 0)
+    const pixelsPerDeg = 256 * Math.pow(2, zoomLevel) / 360
+    const epsilon = Math.max(1e-6, Math.min(MAX_CLUSTER_DEG, CLUSTER_PX / pixelsPerDeg))
     const groups: PinGroup[] = []
     const assigned = new Set<string>()
 
@@ -285,7 +291,7 @@ export default function MapApp() {
 
       for (const other of mapSpots) {
         if (assigned.has(other.id)) continue
-        if (Math.abs(other.lat - spot.lat) <= GROUP_COORD_EPSILON && Math.abs(other.lng - spot.lng) <= GROUP_COORD_EPSILON) {
+        if (Math.abs(other.lat - spot.lat) <= epsilon && Math.abs(other.lng - spot.lng) <= epsilon) {
           groupSpots.push(other)
           assigned.add(other.id)
         }
@@ -301,7 +307,7 @@ export default function MapApp() {
     }
 
     return groups
-  }, [mapSpots])
+  }, [mapSpots, zoomLevel])
 
   const toggleCategory = (cat: Category) => {
     setActiveCategories((prev) => {
@@ -357,6 +363,7 @@ export default function MapApp() {
           isMobile
           sheetState={sheetState}
           onMapTapClose={() => setSheetState('closed')}
+          onZoomChange={setZoomLevel}
         />
         {/* タイトルボタン＋ポップアップ */}
         <div ref={logoRef} className="fixed top-4 left-4" style={{ zIndex: 999 }}>
@@ -451,6 +458,7 @@ export default function MapApp() {
           userLocation={userLocation}
           locationRadius={locationRadius}
           recenterSignal={recenterSignal}
+          onZoomChange={setZoomLevel}
         />
       </main>
     </div>
