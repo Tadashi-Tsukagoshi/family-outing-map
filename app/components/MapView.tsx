@@ -610,7 +610,7 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      {dateDisplay}{timeDisplay ? ` ${timeDisplay}` : ''}
+                      ＞ {dateDisplay}{timeDisplay ? ` ${timeDisplay}` : ''}
                     </div>
                   )
                 })}
