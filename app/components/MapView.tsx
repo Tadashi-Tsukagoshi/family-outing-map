@@ -612,7 +612,7 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
                         borderTop:  '1px solid #e5e7eb',
                       }}
                     >
-                      <span style={{ fontSize: 4, verticalAlign: 'middle' }}>●</span> {dateDisplay}{timeDisplay ? ` ${timeDisplay}` : ''}
+                      {dateDisplay}{timeDisplay ? ` ${timeDisplay}` : ''}
                     </div>
                   )
                 })}
