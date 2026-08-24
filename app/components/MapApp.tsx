@@ -11,7 +11,7 @@ import { getEventStatus, parseLocalDate } from '@/lib/date-utils'
 
 // ─── 地図ピンのグループ化（画面上のピクセル距離が近いピンをまとめる） ──────
 /** クラスタリングの基準となる画面ピクセル距離 */
-const CLUSTER_PX = 35
+const CLUSTER_PX = 25
 /** これ以上離れたピンは低ズームでもグループ化しない（≈165m） */
 const MAX_CLUSTER_DEG = 0.0015
 
