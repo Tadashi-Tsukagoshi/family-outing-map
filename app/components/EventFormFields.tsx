@@ -15,6 +15,8 @@ export type PosterType = 'general' | 'organizer' | 'business' | 'staff'
 export type FormState = {
   name:          string
   category:      AllCategory
+  /** category='event_plus' 選択時の見た目カテゴリ（event/festival/fireworks） */
+  subCategory:   string
   type:          EventType
   dateConfirmed: boolean
   startDate:     string
@@ -70,6 +72,7 @@ export const POSTER_TYPE_LABELS: Record<string, string> = {
 
 export const INITIAL_FORM: FormState = {
   name: '', category: 'event',
+  subCategory: '',
   type: 'event',
   dateConfirmed: true,
   startDate: '', endDate: '', startTime: '', endTime: '', businessHours: '', spotLabel: '', scheduleNote: '',
@@ -88,6 +91,7 @@ export function eventToFormState(ev: CollectedEvent): FormState {
   return {
     name:          ev.name,
     category:      ev.category ?? 'event',
+    subCategory:   ev.subCategory ?? '',
     type:          ev.type ?? 'event',
     dateConfirmed: !hasScheduleNote,
     startDate:     ev.startDate ?? ev.date ?? '',
@@ -694,6 +698,23 @@ export default function EventFormFields({
             return categoryButton
           })}
         </div>
+        {isEventPlus && (
+          <div className="mt-3">
+            <Label>表示アイコン</Label>
+            <select
+              value={form.subCategory || 'event'}
+              onChange={e => set('subCategory', e.target.value)}
+              disabled={disabled}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                focus:outline-none focus:ring-2 focus:ring-green-400
+                disabled:bg-gray-50 disabled:text-gray-500"
+            >
+              <option value="event">イベント</option>
+              <option value="festival">まつり</option>
+              <option value="fireworks">花火</option>
+            </select>
+          </div>
+        )}
       </div>
 
       {/* 日程（期間限定イベント）/ 営業時間・紹介文（常設施設） */}

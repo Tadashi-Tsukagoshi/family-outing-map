@@ -41,6 +41,8 @@ export type CollectedEvent = {
   spotLabel?: string
   /** category='event_plus' の複数日程（event_dates テーブル由来） */
   eventDates?: EventDateEntry[]
+  /** category='event_plus' のときの見た目カテゴリ（event/festival/fireworks） */
+  subCategory?: string
 }
 
 export type EventsDatabase = {
@@ -96,6 +98,7 @@ export function eventToSpot(event: CollectedEvent): Spot {
     businessHours: event.businessHours,
     spotLabel:    event.spotLabel,
     eventDates:   event.eventDates,
+    subCategory:  event.subCategory,
   }
 
   // event_plus: event_dates から直近の次回開催日を選び、Spot本体の日程・会場・位置として使う

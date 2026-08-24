@@ -50,6 +50,8 @@ export type Spot = {
   /** 地図上で複数ピンに分裂した場合の実イベントid。id 自体はピンごとの合成id になるため、
    *  画像・いいねなど実イベントに紐づくAPI呼び出しは eventId ?? id を使う */
   eventId?: string
+  /** category='event_plus' のときの見た目カテゴリ（event/festival/fireworks）。未設定時は'event'扱い */
+  subCategory?: string
 }
 
 const VALID_CATEGORIES = new Set<string>(['event', 'event_plus', 'fireworks', 'festival', 'park', 'kumamoto_earthquake_r8'])
@@ -57,6 +59,14 @@ const VALID_CATEGORIES = new Set<string>(['event', 'event_plus', 'fireworks', 'f
 export function normalizeCategory(value: unknown): Category {
   if (typeof value === 'string' && VALID_CATEGORIES.has(value)) return value as Category
   return 'event'
+}
+
+/** 地図アイコン・フィルタ用の見た目カテゴリ。event_plus は subCategory があればそれを使う */
+export function getVisualCategory(spot: Spot): AllCategory {
+  if (spot.category === 'event_plus' && spot.subCategory) {
+    return normalizeCategory(spot.subCategory)
+  }
+  return spot.category
 }
 
 const VALID_EVENT_TYPES = new Set<string>(['event', 'permanent', 'disaster'])

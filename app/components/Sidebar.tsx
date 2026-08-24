@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef } from 'react'
-import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, PERIOD_LABELS, getCategoryIconSrc, isDarkPin, type Category, type AllCategory, type PeriodFilter, type Spot } from '@/lib/spots'
+import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, PERIOD_LABELS, getCategoryIconSrc, getVisualCategory, isDarkPin, type Category, type AllCategory, type PeriodFilter, type Spot } from '@/lib/spots'
 import { getDateDisplay, fmtTimeRange } from '@/lib/date-utils'
 
 // モバイル版の現在地スライダー：つまみタップ（動かさない）とドラッグ（動かす）を判別するための閾値
@@ -248,7 +248,7 @@ export default function Sidebar({
             style={{ paddingLeft: 24 }}
           >
             <div className="flex items-center gap-2">
-              <CategoryIcon category={spot.category} size={20} />
+              <CategoryIcon category={getVisualCategory(spot)} size={20} />
               <span className="text-sm leading-tight flex-1 min-w-0 truncate" style={{ color: '#1F1F1F' }}>
                 {spot.name}
               </span>

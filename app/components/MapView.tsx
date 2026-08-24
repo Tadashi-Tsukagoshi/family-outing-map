@@ -3,7 +3,7 @@
 import 'mapbox-gl/dist/mapbox-gl.css'
 import mapboxgl from 'mapbox-gl'
 import { useRef, useState, useMemo, useCallback, useEffect, useLayoutEffect } from 'react'
-import { getCategoryIconSrc, BADGE_BG_COLOR, type Category, type Spot } from '@/lib/spots'
+import { getCategoryIconSrc, getVisualCategory, BADGE_BG_COLOR, type AllCategory, type Spot } from '@/lib/spots'
 import { getDateDisplay, getEventStatus, parseLocalDate, STATUS_CONFIG, PARK_STATUS, fmtTimeRange } from '@/lib/date-utils'
 import { type SheetState } from './BottomSheet'
 import { type PinGroup } from './MapApp'
@@ -116,7 +116,7 @@ function buildUserLocationElement(): HTMLDivElement {
 }
 
 // ─── Pin icon helpers ────────────────────────────────────────────
-function pickIcon(category: Category): { src: string; bg: string; glow: string; ratio: number } {
+function pickIcon(category: AllCategory): { src: string; bg: string; glow: string; ratio: number } {
   const lanternGlow = 'filter:drop-shadow(0 0 1.5px rgba(255,255,255,1)) drop-shadow(0 0 1.5px rgba(255,255,255,1));'
   const src = getCategoryIconSrc(category) ?? ''
   if (category === 'fireworks') return { src, bg: '#0a0a3c', glow: '', ratio: 1.6 }
@@ -132,9 +132,10 @@ type IconDef = { html: string; hit: number; iconSize: number; anchor?: 'center' 
 function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef {
   const isActive = getEventStatus(spot.startDate, spot.endDate) === 'active'
   const wrapperCls = isActive ? ' class="pin-vibrate"' : ''
+  const visualCategory = getVisualCategory(spot)
 
-  if (spot.category === 'event' || spot.category === 'event_plus' || spot.category === 'park') {
-    const { src: icon } = pickIcon(spot.category)
+  if (visualCategory === 'event' || visualCategory === 'park') {
+    const { src: icon } = pickIcon(visualCategory)
     const hit  = selected ? 48 : (isMobile ? 48 : 40)
     const size = selected ? 44 : 36
     const cls  = selected ? ' class="pin-selected"' : ''
@@ -146,9 +147,9 @@ function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef
     }
   }
 
-  const { src: icon, bg, glow, ratio } = pickIcon(spot.category)
+  const { src: icon, bg, glow, ratio } = pickIcon(visualCategory)
   const borderColor = '#9ca3af'
-  const useGradientBorder = spot.category === 'fireworks' || spot.category === 'festival' || spot.category === 'kumamoto_earthquake_r8'
+  const useGradientBorder = visualCategory === 'fireworks' || visualCategory === 'festival' || visualCategory === 'kumamoto_earthquake_r8'
   const gradientBorder = 'conic-gradient(from 0deg, #ffd600 0deg, #ffd600 60deg, #ff8a00 120deg, #ea4335 200deg, #bc2a8d 280deg, #ffd600 360deg)'
   const gradientBorderWidth = 2.5 * 0.7
 
@@ -184,15 +185,16 @@ function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef
 /** 地図ピンと同じビジュアルの20x20小型アイコンHTML（選択状態は反映しない）。吹き出しリストの行アイコンに使う */
 function buildSmallIconHtml(spot: Spot): string {
   const SIZE = 20
+  const visualCategory = getVisualCategory(spot)
 
-  if (spot.category === 'event' || spot.category === 'event_plus' || spot.category === 'park') {
-    const { src: icon } = pickIcon(spot.category)
+  if (visualCategory === 'event' || visualCategory === 'park') {
+    const { src: icon } = pickIcon(visualCategory)
     return `<img src="${icon}" style="width:${SIZE}px;height:${SIZE}px;object-fit:contain;display:block;">`
   }
 
-  const { src: icon, bg, glow, ratio } = pickIcon(spot.category)
+  const { src: icon, bg, glow, ratio } = pickIcon(visualCategory)
   const borderColor = '#9ca3af'
-  const useGradientBorder = spot.category === 'fireworks' || spot.category === 'festival' || spot.category === 'kumamoto_earthquake_r8'
+  const useGradientBorder = visualCategory === 'fireworks' || visualCategory === 'festival' || visualCategory === 'kumamoto_earthquake_r8'
   const gradientBorder = 'conic-gradient(from 0deg, #ffd600 0deg, #ffd600 60deg, #ff8a00 120deg, #ea4335 200deg, #bc2a8d 280deg, #ffd600 360deg)'
   const borderWidth = 1.2
   const img = Math.round(SIZE * ratio)

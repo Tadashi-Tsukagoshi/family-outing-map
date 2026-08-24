@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic'
 import Sidebar from './Sidebar'
 import DetailPanel from './DetailPanel'
 import BottomSheet, { type SheetState } from './BottomSheet'
-import { CATEGORY_LABELS, type Category, type PeriodFilter, type Spot } from '@/lib/spots'
+import { CATEGORY_LABELS, getVisualCategory, type Category, type PeriodFilter, type Spot } from '@/lib/spots'
 import { eventToSpot, type EventsDatabase } from '@/lib/events'
 import { getEventStatus, parseLocalDate } from '@/lib/date-utils'
 
@@ -203,7 +203,7 @@ export default function MapApp() {
   const filteredSpots = useMemo(() => {
     return allSpots.filter((spot) => {
       const categoryActive = spot.category === 'event_plus'
-        ? activeCategories.has('event')
+        ? activeCategories.has(getVisualCategory(spot) as Category)
         : activeCategories.has(spot.category)
       if (!categoryActive) return false
 

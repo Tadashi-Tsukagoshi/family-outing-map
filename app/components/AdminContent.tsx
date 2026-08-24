@@ -345,6 +345,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
         endDate:      isPermanent ? '' : isEventPlus ? (nearestDate?.endDate   ?? '') : (form.dateConfirmed ? form.endDate   : ''),
         instagram_url: form.instagramUrl.trim() || null,
         x_url:         form.xUrl.trim() || null,
+        sub_category:  form.subCategory || null,
       }),
       })
       let data: Record<string, unknown> = {}
