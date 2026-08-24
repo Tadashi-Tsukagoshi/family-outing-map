@@ -539,7 +539,7 @@ export default function EventFormFields({
   const addEventDate = () => {
     set('eventDates', [
       ...form.eventDates,
-      { id: crypto.randomUUID(), startDate: '', endDate: '', venue: '', address: '', note: '', useCustomVenue: false, lat: null, lng: null },
+      { id: crypto.randomUUID(), startDate: '', endDate: '', startTime: '', endTime: '', venue: '', address: '', note: '', useCustomVenue: false, lat: null, lng: null },
     ])
   }
   const removeEventDate = (id: string) => {
@@ -780,6 +780,24 @@ export default function EventFormFields({
                       required
                       disabled={disabled}
                       style={{ WebkitAppearance: 'none', width: '100%', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3 mt-2">
+                  <div>
+                    <Label>開始時刻</Label>
+                    <TimeSelect
+                      value={d.startTime}
+                      onChange={v => updateEventDate(d.id, { startTime: v })}
+                      disabled={disabled}
+                    />
+                  </div>
+                  <div>
+                    <Label>終了時刻</Label>
+                    <TimeSelect
+                      value={d.endTime}
+                      onChange={v => updateEventDate(d.id, { endTime: v })}
+                      disabled={disabled}
                     />
                   </div>
                 </div>

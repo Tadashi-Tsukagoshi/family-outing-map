@@ -4,6 +4,8 @@ type EventDateRow = {
   id: string | number
   start_date: string
   end_date: string
+  start_time: string | null
+  end_time: string | null
   venue: string | null
   address: string | null
   lat: number | null
@@ -16,7 +18,7 @@ export async function GET() {
   const supabase = supabaseAdmin()
   const { data, error } = await supabase
     .from('events')
-    .select('id, name, description, start_date, end_date, start_time, end_time, business_hours, spot_label, schedule_note, specific_dates, notice, venue, address, fee, image_url, lat, lng, category, type, url, instagram_url, x_url, collected_at, posted_by, poster_type, likes, edited_by, edited_at, event_dates(id, start_date, end_date, venue, address, lat, lng, note, sort_order)')
+    .select('id, name, description, start_date, end_date, start_time, end_time, business_hours, spot_label, schedule_note, specific_dates, notice, venue, address, fee, image_url, lat, lng, category, type, url, instagram_url, x_url, collected_at, posted_by, poster_type, likes, edited_by, edited_at, event_dates(id, start_date, end_date, start_time, end_time, venue, address, lat, lng, note, sort_order)')
     .eq('status', 'approved')
     .order('start_date', { ascending: true })
 
@@ -63,6 +65,8 @@ export async function GET() {
             id:             String(d.id),
             startDate:      d.start_date,
             endDate:        d.end_date,
+            startTime:      d.start_time ?? '',
+            endTime:        d.end_time ?? '',
             venue:          d.venue ?? '',
             address:        d.address ?? '',
             lat:            d.lat ?? null,

@@ -157,6 +157,8 @@ export type EventDateEntry = {
   id: string
   startDate: string
   endDate: string
+  startTime: string
+  endTime: string
   /** true の場合のみ venue/address/lat/lng を使う。false の場合は親イベントの会場・住所・位置を使う */
   useCustomVenue: boolean
   venue: string
@@ -170,6 +172,8 @@ export type EventDateEntry = {
 export type EventPlusOccurrence = {
   startDate: string
   endDate: string
+  startTime: string
+  endTime: string
   venue: string
   address: string
   lat: number
@@ -190,6 +194,8 @@ export function resolveEventPlusOccurrences(spot: Spot): EventPlusOccurrence[] {
     .map(d => ({
       startDate: d.startDate,
       endDate:   d.endDate,
+      startTime: d.startTime,
+      endTime:   d.endTime,
       venue:     d.venue   || spot.venue   || '',
       address:   d.address || spot.address || '',
       lat:       d.lat ?? spot.lat,

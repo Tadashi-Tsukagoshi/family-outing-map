@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   const supabase = supabaseAdmin()
   const { data, error } = await supabase
     .from('event_dates')
-    .select('id, start_date, end_date, venue, address, lat, lng, note')
+    .select('id, start_date, end_date, start_time, end_time, venue, address, lat, lng, note')
     .eq('event_id', eventId)
     .order('sort_order', { ascending: true })
     .order('start_date', { ascending: true })
@@ -26,6 +26,8 @@ export async function GET(req: NextRequest) {
     id:        String(row.id),
     startDate: row.start_date,
     endDate:   row.end_date,
+    startTime: row.start_time ?? '',
+    endTime:   row.end_time ?? '',
     venue:     row.venue ?? '',
     address:   row.address ?? '',
     lat:       row.lat ?? null,
@@ -64,6 +66,8 @@ export async function POST(req: NextRequest) {
       return {
         start_date: (d.startDate as string | undefined)?.trim() ?? '',
         end_date:   (d.endDate   as string | undefined)?.trim() ?? '',
+        start_time: (d.startTime as string | undefined)?.trim() || null,
+        end_time:   (d.endTime   as string | undefined)?.trim() || null,
         venue,
         address,
         lat: hasCustomVenue && typeof d.lat === 'number' ? d.lat : null,
@@ -86,6 +90,8 @@ export async function POST(req: NextRequest) {
       event_id:   eventId,
       start_date: d.start_date,
       end_date:   d.end_date,
+      start_time: d.start_time,
+      end_time:   d.end_time,
       venue:      d.venue,
       address:    d.address,
       lat:        d.lat,

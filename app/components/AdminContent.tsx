@@ -379,6 +379,8 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
                 dates: form.eventDates.map(d => ({
                   startDate: d.startDate,
                   endDate:   d.endDate,
+                  startTime: d.startTime,
+                  endTime:   d.endTime,
                   venue:     d.useCustomVenue ? d.venue   : '',
                   address:   d.useCustomVenue ? d.address : '',
                   lat:       d.useCustomVenue ? d.lat : null,
