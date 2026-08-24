@@ -107,6 +107,8 @@ export function eventToSpot(event: CollectedEvent): Spot {
       const primary = pins[0]
       spot.startDate = primary.startDate
       spot.endDate   = primary.endDate
+      spot.startTime = primary.startTime
+      spot.endTime   = primary.endTime
       spot.venue     = primary.venue
       spot.address   = primary.address
       spot.lat       = primary.lat

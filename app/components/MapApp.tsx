@@ -260,6 +260,8 @@ export default function MapApp() {
           eventId: spot.id,
           startDate: pin.startDate,
           endDate: pin.endDate,
+          startTime: pin.startTime,
+          endTime: pin.endTime,
           venue: pin.venue,
           address: pin.address,
           lat: pin.lat,
