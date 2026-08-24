@@ -609,6 +609,7 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
                         overflow:   'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
+                        borderTop:  '1px solid #e5e7eb',
                       }}
                     >
                       <span style={{ fontSize: 6, verticalAlign: 'middle' }}>●</span> {dateDisplay}{timeDisplay ? ` ${timeDisplay}` : ''}
