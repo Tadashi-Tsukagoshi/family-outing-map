@@ -601,7 +601,7 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
                       key={spot.id}
                       onClick={() => onSelectSpot(spot)}
                       style={{
-                        padding:    '6px 12px 6px 38px',
+                        padding:    '6px 12px 6px 20px',
                         cursor:     'pointer',
                         background: selected ? '#eff6ff' : 'transparent',
                         fontSize:   13,
