@@ -139,16 +139,17 @@ export default function Sidebar({
 
       {/* タイトル（サイドバーモードのみ） */}
       {!isSheet && (
-        <div className="pt-1 pb-4 pr-4 pl-[22px] border-b border-gray-200">
-          <img src="/logo-pc_05.png" alt="GUNMAP" className="h-[52px] w-auto -ml-[8px]" />
-          <p className="text-xs -mt-1 leading-relaxed ml-[39px]" style={{ color: '#1F1F1F' }}>
-            群馬の週末おでかけプラットフォーム
+        <div className="pt-1 pb-1 pr-4 pl-[22px] border-b border-gray-200 flex items-center gap-x-7">
+          <img src="/logo-pc_05.png" alt="GUNMAP" className="h-[52px] w-auto -ml-[8px] shrink-0" />
+          <p className="text-[11px] leading-tight min-w-0" style={{ color: '#1F1F1F' }}>
+            <span className="block">群馬の週末おでかけ</span>
+            <span className="block tracking-[0.13em]">プラットフォーム</span>
           </p>
         </div>
       )}
 
       {/* フィルター */}
-      <div className={`pl-[22px] border-b border-gray-100 ${isSheet ? 'p-4 space-y-3' : 'py-2.5 pr-4 space-y-2'}`}>
+      <div className={`pl-[22px] border-b border-gray-100 ${isSheet ? 'p-4 space-y-3' : 'pt-4 pb-2.5 pr-4 space-y-2'}`}>
         {/* 表示期間・現在地を表示：同じグリッドの列として並べることで、プルダウンとスライダーの幅・右端を揃える */}
         <div className={`grid grid-cols-[auto_auto] items-center justify-between ${isSheet ? 'gap-y-3' : 'gap-y-2'}`}>
           <span className="text-sm" style={{ color: '#1F1F1F' }}>表示期間</span>
