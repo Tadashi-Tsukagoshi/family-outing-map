@@ -509,46 +509,115 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
           boxShadow:    '0 2px 8px rgba(0,0,0,0.15)',
         }}
       >
-        {group.spots.map((spot, index) => {
-          const selected = spot.id === selectedSpotId
-          const dateDisplay = spot.type === 'permanent' ? '' : getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate, spot.specificDates)
-          const timeDisplay = spot.type === 'permanent' ? '' : fmtTimeRange(spot.startTime, spot.endTime)
-          return (
-            <div
-              key={spot.id}
-              onClick={() => onSelectSpot(spot)}
-              style={{
-                display:    'flex',
-                alignItems: 'flex-start',
-                gap:        6,
-                padding:    '11px 12px',
-                cursor:     'pointer',
-                background: selected ? '#eff6ff' : 'transparent',
-                ...(index > 0 ? { borderTop: '1px solid #e5e7eb' } : {}),
-              }}
-            >
-              <span
-                style={{ width: 20, height: 20, display: 'inline-flex', flexShrink: 0, marginTop: 2 }}
-                dangerouslySetInnerHTML={{ __html: buildSmallIconHtml(spot) }}
-              />
-              <div style={{ minWidth: 0 }}>
-                <span style={{
-                  display: 'block', fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                }}>
-                  {spot.name}
-                </span>
-                {dateDisplay && (
+        {(() => {
+          // spots を eventId（無ければ id）でグルーピング。出現順を維持。
+          const eventGroups: { key: string; spots: Spot[] }[] = []
+          const indexByKey = new Map<string, number>()
+          for (const spot of group.spots) {
+            const key = spot.eventId ?? spot.id
+            const idx = indexByKey.get(key)
+            if (idx === undefined) {
+              indexByKey.set(key, eventGroups.length)
+              eventGroups.push({ key, spots: [spot] })
+            } else {
+              eventGroups[idx].spots.push(spot)
+            }
+          }
+
+          return eventGroups.map((eg, groupIndex) => {
+            const borderStyle = groupIndex > 0 ? { borderTop: '1px solid #e5e7eb' } : {}
+
+            if (eg.spots.length === 1) {
+              const spot = eg.spots[0]
+              const selected = spot.id === selectedSpotId
+              const dateDisplay = spot.type === 'permanent' ? '' : getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate, spot.specificDates)
+              const timeDisplay = spot.type === 'permanent' ? '' : fmtTimeRange(spot.startTime, spot.endTime)
+              return (
+                <div
+                  key={spot.id}
+                  onClick={() => onSelectSpot(spot)}
+                  style={{
+                    display:    'flex',
+                    alignItems: 'flex-start',
+                    gap:        6,
+                    padding:    '11px 12px',
+                    cursor:     'pointer',
+                    background: selected ? '#eff6ff' : 'transparent',
+                    ...borderStyle,
+                  }}
+                >
+                  <span
+                    style={{ width: 20, height: 20, display: 'inline-flex', flexShrink: 0, marginTop: 2 }}
+                    dangerouslySetInnerHTML={{ __html: buildSmallIconHtml(spot) }}
+                  />
+                  <div style={{ minWidth: 0 }}>
+                    <span style={{
+                      display: 'block', fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>
+                      {spot.name}
+                    </span>
+                    {dateDisplay && (
+                      <span style={{
+                        display: 'block', fontSize: 11, color: '#9ca3af',
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      }}>
+                        {dateDisplay}{timeDisplay ? ` ${timeDisplay}` : ''}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )
+            }
+
+            const headSpot = eg.spots[0]
+            return (
+              <div key={eg.key} style={borderStyle}>
+                <div
+                  style={{
+                    display:    'flex',
+                    alignItems: 'flex-start',
+                    gap:        6,
+                    padding:    '11px 12px',
+                    cursor:     'default',
+                  }}
+                >
+                  <span
+                    style={{ width: 20, height: 20, display: 'inline-flex', flexShrink: 0, marginTop: 2 }}
+                    dangerouslySetInnerHTML={{ __html: buildSmallIconHtml(headSpot) }}
+                  />
                   <span style={{
-                    display: 'block', fontSize: 11, color: '#9ca3af',
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    display: 'block', fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0,
                   }}>
-                    {dateDisplay}{timeDisplay ? ` ${timeDisplay}` : ''}
+                    {headSpot.name}
                   </span>
-                )}
+                </div>
+                {eg.spots.map(spot => {
+                  const selected = spot.id === selectedSpotId
+                  const dateDisplay = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate, spot.specificDates)
+                  const timeDisplay = fmtTimeRange(spot.startTime, spot.endTime)
+                  return (
+                    <div
+                      key={spot.id}
+                      onClick={() => onSelectSpot(spot)}
+                      style={{
+                        padding:    '6px 12px 6px 38px',
+                        cursor:     'pointer',
+                        background: selected ? '#eff6ff' : 'transparent',
+                        fontSize:   13,
+                        color:      '#374151',
+                        overflow:   'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {dateDisplay}{timeDisplay ? ` ${timeDisplay}` : ''}
+                    </div>
+                  )
+                })}
               </div>
-            </div>
-          )
-        })}
+            )
+          })
+        })()}
       </div>
     </div>
   )
