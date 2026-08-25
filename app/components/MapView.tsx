@@ -442,9 +442,10 @@ type GroupBubbleProps = {
   onMouseEnter?:  () => void
   onMouseLeave?:  () => void
   isMobile:       boolean
+  isSingle?:      boolean
 }
 
-function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, onMouseEnter, onMouseLeave, isMobile }: GroupBubbleProps) {
+function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, onMouseEnter, onMouseLeave, isMobile, isSingle }: GroupBubbleProps) {
   const bubbleRef = useRef<HTMLDivElement>(null)
   const aboveGap = BUBBLE_GAP
 
@@ -483,12 +484,12 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
         opacity:       pos.ready ? 1 : 0,
         width:         BUBBLE_W,
         zIndex:        1000,
-        pointerEvents: 'all',
+        pointerEvents: isSingle ? 'none' : 'all',
         // padding領域がピンとカードの間の隙間を埋め、ホバー判定を連続させる（絶対配置のブリッジ要素は使わない）
         paddingBottom: pos.above ? BUBBLE_GAP : 0,
         paddingTop:    pos.above ? 0 : BUBBLE_GAP,
       }}
-      onClick={e => e.stopPropagation()}
+      onClick={isSingle ? undefined : (e => e.stopPropagation())}
       onMouseEnter={isMobile ? undefined : onMouseEnter}
       onMouseLeave={isMobile ? undefined : onMouseLeave}
     >
@@ -514,6 +515,7 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
           overflow:     'hidden',
           background:   'white',
           boxShadow:    '0 2px 8px rgba(0,0,0,0.15)',
+          pointerEvents: 'all',
         }}
       >
         {(() => {
@@ -1165,6 +1167,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
             onMouseEnter={handleCardMouseEnter}
             onMouseLeave={scheduleHide}
             isMobile={isMobile}
+            isSingle={true}
           />
         )
       })()}
