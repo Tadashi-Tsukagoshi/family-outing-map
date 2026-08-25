@@ -1147,7 +1147,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
 
       {/* モバイルはホバーカード不要。PC: hovered は常に表示、pinnedHover は詳細パネルが閉じている時のみ。吹き出しリスト表示中は抑制 */}
       {(() => {
-        const activeHover = isMobile || openGroupId ? null : (hovered ?? (detailPanelOpen ? null : pinnedHover))
+        const activeHover = isMobile || openGroupId ? null : (hovered ?? pinnedHover)
         if (!activeHover) return null
         const singleGroup: PinGroup = {
           representativeId: activeHover.spot.id,
