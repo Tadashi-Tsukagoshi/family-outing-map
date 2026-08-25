@@ -1145,15 +1145,24 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
       {(() => {
         const activeHover = isMobile || openGroupId ? null : (hovered ?? (detailPanelOpen ? null : pinnedHover))
         if (!activeHover) return null
+        const singleGroup: PinGroup = {
+          representativeId: activeHover.spot.id,
+          spots: [activeHover.spot],
+          lat: activeHover.spot.lat,
+          lng: activeHover.spot.lng,
+        }
         return (
-          <HoverCard
+          <GroupBubble
             key={activeHover.spot.id}
-            hovered={activeHover}
+            group={singleGroup}
+            x={activeHover.x}
+            y={activeHover.y}
             wrapperRef={wrapperRef}
+            selectedSpotId={selectedSpot?.id}
+            onSelectSpot={(spot) => onDetailOpen(spot)}
             onMouseEnter={handleCardMouseEnter}
             onMouseLeave={scheduleHide}
-            galleryImage={galleryCache[activeHover.spot.eventId ?? activeHover.spot.id] ?? undefined}
-            onDetailOpen={onDetailOpen}
+            isMobile={isMobile}
           />
         )
       })()}
