@@ -298,19 +298,23 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, galleryIma
         width:        CARD_W,
         zIndex:       1000,
         pointerEvents:'all',
-        cursor:       'pointer',
+        paddingBottom: pos.above ? aboveGap : 0,
+        paddingTop:    pos.above ? 0 : GAP,
       }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      onClick={() => onDetailOpen(spot)}
     >
       {/* ── カード本体 ── */}
-      <div style={{
-        borderRadius: 8,
-        overflow:     'hidden',
-        background:   'white',
-        boxShadow:    '0 2px 4px rgba(0,0,0,.10), 0 8px 24px rgba(0,0,0,.12)',
-      }}>
+      <div
+        style={{
+          borderRadius: 8,
+          overflow:     'hidden',
+          background:   'white',
+          boxShadow:    '0 2px 4px rgba(0,0,0,.10), 0 8px 24px rgba(0,0,0,.12)',
+          cursor:       'pointer',
+        }}
+        onClick={() => onDetailOpen(spot)}
+      >
         {/* 画像（全体の約55%） */}
         {imageSrc && !imageLoadFailed ? (
           <img
