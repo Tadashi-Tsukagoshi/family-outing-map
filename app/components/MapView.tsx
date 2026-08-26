@@ -777,7 +777,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
     handlersRef.current = { handleHoverIn, scheduleHide, clearGroupHide, scheduleGroupHide, handlePinClick, handleGroupPinClick, handleMapClick, handleImmediateHide, isMobile, onMapTapClose, onZoomChange }
   })
   const selectedSpotRef = useRef<Spot | null>(selectedSpot)
-  useEffect(() => { selectedSpotRef.current = selectedSpot })
+  selectedSpotRef.current = selectedSpot
   const spotsByIdRef = useRef<Record<string, Spot>>({})
   useEffect(() => {
     spotsByIdRef.current = Object.fromEntries(spots.map(s => [s.id, s]))
