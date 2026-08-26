@@ -84,7 +84,11 @@ export default function MapApp() {
 
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('all')
   const [activeCategories, setActiveCategories] = useState<Set<Category>>(
-    () => new Set(Object.keys(CATEGORY_LABELS) as Category[])
+    () => {
+      const all = new Set(Object.keys(CATEGORY_LABELS) as Category[])
+      all.delete('park')
+      return all
+    }
   )
   const [selectedSpot,   setSelectedSpot]   = useState<Spot | null>(null)
   const [detailSpot,     setDetailSpot]     = useState<Spot | null>(null)
@@ -115,6 +119,7 @@ export default function MapApp() {
       for (const cat of Object.keys(CATEGORY_LABELS) as Category[]) {
         if (saved.activeCategories.includes(cat) || !OLD_CATEGORIES.has(cat)) restored.add(cat)
       }
+      restored.delete('park') // 施設・公園は毎回起動時に非表示
       setActiveCategories(restored)
     }
   }, [])
