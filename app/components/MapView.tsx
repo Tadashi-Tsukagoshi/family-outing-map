@@ -776,6 +776,8 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
   useEffect(() => {
     handlersRef.current = { handleHoverIn, scheduleHide, clearGroupHide, scheduleGroupHide, handlePinClick, handleGroupPinClick, handleMapClick, handleImmediateHide, isMobile, onMapTapClose, onZoomChange }
   })
+  const selectedSpotRef = useRef<Spot | null>(selectedSpot)
+  useEffect(() => { selectedSpotRef.current = selectedSpot })
   const spotsByIdRef = useRef<Record<string, Spot>>({})
   useEffect(() => {
     spotsByIdRef.current = Object.fromEntries(spots.map(s => [s.id, s]))
@@ -1134,12 +1136,13 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
       if (!g) return
       const pinPt = map.project(toLngLat(g.lat, g.lng))
       const overPin = Math.hypot(e.point.x - pinPt.x, e.point.y - pinPt.y) <= PIN_HOVER_RADIUS
-      const groupHasSelected = selectedSpot ? g.spots.some(s => s.id === selectedSpot.id) : false
+      const sel = selectedSpotRef.current
+      const groupHasSelected = sel ? g.spots.some(s => s.id === sel.id) : false
       if (!overPin && !isOverBubbleRef.current && !groupHasSelected) setOpenGroupId(null)
     }
     map.on('mousemove', onMouseMove)
     return () => { map.off('mousemove', onMouseMove) }
-  }, [openGroupId, isMobile, mapReady, selectedSpot])
+  }, [openGroupId, isMobile, mapReady])
 
   return (
     <div ref={wrapperRef} style={{ position: 'relative', height: '100%', width: '100%' }}>
