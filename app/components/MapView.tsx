@@ -1134,11 +1134,12 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
       if (!g) return
       const pinPt = map.project(toLngLat(g.lat, g.lng))
       const overPin = Math.hypot(e.point.x - pinPt.x, e.point.y - pinPt.y) <= PIN_HOVER_RADIUS
-      if (!overPin && !isOverBubbleRef.current) setOpenGroupId(null)
+      const groupHasSelected = selectedSpot ? g.spots.some(s => s.id === selectedSpot.id) : false
+      if (!overPin && !isOverBubbleRef.current && !groupHasSelected) setOpenGroupId(null)
     }
     map.on('mousemove', onMouseMove)
     return () => { map.off('mousemove', onMouseMove) }
-  }, [openGroupId, isMobile, mapReady])
+  }, [openGroupId, isMobile, mapReady, selectedSpot])
 
   return (
     <div ref={wrapperRef} style={{ position: 'relative', height: '100%', width: '100%' }}>
