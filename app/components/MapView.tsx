@@ -1177,8 +1177,12 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
 
       {/* グループピンの吹き出しリスト */}
       {(() => {
-        if (!openGroupId || !bubbleScreenPos) return null
-        const group = pinGroups.find(g => g.representativeId === openGroupId)
+        // selectedSpotが含まれるグループは openGroupId が消えても表示維持
+        const activeGroupId = openGroupId
+          ?? pinGroups.find(g => g.spots.some(s => s.id === selectedSpot?.id) && g.spots.length >= 2)?.representativeId
+          ?? null
+        if (!activeGroupId || !bubbleScreenPos) return null
+        const group = pinGroups.find(g => g.representativeId === activeGroupId)
         if (!group || group.spots.length < 2) return null
         return (
           <GroupBubble
