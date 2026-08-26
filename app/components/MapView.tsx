@@ -769,7 +769,6 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
       return
     }
     handlePinClick(group.spots[0])
-    setOpenGroupId(null)
   }, [handlePinClick, onDetailClose, isMobile, onSpotSelect])
 
   // マーカーのDOMイベントハンドラ・地図イベントハンドラから常に最新のコールバック・spotを参照するためのref
