@@ -1110,10 +1110,16 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
   // ─── グループ吹き出しの画面座標追従（pan/zoom で再project） ──────
   useEffect(() => {
     const map = mapRef.current
-    if (!map || !mapReady || !openGroupId) { setBubbleScreenPos(null); return }
+    if (!map || !mapReady) { setBubbleScreenPos(null); return }
+
+    const targetGroupId = openGroupId
+      ?? pinGroups.find(g => g.spots.some(s => s.id === selectedSpot?.id) && g.spots.length >= 2)?.representativeId
+      ?? null
+
+    if (!targetGroupId) { setBubbleScreenPos(null); return }
 
     const update = () => {
-      const g = pinGroupsByRepIdRef.current[openGroupId]
+      const g = pinGroupsByRepIdRef.current[targetGroupId]
       if (!g) { setBubbleScreenPos(null); return }
       const pt = map.project(toLngLat(g.lat, g.lng))
       setBubbleScreenPos({ x: pt.x, y: pt.y })
@@ -1121,7 +1127,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
     update()
     map.on('move', update)
     return () => { map.off('move', update) }
-  }, [openGroupId, mapReady])
+  }, [openGroupId, selectedSpot, pinGroups, mapReady])
 
   // ─── グループ吹き出し：PCでカーソルがピンにも吹き出しにも乗っていなければ閉じる ──
   // マーカーの mouseleave では閉じない（吹き出しがピンに重なりチャタリングするため）。
