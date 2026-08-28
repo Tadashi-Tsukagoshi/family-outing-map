@@ -497,7 +497,6 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
             )}
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {calendarButtons}
               {spot.url && (
                 <a
                   href={spot.url}
@@ -543,6 +542,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
               >
                 Googleマップで開く
               </a>
+              {calendarButtons}
             </div>
 
             <a
@@ -771,7 +771,6 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
         )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {calendarButtons}
           {spot.url && (
             <a
               href={spot.url}
@@ -817,6 +816,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
           >
             Googleマップで開く
           </a>
+          {calendarButtons}
         </div>
 
         <a
