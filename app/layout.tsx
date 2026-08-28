@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   openGraph: {
     images: [
       {
-        url: '/gunmap_OGP_03.png',
+        url: '/gunmap_OGP_04.png',
         width: 1200,
         height: 630,
       },
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    images: ['/gunmap_OGP_03.png'],
+    images: ['/gunmap_OGP_04.png'],
   },
 }
 
