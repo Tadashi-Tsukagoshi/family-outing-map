@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params
   const spot = await getSpot(id)
   if (!spot) return {}
-  return { title: `${spot.name} | GUNMAP` }
+  return { title: `${spot.name} | GUNMAp` }
 }
 
 export default async function EventDetailPage({ params }: Props) {

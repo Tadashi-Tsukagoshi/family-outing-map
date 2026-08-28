@@ -20,7 +20,7 @@ const shipporiMincho = Shippori_Mincho({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://gunma-odekakemap.jp'),
-  title: 'GUNMAP ｜グンマップ',
+  title: 'GUNMAp ｜ グンマップ',
   description: '今週末、家族でどこいく？群馬の週末おでかけプラットフォーム',
   manifest: '/manifest.json',
   icons: {
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: 'GUNMAP ｜グンマップ',
+    title: 'GUNMAp ｜ グンマップ',
     statusBarStyle: 'default',
   },
   openGraph: {
