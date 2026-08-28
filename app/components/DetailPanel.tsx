@@ -64,6 +64,72 @@ function forgetLiked(id: string) {
   } catch {}
 }
 
+const WEEK_JA = ['日', '月', '火', '水', '木', '金', '土']
+function fmtDateLabel(iso: string): string {
+  const d = new Date(iso)
+  return `${d.getMonth() + 1}/${d.getDate()}(${WEEK_JA[d.getDay()]})`
+}
+
+function generateIcs(params: {
+  title: string
+  startDate: string
+  endDate: string
+  startTime?: string
+  endTime?: string
+  venue?: string
+  url?: string
+}): void {
+  const { title, startDate, endDate, startTime, endTime, venue, url } = params
+
+  let dtStart: string
+  let dtEnd: string
+
+  if (startTime) {
+    const toUtc = (date: string, time: string) => {
+      const [y, m, d] = date.split('-').map(Number)
+      const [h, min] = time.split(':').map(Number)
+      const dt = new Date(Date.UTC(y, m - 1, d, h - 9, min))
+      return dt.toISOString().replace(/[-:]/g, '').replace('.000', '')
+    }
+    dtStart = toUtc(startDate, startTime)
+    dtEnd = endTime ? toUtc(endDate, endTime) : toUtc(endDate, startTime)
+  } else {
+    const toDate = (date: string) => date.replace(/-/g, '')
+    dtStart = toDate(startDate)
+    const end = new Date(endDate)
+    end.setDate(end.getDate() + 1)
+    const y = end.getFullYear()
+    const mo = String(end.getMonth() + 1).padStart(2, '0')
+    const d = String(end.getDate()).padStart(2, '0')
+    dtEnd = `${y}${mo}${d}`
+  }
+
+  const escape = (s: string) =>
+    s.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n')
+
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//family-outing-map//JP',
+    'BEGIN:VEVENT',
+    `UID:${Date.now()}@family-outing-map`,
+    startTime ? `DTSTART:${dtStart}` : `DTSTART;VALUE=DATE:${dtStart}`,
+    startTime ? `DTEND:${dtEnd}` : `DTEND;VALUE=DATE:${dtEnd}`,
+    `SUMMARY:${escape(title)}`,
+    venue ? `LOCATION:${escape(venue)}` : '',
+    url ? `URL:${escape(url)}` : '',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].filter(Boolean).join('\r\n')
+
+  const blob = new Blob([lines], { type: 'text/calendar;charset=utf-8' })
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = `${title}.ics`
+  a.click()
+  URL.revokeObjectURL(a.href)
+}
+
 type Props = {
   spot: Spot
   onClose: () => void
@@ -179,6 +245,48 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
   useEffect(() => {
     setImageLoadFailed(false)
   }, [image])
+
+  const calendarButtonStyle: React.CSSProperties = {
+    fontSize: 12, fontWeight: 600, color: '#374151', textDecoration: 'none',
+    background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left',
+  }
+
+  const calendarButtons = spot.category === 'event_plus'
+    ? (spot.eventDates ?? []).map((entry) => (
+        <button
+          key={entry.id}
+          type="button"
+          onClick={() => generateIcs({
+            title: spot.name,
+            startDate: entry.startDate,
+            endDate: entry.endDate,
+            startTime: entry.startTime || undefined,
+            endTime: entry.endTime || undefined,
+            venue: entry.useCustomVenue ? entry.venue : spot.venue,
+            url: spot.url || undefined,
+          })}
+          style={calendarButtonStyle}
+        >
+          📅 {fmtDateLabel(entry.startDate)} カレンダーに追加
+        </button>
+      ))
+    : (!spot.scheduleNote && spot.startDate) ? (
+        <button
+          type="button"
+          onClick={() => generateIcs({
+            title: spot.name,
+            startDate: spot.startDate!,
+            endDate: spot.endDate || spot.startDate!,
+            startTime: spot.startTime || undefined,
+            endTime: spot.endTime || undefined,
+            venue: spot.venue,
+            url: spot.url || undefined,
+          })}
+          style={calendarButtonStyle}
+        >
+          📅 カレンダーに追加
+        </button>
+      ) : null
 
   const showImagePlaceholder = !image || imageLoadFailed
 
@@ -389,6 +497,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
             )}
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {calendarButtons}
               {spot.url && (
                 <a
                   href={spot.url}
@@ -662,6 +771,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
         )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {calendarButtons}
           {spot.url && (
             <a
               href={spot.url}
