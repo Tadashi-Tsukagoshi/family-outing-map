@@ -132,14 +132,22 @@ export const BADGE_BG_COLOR = '#dbeafe'
 /** 注意書きの初期値・フォールバック表示（spot.notice が未設定の場合に使用） */
 export const DEFAULT_NOTICE = '※当日の開催状況は公式情報をご確認ください。'
 
-export type PeriodFilter = 'all' | '2w' | '1m' | '3m' | 'ended_2026'
+export type PeriodFilter = '1w' | '2w' | '1m' | '3m' | `ended_${number}`
 
-export const PERIOD_LABELS: Record<PeriodFilter, string> = {
-  all: 'すべて',
-  '2w': '2週間',
-  '1m': '1ヶ月',
-  '3m': '3ヶ月',
-  ended_2026: '終了イベント(2026)',
+export type PeriodOption = { value: PeriodFilter; label: string }
+
+export function buildPeriodOptions(endedYears: number[]): PeriodOption[] {
+  const base: PeriodOption[] = [
+    { value: '1w', label: '1週間' },
+    { value: '2w', label: '2週間' },
+    { value: '1m', label: '1ヶ月' },
+    { value: '3m', label: '3ヶ月' },
+  ]
+  const ended = endedYears
+    .slice()
+    .sort((a, b) => a - b)
+    .map((y) => ({ value: `ended_${y}` as PeriodFilter, label: `終了イベント(${y})` }))
+  return [...base, ...ended]
 }
 
 export const ICON_PATHS: Record<AllCategory, string> = {

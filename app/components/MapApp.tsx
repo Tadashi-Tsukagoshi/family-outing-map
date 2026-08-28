@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic'
 import Sidebar from './Sidebar'
 import DetailPanel from './DetailPanel'
 import BottomSheet, { type SheetState } from './BottomSheet'
-import { CATEGORY_LABELS, getVisualCategory, type Category, type PeriodFilter, type Spot } from '@/lib/spots'
+import { CATEGORY_LABELS, buildPeriodOptions, getVisualCategory, type Category, type PeriodFilter, type PeriodOption, type Spot } from '@/lib/spots'
 import { eventToSpot, type EventsDatabase } from '@/lib/events'
 import { getEventStatus, parseLocalDate } from '@/lib/date-utils'
 
@@ -47,7 +47,7 @@ function loadSettings(): Partial<SavedSettings> {
     if (!raw) return {}
     const parsed = JSON.parse(raw) as Partial<SavedSettings> & { weekendOnly?: boolean }
     if (parsed.periodFilter === undefined && parsed.weekendOnly !== undefined) {
-      parsed.periodFilter = parsed.weekendOnly ? '2w' : 'all'
+      parsed.periodFilter = parsed.weekendOnly ? '2w' : '3m'
     }
     return parsed
   } catch {
@@ -82,7 +82,7 @@ export default function MapApp() {
     return () => window.removeEventListener('resize', check)
   }, [])
 
-  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('all')
+  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('3m')
   const [activeCategories, setActiveCategories] = useState<Set<Category>>(
     () => {
       const all = new Set(Object.keys(CATEGORY_LABELS) as Category[])
@@ -95,6 +95,7 @@ export default function MapApp() {
   const [detailSheetHeight, setDetailSheetHeight] = useState<'50vh' | '100dvh'>('50vh')
   const [sheetState,     setSheetState]     = useState<SheetState>('closed')
   const [collectedSpots, setCollectedSpots] = useState<Spot[]>([])
+  const [periodOptions, setPeriodOptions] = useState<PeriodOption[]>(buildPeriodOptions([2026]))
   const [userLocation,  setUserLocation]    = useState<[number, number] | null>(null)
   const [locateStatus,  setLocateStatus]    = useState<'idle' | 'loading'>('idle')
   const [locationRadius, setLocationRadius] = useState(20)
@@ -105,10 +106,10 @@ export default function MapApp() {
   useEffect(() => {
     const saved = loadSettings()
     if (saved.periodFilter !== undefined) {
-      // 廃止された期間フィルタ値が保存されている場合は 'all' にフォールバック
-      const REMOVED_PERIOD_FILTERS = new Set(['2m', '6m'])
+      // 廃止された期間フィルタ値が保存されている場合は '3m' にフォールバック
+      const REMOVED_PERIOD_FILTERS = new Set(['2m', '6m', 'all'])
       setPeriodFilter(
-        REMOVED_PERIOD_FILTERS.has(saved.periodFilter) ? 'all' : saved.periodFilter
+        REMOVED_PERIOD_FILTERS.has(saved.periodFilter) ? '3m' : saved.periodFilter
       )
     }
     if (saved.activeCategories) {
@@ -175,7 +176,17 @@ export default function MapApp() {
     try {
       const res = await fetch('/api/events')
       const db: EventsDatabase = await res.json()
-      setCollectedSpots(db.events.map(eventToSpot))
+      const spots = db.events.map(eventToSpot)
+      setCollectedSpots(spots)
+      // 終了イベントが存在する年を集計してプルダウンを更新
+      const endedYears = Array.from(
+        new Set(
+          spots
+            .filter((s) => s.endDate && getEventStatus(s.startDate, s.endDate) === 'ended')
+            .map((s) => new Date(s.endDate!).getFullYear())
+        )
+      )
+      setPeriodOptions(buildPeriodOptions(endedYears))
     } catch {
       // events.json がまだない場合は無視
     }
@@ -213,38 +224,36 @@ export default function MapApp() {
         : activeCategories.has(spot.category)
       if (!categoryActive) return false
 
-      if (periodFilter === 'ended_2026') {
+      if (periodFilter.startsWith('ended_')) {
+        const year = parseInt(periodFilter.replace('ended_', ''), 10)
         if (spot.type === 'permanent') return false
         if (getEventStatus(spot.startDate, spot.endDate) !== 'ended') return false
-        // 2026年に終了したイベントのみ
-        return !!spot.endDate && spot.endDate >= '2026-01-01'
+        return !!spot.endDate && spot.endDate >= `${year}-01-01` && spot.endDate <= `${year}-12-31`
       }
 
       // 常設施設は期限切れ判定・期間フィルタの対象外で常に表示する
       if (spot.type === 'permanent') return true
       if (getEventStatus(spot.startDate, spot.endDate) === 'ended') return false
-      if (periodFilter !== 'all') {
-        // 期間の終了日を計算
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
-        const cutoff = new Date(today)
-        switch (periodFilter) {
-          case '2w': cutoff.setDate(cutoff.getDate() + 14); break
-          case '1m': cutoff.setMonth(cutoff.getMonth() + 1); break
-          case '3m': cutoff.setMonth(cutoff.getMonth() + 3); break
-        }
-        const cutoffStr = cutoff.toISOString().split('T')[0]
-        const todayStr = today.toISOString().split('T')[0]
-        // 日付のあるイベント: 開始日が期間内、または期間内に開催中
-        if (spot.startDate || spot.endDate) {
-          const start = spot.startDate ?? spot.endDate!
-          const end = spot.endDate ?? spot.startDate!
-          // イベント期間と選択期間が重なるか判定
-          return start <= cutoffStr && end >= todayStr
-        }
-        // 日程未定（schedule_noteのみ）のイベントは常に表示
-        return true
+      // 期間の終了日を計算
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const cutoff = new Date(today)
+      switch (periodFilter) {
+        case '1w': cutoff.setDate(cutoff.getDate() + 7); break
+        case '2w': cutoff.setDate(cutoff.getDate() + 14); break
+        case '1m': cutoff.setMonth(cutoff.getMonth() + 1); break
+        case '3m': cutoff.setMonth(cutoff.getMonth() + 3); break
       }
+      const cutoffStr = cutoff.toISOString().split('T')[0]
+      const todayStr = today.toISOString().split('T')[0]
+      // 日付のあるイベント: 開始日が期間内、または期間内に開催中
+      if (spot.startDate || spot.endDate) {
+        const start = spot.startDate ?? spot.endDate!
+        const end = spot.endDate ?? spot.startDate!
+        // イベント期間と選択期間が重なるか判定
+        return start <= cutoffStr && end >= todayStr
+      }
+      // 日程未定（schedule_noteのみ）のイベントは常に表示
       return true
     })
   }, [allSpots, periodFilter, activeCategories])
@@ -368,6 +377,7 @@ export default function MapApp() {
   const sidebarProps = {
     periodFilter,
     onPeriodChange: setPeriodFilter,
+    periodOptions,
     activeCategories,
     onCategoryToggle: toggleCategory,
     spots: filteredSpots,

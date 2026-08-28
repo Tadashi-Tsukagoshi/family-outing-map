@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef } from 'react'
-import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, PERIOD_LABELS, getCategoryIconSrc, getVisualCategory, isDarkPin, type Category, type AllCategory, type PeriodFilter, type Spot } from '@/lib/spots'
+import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, getCategoryIconSrc, getVisualCategory, isDarkPin, type Category, type AllCategory, type PeriodFilter, type PeriodOption, type Spot } from '@/lib/spots'
 import { getDateDisplay, fmtTimeRange } from '@/lib/date-utils'
 
 // モバイル版の現在地スライダー：つまみタップ（動かさない）とドラッグ（動かす）を判別するための閾値
@@ -12,6 +12,7 @@ const RADIUS_THUMB_TAP_RADIUS  = 17 // px。つまみ中心からこの距離以
 type Props = {
   periodFilter: PeriodFilter
   onPeriodChange: (p: PeriodFilter) => void
+  periodOptions: PeriodOption[]
   activeCategories: Set<Category>
   onCategoryToggle: (cat: Category) => void
   spots: Spot[]
@@ -76,6 +77,7 @@ export function CategoryIcon({ category, active = true, size = 20 }: { category:
 export default function Sidebar({
   periodFilter,
   onPeriodChange,
+  periodOptions,
   activeCategories,
   onCategoryToggle,
   spots,
@@ -145,8 +147,8 @@ export default function Sidebar({
           onChange={(e) => onPeriodChange(e.target.value as PeriodFilter)}
           className="justify-self-end text-sm border border-gray-300 rounded-md px-2 py-1 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-400"
         >
-          {(Object.keys(PERIOD_LABELS) as PeriodFilter[]).map((key) => (
-            <option key={key} value={key}>{PERIOD_LABELS[key]}</option>
+          {periodOptions.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
 
