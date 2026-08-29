@@ -278,7 +278,7 @@ export default function Sidebar({
       {!isSheet && (
         <>
           <div className="pt-1 pb-1 pr-4 pl-[22px] border-b border-gray-200 flex items-center gap-x-4">
-            <img src="/logo-pc_08.png" alt="GUNMAP" className="h-[52px] w-auto -ml-[22px] shrink-0" />
+            <img src="/logo-pc_10.png" alt="GUNMAP" className="h-[48px] w-auto -ml-[22px] shrink-0" />
             <p className="text-[11px] leading-[1.1] min-w-0 -translate-y-[0.8px]" style={{ color: '#555555' }}>
               <span className="block">群馬の週末おでかけ</span>
               <span className="block tracking-[0.13em]">プラットフォーム</span>
