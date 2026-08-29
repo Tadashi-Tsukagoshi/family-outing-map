@@ -427,9 +427,9 @@ export default function MapApp() {
           <button
             onClick={() => setHeaderExpanded(v => !v)}
             className="block cursor-pointer select-none overflow-hidden rounded-full"
-            style={{ width: 52, height: 52, boxShadow: '0 2px 6px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.15)' }}
+            style={{ width: 55, height: 55, boxShadow: '0 2px 6px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.15)' }}
           >
-            <img src="/gunmap_icon_02.png" alt="GUNMAP" width={52} height={52} className="h-full w-full object-cover" />
+            <img src="/gunmap_icon_02.png" alt="GUNMAP" width={55} height={55} className="h-full w-full object-cover" />
           </button>
           {/* ポップアップ */}
           {headerExpanded && (
