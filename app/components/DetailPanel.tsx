@@ -143,6 +143,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
   // event_plus は複数ピンに分裂して spot.id がピンごとの合成idになるため、
   // 画像・いいねなど実イベントに紐づくAPI呼び出しは常に eventId（実イベントのid）を使う
   const eventId = spot.eventId ?? spot.id
+  const isGunmapInfo = spot.id === '__gunmap_info__'
   const [likes, setLikes] = useState(spot.likes ?? 0)
   const [liked, setLiked] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
@@ -179,6 +180,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
   }, [spot.id])
 
   useEffect(() => {
+    if (isGunmapInfo) return
     setGalleryImages([])
     fetch(`/api/events/${eventId}/images`)
       .then(r => r.json())
@@ -186,7 +188,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
         ? d.images.map((img: { imageUrl: string; caption?: string | null }) => ({ imageUrl: img.imageUrl, caption: img.caption ?? null }))
         : []))
       .catch(() => {})
-  }, [eventId])
+  }, [eventId, isGunmapInfo])
 
   useEffect(() => {
     const zoomControl = document.querySelector('.mapboxgl-ctrl-top-right .mapboxgl-ctrl-group') as HTMLElement | null
@@ -327,11 +329,11 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                 }}>
                   {spot.name}
                 </h2>
-                {isPark ? (
+                {!isGunmapInfo && isPark ? (
                   <p style={{ fontSize: 14, fontWeight: 500, color: '#111', margin: 0 }}>
                     {spot.businessHours || '未登録'}
                   </p>
-                ) : (
+                ) : !isGunmapInfo && (
                   dateRange && (
                     <>
                       <p style={{ fontSize: 14, fontWeight: 600, color: '#111', margin: 0 }}>
@@ -346,12 +348,12 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                   )
                 )}
               </div>
-              {statusCfg && showStatus && (
+              {!isGunmapInfo && statusCfg && showStatus && (
                 <span style={{ fontSize: 14, fontWeight: 600, color: statusCfg.color, flexShrink: 0, whiteSpace: 'nowrap' }}>
                   {statusCfg.label}
                 </span>
               )}
-              {!statusCfg && spot.scheduleNote && (
+              {!isGunmapInfo && !statusCfg && spot.scheduleNote && (
                 <span style={{ fontSize: 14, fontWeight: 600, color: '#9ca3af', flexShrink: 0, whiteSpace: 'nowrap' }}>
                   日程未確定
                 </span>
@@ -384,7 +386,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
           )}
 
           {/* ③ アクションバー層 */}
-          <div style={{ padding: '6px 16px 8px' }}>
+          {!isGunmapInfo && <div style={{ padding: '6px 16px 8px' }}>
             <button
               onClick={handleLike}
               aria-pressed={liked}
@@ -413,7 +415,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                 {likes}
               </span>
             </button>
-          </div>
+          </div>}
 
           {/* ④ キャプション層 */}
           <div style={{ padding: '0 16px 20px' }}>
@@ -441,25 +443,33 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
               </p>
             )}
 
-            <p style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 14, fontWeight: 500, color: '#111', margin: '0 0 8px' }}>
-              <span style={{
-                display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
-                background: badgeBg, color: '#111', fontSize: 14, fontWeight: 500,
-              }}>
-                料金
-              </span>
-              {spot.fee && <span style={{ whiteSpace: 'pre-line' }}>{spot.fee}</span>}
-            </p>
+            {!isGunmapInfo && (
+              <p style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 14, fontWeight: 500, color: '#111', margin: '0 0 8px' }}>
+                <span style={{
+                  display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
+                  background: badgeBg, color: '#111', fontSize: 14, fontWeight: 500,
+                }}>
+                  料金
+                </span>
+                {spot.fee && <span style={{ whiteSpace: 'pre-line' }}>{spot.fee}</span>}
+              </p>
+            )}
 
-            <p style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 14, fontWeight: 500, color: '#111', lineHeight: 1.65, margin: '0 0 14px' }}>
-              <span style={{
-                display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
-                background: badgeBg, color: '#111', fontSize: 14, fontWeight: 500,
-              }}>
-                説明
-              </span>
-              {spot.description && <span>{spot.description}</span>}
-            </p>
+            {isGunmapInfo ? (
+              <p style={{ fontSize: 14, fontWeight: 500, color: '#111', lineHeight: 1.65, margin: '0 0 14px', whiteSpace: 'pre-line' }}>
+                {spot.description}
+              </p>
+            ) : (
+              <p style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 14, fontWeight: 500, color: '#111', lineHeight: 1.65, margin: '0 0 14px' }}>
+                <span style={{
+                  display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
+                  background: badgeBg, color: '#111', fontSize: 14, fontWeight: 500,
+                }}>
+                  説明
+                </span>
+                {spot.description && <span>{spot.description}</span>}
+              </p>
+            )}
 
             {spot.postedBy && (
               <>
@@ -527,48 +537,67 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                   Xを開く
                 </a>
               )}
-              <a
-                href={`https://maps.google.com/?q=${spot.lat},${spot.lng}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 4,
-                  padding: '5px 0', borderRadius: 6,
-                  color: '#374151',
-                  fontSize: 12, fontWeight: 600, textDecoration: 'none',
-                  alignSelf: 'flex-start',
-                  marginTop: -8,
-                }}
-              >
-                Googleマップで開く
-              </a>
+              {!isGunmapInfo && (
+                <a
+                  href={`https://maps.google.com/?q=${spot.lat},${spot.lng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 4,
+                    padding: '5px 0', borderRadius: 6,
+                    color: '#374151',
+                    fontSize: 12, fontWeight: 600, textDecoration: 'none',
+                    alignSelf: 'flex-start',
+                    marginTop: -8,
+                  }}
+                >
+                  Googleマップで開く
+                </a>
+              )}
               {calendarButtons}
             </div>
 
-            <a
-              href={buildCorrectionFormUrl(spot.name)}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'block', marginTop: 16, paddingTop: 10,
-                borderTop: '1px solid #f3f4f6',
-                fontSize: 12, color: '#3b82f6', textDecoration: 'none',
-              }}
-            >
-              情報の修正を依頼する
-            </a>
+            {isGunmapInfo ? (
+              <a
+                href="https://docs.google.com/forms/d/e/1FAIpQLSfjd2ErqEMLI7gDMk4O5iutIRSUMI6AD0hkJSnN3tAT5UjIXA/viewform"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'block', marginTop: 16, paddingTop: 10,
+                  borderTop: '1px solid #f3f4f6',
+                  fontSize: 14, color: '#3b82f6', textDecoration: 'none',
+                }}
+              >
+                お問い合わせ
+              </a>
+            ) : (
+              <>
+                <a
+                  href={buildCorrectionFormUrl(spot.name)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'block', marginTop: 16, paddingTop: 10,
+                    borderTop: '1px solid #f3f4f6',
+                    fontSize: 12, color: '#3b82f6', textDecoration: 'none',
+                  }}
+                >
+                  情報の修正を依頼する
+                </a>
 
-            <a
-              href={buildPhotoFormUrl(spot.name)}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'block', marginTop: 8,
-                fontSize: 12, color: '#3b82f6', textDecoration: 'none',
-              }}
-            >
-              写真を提供する
-            </a>
+                <a
+                  href={buildPhotoFormUrl(spot.name)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'block', marginTop: 8,
+                    fontSize: 12, color: '#3b82f6', textDecoration: 'none',
+                  }}
+                >
+                  写真を提供する
+                </a>
+              </>
+            )}
           </div>
         </div>
       </aside>

@@ -9,6 +9,18 @@ import { CATEGORY_LABELS, buildPeriodOptions, getVisualCategory, type Category, 
 import { eventToSpot, type EventsDatabase } from '@/lib/events'
 import { getEventStatus, parseLocalDate } from '@/lib/date-utils'
 
+const GUNMAP_INFO_SPOT: Spot = {
+  id: '__gunmap_info__',
+  name: 'GUNMAp ｜ グンマップ',
+  category: 'event',
+  type: 'event',
+  lat: 36.3,
+  lng: 139.1,
+  description: '群馬の「旬」を、地図で発見\n週末の「行きたい」が見つかる、地域のおでかけマップ',
+  weekendDates: [],
+  imageUrl: '/gunmap_OGP_05.png',
+}
+
 // ─── 地図ピンのグループ化（同じ groupId のイベントをまとめる） ──────────
 /** グループ内メンバー間の画面ピクセル距離がこれを超えるとズームインでグループ解除する */
 const DISSOLVE_PX = 15
@@ -72,8 +84,6 @@ const MapView = dynamic(() => import('./MapView'), {
 
 export default function MapApp() {
   const [isMobile, setIsMobile] = useState(false)
-  const [headerExpanded, setHeaderExpanded] = useState(false)
-  const logoRef = useRef<HTMLDivElement>(null)
 
   useLayoutEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
@@ -199,21 +209,6 @@ export default function MapApp() {
   useEffect(() => {
     handleLocate()
   }, [handleLocate])
-
-  useEffect(() => {
-    if (!headerExpanded) return
-    const close = (e: Event) => {
-      if (logoRef.current && !logoRef.current.contains(e.target as Node)) {
-        setHeaderExpanded(false)
-      }
-    }
-    document.addEventListener('touchstart', close, { passive: true })
-    document.addEventListener('mousedown', close)
-    return () => {
-      document.removeEventListener('touchstart', close)
-      document.removeEventListener('mousedown', close)
-    }
-  }, [headerExpanded])
 
   const allSpots = useMemo(() => collectedSpots, [collectedSpots])
 
@@ -422,44 +417,15 @@ export default function MapApp() {
           onMapTapClose={() => setSheetState('closed')}
           onZoomChange={setZoomLevel}
         />
-        {/* タイトルボタン＋ポップアップ */}
-        <div ref={logoRef} className="fixed top-4 left-4" style={{ zIndex: 999 }}>
+        {/* タイトルボタン */}
+        <div className="fixed top-4 left-4" style={{ zIndex: 999 }}>
           <button
-            onClick={() => setHeaderExpanded(v => !v)}
+            onClick={() => { setDetailSpot(GUNMAP_INFO_SPOT); setSelectedSpot(null); setSheetState('closed') }}
             className="block cursor-pointer select-none overflow-hidden rounded-full"
             style={{ width: 55, height: 55, boxShadow: '0 2px 6px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.15)' }}
           >
             <img src="/gunmap_icon_02.png" alt="GUNMAP" width={55} height={55} className="h-full w-full object-cover" />
           </button>
-          {/* ポップアップ */}
-          {headerExpanded && (
-            <div
-              onClick={() => setHeaderExpanded(false)}
-              className="absolute top-full left-0 mt-1"
-              style={{
-                backgroundColor: '#ffffff',
-                borderRadius: 8,
-                boxShadow: '0 2px 6px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.15)',
-                padding: '6px 12px',
-              }}
-            >
-              <p className="text-sm font-bold text-gray-700 leading-relaxed" style={{ whiteSpace: 'nowrap' }}>
-                GUNMAp ｜ グンマップ
-              </p>
-              <p className="text-xs text-gray-500 leading-relaxed" style={{ whiteSpace: 'nowrap' }}>
-                群馬の週末おでかけプラットフォーム
-              </p>
-              <a
-                href="https://docs.google.com/forms/d/e/1FAIpQLSfjd2ErqEMLI7gDMk4O5iutIRSUMI6AD0hkJSnN3tAT5UjIXA/viewform"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={e => e.stopPropagation()}
-                className="inline-block mt-2 text-xs text-blue-500 underline"
-              >
-                お問い合わせ
-              </a>
-            </div>
-          )}
         </div>
 
         <BottomSheet
