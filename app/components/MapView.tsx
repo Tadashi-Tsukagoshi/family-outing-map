@@ -1071,13 +1071,16 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
       const lngLat = toLngLat(selectedSpot.lat, selectedSpot.lng)
 
       if (isMobile) {
-        // ボトムシート（50vh）上の可視エリア中央にピンを配置する
-        // iOSのURLバー等でビューポート高さが変わった直後でも、Mapbox内部の高さを
-        // 実DOM高さに同期させてからoffsetを適用する（ピンが上下中央からずれる不具合対策）
+        // 詳細パネル（50vh）上の可視エリア中央にピンを配置する。
+        // flyTo は padding を受け付けるため、fitBounds の内部 padding の影響を受けない。
         map.resize()
-        map.setPadding({ top: 0, left: 0, bottom: 0, right: 0 })
         const containerH = map.getContainer().clientHeight
-        map.panTo(lngLat, { offset: [0, -containerH / 4.5], animate: true, duration: 500 })
+        map.flyTo({
+          center: lngLat,
+          padding: { top: 0, left: 0, bottom: containerH / 2, right: 0 },
+          animate: true,
+          duration: 500,
+        })
       } else {
         // PC: 範囲内でパネルに隠れる場合・範囲外の場合ともにオフセット付き panTo
         const inBounds = map.getBounds()?.contains(lngLat) ?? false
