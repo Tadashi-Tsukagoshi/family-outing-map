@@ -1075,6 +1075,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
         // iOSのURLバー等でビューポート高さが変わった直後でも、Mapbox内部の高さを
         // 実DOM高さに同期させてからoffsetを適用する（ピンが上下中央からずれる不具合対策）
         map.resize()
+        map.setPadding({ top: 0, left: 0, bottom: 0, right: 0 })
         const containerH = map.getContainer().clientHeight
         map.panTo(lngLat, { offset: [0, -containerH / 4.5], animate: true, duration: 500 })
       } else {
