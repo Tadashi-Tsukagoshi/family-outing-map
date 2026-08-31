@@ -418,7 +418,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
           </div>} */}
 
           {/* ④ キャプション層 */}
-          <div style={{ padding: '0 16px 20px' }}>
+          <div style={{ padding: '12px 16px 20px' }}>
             {spot.venue && (
               <p style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 14, fontWeight: 500, color: '#111', margin: '0 0 8px' }}>
                 <span style={{
@@ -719,7 +719,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
         </div> */}
 
         {/* コンテンツ層 */}
-        <div style={{ padding: '0 16px 20px' }}>
+        <div style={{ padding: '12px 16px 20px' }}>
         {spot.venue && (
           <p style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 12, color: '#374151', margin: '0 0 8px' }}>
             <span style={{
