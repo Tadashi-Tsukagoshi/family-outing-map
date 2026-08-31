@@ -385,8 +385,8 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
             />
           )}
 
-          {/* ③ アクションバー層 */}
-          {!isGunmapInfo && <div style={{ padding: '6px 16px 8px' }}>
+          {/* ③ アクションバー層（いいね非表示中） */}
+          {/* {!isGunmapInfo && <div style={{ padding: '6px 16px 8px' }}>
             <button
               onClick={handleLike}
               aria-pressed={liked}
@@ -415,7 +415,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                 {likes}
               </span>
             </button>
-          </div>}
+          </div>} */}
 
           {/* ④ キャプション層 */}
           <div style={{ padding: '0 16px 20px' }}>
@@ -686,8 +686,8 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
           )}
         </div>
 
-        {/* アクションバー層 */}
-        <div style={{ padding: '6px 16px 8px' }}>
+        {/* アクションバー層（いいね非表示中） */}
+        {/* <div style={{ padding: '6px 16px 8px' }}>
           <button
             onClick={handleLike}
             aria-pressed={liked}
@@ -716,7 +716,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
               {likes}
             </span>
           </button>
-        </div>
+        </div> */}
 
         {/* コンテンツ層 */}
         <div style={{ padding: '0 16px 20px' }}>
