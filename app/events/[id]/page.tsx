@@ -44,7 +44,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params
   const spot = await getSpot(id)
   if (!spot) return {}
-  return { title: `${spot.name} | GUNMAp` }
+  const description = spot.description
+    ? spot.description.slice(0, 80).replace(/\n/g, ' ')
+    : `${spot.venue ?? '群馬'}で開催のイベント情報 | GUNMAp`
+  return {
+    title: `${spot.name} | GUNMAp`,
+    description,
+    openGraph: {
+      title: `${spot.name} | GUNMAp`,
+      description,
+      ...(spot.imageUrl ? { images: [{ url: spot.imageUrl }] } : {}),
+    },
+  }
 }
 
 export default async function EventDetailPage({ params }: Props) {
