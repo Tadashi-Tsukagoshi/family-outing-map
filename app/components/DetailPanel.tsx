@@ -733,6 +733,37 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
 
         {/* コンテンツ層 */}
         <div style={{ padding: '12px 16px 20px' }}>
+        {isGunmapInfo ? (
+          <>
+            <p style={{ fontSize: 14, fontWeight: 500, color: '#111', lineHeight: 1.65, margin: '0 0 16px', whiteSpace: 'pre-line' }}>
+              {spot.description}
+            </p>
+            <a
+              href="https://docs.google.com/forms/d/e/1FAIpQLSfjd2ErqEMLI7gDMk4O5iutIRSUMI6AD0hkJSnN3tAT5UjIXA/viewform"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'block', marginTop: 16, paddingTop: 10,
+                borderTop: '1px solid #f3f4f6',
+                fontSize: 14, color: '#3b82f6', textDecoration: 'none',
+              }}
+            >
+              お問い合わせ
+            </a>
+            <a
+              href="https://www.instagram.com/gunmap_jp/?hl=ja"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'block', marginTop: 10,
+                fontSize: 14, color: '#3b82f6', textDecoration: 'none',
+              }}
+            >
+              Instagram（@gunmap_jp）
+            </a>
+          </>
+        ) : (
+          <>
         {spot.venue && (
           <p style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 12, color: '#374151', margin: '0 0 8px' }}>
             <span style={{
@@ -885,6 +916,8 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
         >
           写真を提供する
         </a>
+          </>
+        )}
         </div>
       </div>
     </aside>
