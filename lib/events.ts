@@ -5,6 +5,7 @@ export type CollectedEvent = {
   id: string
   name: string
   description: string
+  prefecture?: string
   /** 単一日付（AI収集イベント用） */
   date?: string
   /** イベント開始日（手動登録またはAI収集で設定） */
@@ -74,6 +75,7 @@ export function eventToSpot(event: CollectedEvent): Spot {
     lat: event.lat,
     lng: event.lng,
     description: event.description,
+    prefecture: event.prefecture,
     // weekendDates は旧スポット互換用。期間フィルタは startDate/endDate で行う
     weekendDates: end ? [end] : [],
     url: event.url,

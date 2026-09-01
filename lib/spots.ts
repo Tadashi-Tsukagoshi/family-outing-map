@@ -18,6 +18,7 @@ export type Spot = {
   lat: number
   lng: number
   description: string
+  prefecture?: string
   weekendDates: string[] // ISO date strings (e.g. "2026-05-16")
   url?: string
   instagramUrl?: string

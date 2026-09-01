@@ -18,6 +18,7 @@ async function getSpot(id: string): Promise<Spot | null> {
     id:          data.id,
     name:        data.name,
     description: data.description,
+    prefecture:  data.prefecture,
     startDate:   data.start_date,
     endDate:     data.end_date,
     venue:       data.venue,
@@ -47,11 +48,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description = spot.description
     ? spot.description.slice(0, 80).replace(/\n/g, ' ')
     : `${spot.venue ?? '群馬'}で開催のイベント情報 | GUNMAp`
+  const title = `${spot.name}｜${spot.prefecture ?? '群馬県'}のイベント - GUNMAp`
   return {
-    title: `${spot.name} | GUNMAp`,
+    title,
     description,
     openGraph: {
-      title: `${spot.name} | GUNMAp`,
+      title,
       description,
       ...(spot.imageUrl ? { images: [{ url: spot.imageUrl }] } : {}),
     },
@@ -72,8 +74,34 @@ export default async function EventDetailPage({ params }: Props) {
   const showStatus = isPermanent || status === 'ended'
   const catColor  = CATEGORY_COLORS[spot.category]
 
+  const eventJsonLd: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Event',
+    name: spot.name,
+    ...(spot.startDate ? { startDate: spot.startDate } : {}),
+    ...(spot.endDate ? { endDate: spot.endDate } : {}),
+    ...(spot.description ? { description: spot.description } : {}),
+    location: {
+      '@type': 'Place',
+      ...(spot.venue ? { name: spot.venue } : {}),
+      geo: {
+        '@type': 'GeoCoordinates',
+        latitude: spot.lat,
+        longitude: spot.lng,
+      },
+    },
+    ...(spot.imageUrl ? { image: spot.imageUrl } : {}),
+    url: `https://gunma-odekakemap.jp/events/event-${spot.id}`,
+    eventStatus: 'https://schema.org/EventScheduled',
+    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
+      />
       {/* ヘッダー */}
       <header className="bg-white border-b border-gray-200 px-5 py-3.5">
         <Link
