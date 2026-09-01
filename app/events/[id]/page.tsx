@@ -1,10 +1,9 @@
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
-import { CATEGORY_LABELS, CATEGORY_COLORS, CATEGORY_EMOJIS, DEFAULT_NOTICE, type Spot } from '@/lib/spots'
+import { type Spot } from '@/lib/spots'
 import { eventToSpot } from '@/lib/events'
-import { getDateDisplay, getEventStatus, STATUS_CONFIG, PERMANENT_STATUS } from '@/lib/date-utils'
 import { supabaseAdmin } from '@/lib/supabase'
 import type { Metadata } from 'next'
+import EventRedirect from './EventRedirect'
 
 async function getSpot(id: string): Promise<Spot | null> {
   const supabase = supabaseAdmin()
@@ -65,15 +64,6 @@ export default async function EventDetailPage({ params }: Props) {
   const spot = await getSpot(id)
   if (!spot) notFound()
 
-  const heroImage = spot.imageUrl
-
-  const isPermanent = spot.type === 'permanent'
-  const status    = getEventStatus(spot.startDate, spot.endDate)
-  const dateRange = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate, spot.specificDates)
-  const statusCfg = isPermanent ? PERMANENT_STATUS : (status ? STATUS_CONFIG[status] : null)
-  const showStatus = isPermanent || status === 'ended'
-  const catColor  = CATEGORY_COLORS[spot.category]
-
   const eventJsonLd: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'Event',
@@ -97,117 +87,12 @@ export default async function EventDetailPage({ params }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
       />
-      {/* ヘッダー */}
-      <header className="bg-white border-b border-gray-200 px-5 py-3.5">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors"
-        >
-          ← 地図に戻る
-        </Link>
-      </header>
-
-      <main className="max-w-2xl mx-auto px-4 py-8">
-        <article className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-
-          {/* ヒーロー画像 */}
-          <div className="w-full h-56 sm:h-72 bg-gray-100 overflow-hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={heroImage}
-              alt={spot.name}
-              className="w-full h-full object-cover"
-            />
-          </div>
-
-          <div className="p-6 space-y-5">
-
-            {/* カテゴリ + ステータスバッジ */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <span
-                className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full"
-                style={{ backgroundColor: catColor + '22', color: catColor }}
-              >
-                {CATEGORY_EMOJIS[spot.category]} {CATEGORY_LABELS[spot.category]}
-              </span>
-              {statusCfg && showStatus && (
-                <span
-                  className="text-xs font-semibold px-2.5 py-1 rounded-full"
-                  style={{ background: statusCfg.bg, color: statusCfg.color }}
-                >
-                  {statusCfg.label}
-                </span>
-              )}
-            </div>
-
-            {/* イベント名 */}
-            <h1 className="text-2xl font-bold text-gray-900 leading-tight">{spot.name}</h1>
-
-            {/* 日程・会場 */}
-            {(isPermanent || dateRange || spot.venue) && (
-              <dl className="space-y-2">
-                {(isPermanent || dateRange) && (
-                  <div className="flex items-start gap-2 text-sm text-gray-700">
-                    <dt className="w-5 flex-shrink-0 text-base leading-snug">📅</dt>
-                    <dd>{isPermanent ? '常設施設' : dateRange}</dd>
-                  </div>
-                )}
-                {spot.venue && (
-                  <div className="flex items-start gap-2 text-sm text-gray-700">
-                    <dt className="w-5 flex-shrink-0 text-base leading-snug">📍</dt>
-                    <dd>{spot.venue}</dd>
-                  </div>
-                )}
-              </dl>
-            )}
-
-            {!isPermanent && status !== 'ended' && (
-              <p className="text-xs text-gray-500 whitespace-pre-line">
-                {spot.notice || DEFAULT_NOTICE}
-              </p>
-            )}
-
-            <hr className="border-gray-100" />
-
-            {/* 説明文（全文） */}
-            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
-              {spot.description}
-            </p>
-
-            {/* ボタン群 */}
-            <div className="space-y-2">
-              <a
-                href={`https://maps.google.com/?q=${spot.lat},${spot.lng}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl
-                  bg-green-500 hover:bg-green-600 text-white text-sm font-medium transition-colors"
-              >
-                Googleマップで開く
-                <span className="text-xs opacity-75">↗</span>
-              </a>
-              {spot.url && (
-                <a
-                  href={spot.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl
-                    bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium transition-colors"
-                >
-                  公式サイトを見る
-                  <span className="text-xs opacity-75">↗</span>
-                </a>
-              )}
-            </div>
-
-          </div>
-        </article>
-      </main>
-    </div>
+      <EventRedirect eventId={id} />
+    </>
   )
 }

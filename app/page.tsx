@@ -1,5 +1,10 @@
+import { Suspense } from 'react'
 import MapApp from '@/app/components/MapApp'
 
 export default function Page() {
-  return <MapApp />
+  return (
+    <Suspense fallback={null}>
+      <MapApp />
+    </Suspense>
+  )
 }

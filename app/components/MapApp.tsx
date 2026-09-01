@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect, useCallback, useLayoutEffect, useRef } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import Sidebar from './Sidebar'
 import DetailPanel from './DetailPanel'
@@ -83,6 +84,10 @@ const MapView = dynamic(() => import('./MapView'), {
 })
 
 export default function MapApp() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const eventParamHandled = useRef(false)
+
   const [isMobile, setIsMobile] = useState(false)
 
   useLayoutEffect(() => {
@@ -205,6 +210,19 @@ export default function MapApp() {
   useEffect(() => {
     loadEvents()
   }, [loadEvents])
+
+  // /events/[id] からのリダイレクト（?event=xxx）を受けて、該当スポットの詳細を開き地図を移動する
+  useEffect(() => {
+    if (eventParamHandled.current) return
+    if (collectedSpots.length === 0) return
+    const eventId = searchParams.get('event')
+    if (!eventId) return
+
+    eventParamHandled.current = true
+    const spot = collectedSpots.find((s) => s.id === eventId)
+    if (spot) handleDetailOpen(spot)
+    router.replace('/', { scroll: false })
+  }, [collectedSpots, searchParams, handleDetailOpen, router])
 
   useEffect(() => {
     handleLocate()
