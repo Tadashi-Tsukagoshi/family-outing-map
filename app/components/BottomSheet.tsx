@@ -79,7 +79,7 @@ export default function BottomSheet({ spotCount, children, sheetState, onSheetSt
         boxShadow:    '0 -4px 24px rgba(0,0,0,0.12)',
         zIndex:       1000,
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        bottom:       `${bottomOffset}px`,
+        bottom:       `${bottomOffset > 0 ? bottomOffset + 10 : 0}px`,
       }}
     >
       {/* ハンドル + ピーク時ヘッダー */}
