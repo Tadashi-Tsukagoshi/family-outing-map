@@ -12,7 +12,7 @@ import { getEventStatus, parseLocalDate } from '@/lib/date-utils'
 
 const GUNMAP_INFO_SPOT: Spot = {
   id: '__gunmap_info__',
-  name: 'GUNMAp ｜ グンマップ',
+  name: 'GUNMAp｜グンマップ',
   category: 'event',
   type: 'event',
   lat: 36.3,
