@@ -65,6 +65,7 @@ export default function BottomSheet({ spotCount, children, sheetState, onSheetSt
         borderRadius: '16px 16px 0 0',
         boxShadow:    '0 -4px 24px rgba(0,0,0,0.12)',
         zIndex:       1000,
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
     >
       {/* ハンドル + ピーク時ヘッダー */}
