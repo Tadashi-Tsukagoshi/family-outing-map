@@ -74,6 +74,12 @@ export default async function EventDetailPage({ params }: Props) {
     location: {
       '@type': 'Place',
       ...(spot.venue ? { name: spot.venue } : {}),
+      address: {
+        '@type': 'PostalAddress',
+        addressRegion: spot.prefecture ?? '群馬県',
+        ...(spot.venue ? { addressLocality: spot.venue } : {}),
+        addressCountry: 'JP',
+      },
       geo: {
         '@type': 'GeoCoordinates',
         latitude: spot.lat,
@@ -84,6 +90,13 @@ export default async function EventDetailPage({ params }: Props) {
     url: `https://gunma-odekakemap.jp/events/event-${spot.id}`,
     eventStatus: 'https://schema.org/EventScheduled',
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'JPY',
+      availability: 'https://schema.org/InStock',
+      url: spot.url ?? `https://gunma-odekakemap.jp/events/event-${spot.id}`,
+    },
   }
 
   return (
