@@ -314,7 +314,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
           onTouchStart={onHandleTouchStart}
           onTouchMove={onHandleTouchMove}
           onTouchEnd={onHandleTouchEnd}
-          className="shrink-0 select-none cursor-pointer"
+          className={`shrink-0 select-none cursor-pointer${status === 'ended' ? ' bg-gray-400' : ''}`}
           style={{ borderBottom: '1px solid #f3f4f6', touchAction: 'none' }}
         >
           <div className="flex justify-center pt-2 pb-1">
@@ -349,7 +349,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                 )}
               </div>
               {!isGunmapInfo && statusCfg && showStatus && (
-                <span style={{ fontSize: 14, fontWeight: 600, color: statusCfg.color, flexShrink: 0, whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: 14, fontWeight: 600, color: status === 'ended' ? '#fff' : statusCfg.color, flexShrink: 0, whiteSpace: 'nowrap' }}>
                   {statusCfg.label}
                 </span>
               )}
@@ -632,11 +632,11 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
     <>
     <aside className="bg-white flex flex-col overflow-hidden w-80 h-full shadow-lg">
       {/* ヘッダー層（固定） */}
-      <div className="shrink-0" style={{ borderBottom: '1px solid #f3f4f6', padding: '14px 16px 12px' }}>
+      <div className={`shrink-0${status === 'ended' ? ' bg-gray-400' : ''}`} style={{ borderBottom: '1px solid #f3f4f6', padding: '14px 16px 12px' }}>
         {((statusCfg && showStatus) || (!statusCfg && spot.scheduleNote)) && (
           <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
             {statusCfg && showStatus && (
-              <span style={{ fontSize: 12, fontWeight: 600, color: statusCfg.color, whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: status === 'ended' ? '#fff' : statusCfg.color, whiteSpace: 'nowrap' }}>
                 {statusCfg.label}
               </span>
             )}
