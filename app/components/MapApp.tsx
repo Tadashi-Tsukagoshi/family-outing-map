@@ -107,6 +107,7 @@ export default function MapApp() {
   )
   const [selectedSpot,   setSelectedSpot]   = useState<Spot | null>(null)
   const [detailSpot,     setDetailSpot]     = useState<Spot | null>(null)
+  const [temporarySpot,  setTemporarySpot]  = useState<Spot | null>(null)
   const [detailSheetHeight, setDetailSheetHeight] = useState<'50vh' | '100dvh'>('50vh')
   const [sheetState,     setSheetState]     = useState<SheetState>('closed')
   const [collectedSpots, setCollectedSpots] = useState<Spot[]>([])
@@ -164,6 +165,7 @@ export default function MapApp() {
     setLocateStatus('idle')
     setSelectedSpot(null)
     setDetailSpot(null)
+    setTemporarySpot(null)
   }, [])
 
   const handleDetailOpen = useCallback((spot: Spot) => {
@@ -178,6 +180,7 @@ export default function MapApp() {
   const handleDetailClose = useCallback(() => {
     setDetailSpot(null)
     setSelectedSpot(null)
+    setTemporarySpot(null)
   }, [])
 
   useEffect(() => {
@@ -220,7 +223,12 @@ export default function MapApp() {
 
     eventParamHandled.current = true
     const spot = collectedSpots.find((s) => s.id === eventId)
-    if (spot) handleDetailOpen(spot)
+    if (spot) {
+      if (getEventStatus(spot.startDate, spot.endDate) === 'ended') {
+        setTemporarySpot(spot)
+      }
+      handleDetailOpen(spot)
+    }
     router.replace('/', { scroll: false })
   }, [collectedSpots, searchParams, handleDetailOpen, router])
 
@@ -271,11 +279,18 @@ export default function MapApp() {
     })
   }, [allSpots, periodFilter, activeCategories])
 
+  // 終了イベントの ?event= リンクから来た場合、フィルターは変えずにピン表示にだけ一時追加する
+  const displaySpots = useMemo(() => {
+    if (!temporarySpot) return filteredSpots
+    if (filteredSpots.some((s) => s.id === temporarySpot.id)) return filteredSpots
+    return [...filteredSpots, temporarySpot]
+  }, [filteredSpots, temporarySpot])
+
   // event_plus: 会場（lat/lng）が複数ある場合、地図には会場ごとに別ピンを表示する。
   // サイドバー一覧（filteredSpots）は1件のまま変更しない。
   const mapSpots = useMemo(() => {
     const result: Spot[] = []
-    for (const spot of filteredSpots) {
+    for (const spot of displaySpots) {
       const pins = spot.category === 'event_plus' ? spot.eventPlusPins : undefined
       if (!pins || pins.length <= 1) {
         result.push(spot)
@@ -298,7 +313,7 @@ export default function MapApp() {
       })
     }
     return result
-  }, [filteredSpots])
+  }, [displaySpots])
 
   // 1) 同じ groupId の mapSpots 同士をグループ化（ズームインしてメンバー間の画面ピクセル距離が
   //    DISSOLVE_PX を超えるとグループを解除し、各spotが個別座標で表示される）。
