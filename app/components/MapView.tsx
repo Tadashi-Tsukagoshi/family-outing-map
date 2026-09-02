@@ -918,23 +918,27 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
       const badgeHtml = badgeCount > 0
         ? `<span style="position:absolute;top:${badgeOffset}px;right:${badgeOffset}px;background:#6b7280;color:#ffffff;font-size:10px;width:16px;height:16px;line-height:16px;text-align:center;border-radius:50%;">+${badgeCount}</span>`
         : ''
-      el.innerHTML  = iconDef.html + badgeHtml
-      el.style.width  = `${iconDef.hit}px`
-      el.style.height = `${iconDef.hit}px`
+      const newInnerHtml = iconDef.html + badgeHtml
+      if (el.innerHTML !== newInnerHtml) el.innerHTML = newInnerHtml
+      const newWidth  = `${iconDef.hit}px`
+      const newHeight = `${iconDef.hit}px`
+      if (el.style.width  !== newWidth)  el.style.width  = newWidth
+      if (el.style.height !== newHeight) el.style.height = newHeight
 
       const isGroupSelected = group.spots.some(s => s.id === selectedSpot?.id)
       const status = getEventStatus(repSpot.startDate, repSpot.endDate)
-      el.style.zIndex =
+      const newZIndex =
         isGroupSelected ? '1000' :
         status === 'active' ? '500' :
         (status === 'upcoming' || status === 'scheduled') && repSpot.startDate ?
           String(Math.max(1, Math.min(499, 500 - Math.ceil((parseLocalDate(repSpot.startDate).getTime() - new Date().setHours(0, 0, 0, 0)) / 86400000)))) :
         '0'
+      if (el.style.zIndex !== newZIndex) el.style.zIndex = newZIndex
       // el（marker.getElement()）は Mapbox が map "move" イベントごとに
       // el.style.opacity を強制上書きするため、内側の描画用 div に設定する
       const opacity = selectedSpot && !isGroupSelected ? '0.6' : '1'
       const pinEl = el.firstElementChild as HTMLElement | null
-      if (pinEl) pinEl.style.opacity = opacity
+      if (pinEl && pinEl.style.opacity !== opacity) pinEl.style.opacity = opacity
     }
   }, [pinGroups, icons, selectedSpot?.id, mapReady])
 
