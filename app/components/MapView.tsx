@@ -740,6 +740,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
   }, [clearHide])
 
   const handlePinClick = useCallback((spot: Spot) => {
+    setOpenGroupId(null)
     suppressHoverUntil.current = Date.now() + 500
     handleImmediateHide()
     onDetailOpen(spot)
