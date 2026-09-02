@@ -749,13 +749,10 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
   }, [clearHide])
 
   const handlePinClick = useCallback((spot: Spot) => {
-    const currentGroup = openGroupId ? pinGroupsByRepIdRef.current[openGroupId] : null
-    const isInOpenGroup = !!currentGroup?.spots.some(s => s.id === spot.id)
-    if (!isInOpenGroup) setOpenGroupId(null)
     suppressHoverUntil.current = Date.now() + 500
     handleImmediateHide()
     onDetailOpen(spot)
-  }, [openGroupId, handleImmediateHide, onDetailOpen])
+  }, [handleImmediateHide, onDetailOpen])
 
   // 抑制ウィンドウ内はカード側の onMouseEnter による clearHide もブロックする
   const handleCardMouseEnter = useCallback(() => {
