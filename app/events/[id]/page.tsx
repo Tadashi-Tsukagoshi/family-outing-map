@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description = spot.description
     ? spot.description.slice(0, 80).replace(/\n/g, ' ')
     : `${spot.venue ?? '群馬'}で開催のイベント情報 | GUNMAp`
-  const title = `${spot.name}｜${spot.prefecture ?? '群馬県'}のイベント - GUNMAp`
+  const title = `${spot.name}｜${spot.prefecture ?? '群馬県'}のイベント - GUNMAp｜グンマップ`
   return {
     title,
     description,
