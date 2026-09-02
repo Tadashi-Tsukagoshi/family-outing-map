@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect, useCallback, useLayoutEffect, useRef } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import Sidebar from './Sidebar'
 import DetailPanel from './DetailPanel'
@@ -84,7 +84,6 @@ const MapView = dynamic(() => import('./MapView'), {
 })
 
 export default function MapApp() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const eventParamHandled = useRef(false)
 
@@ -229,8 +228,8 @@ export default function MapApp() {
       }
       handleDetailOpen(spot)
     }
-    router.replace('/', { scroll: false })
-  }, [collectedSpots, searchParams, handleDetailOpen, router])
+    window.history.replaceState(null, '', '/')
+  }, [collectedSpots, searchParams, handleDetailOpen])
 
   useEffect(() => {
     handleLocate()
