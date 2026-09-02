@@ -451,6 +451,15 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
 
   const [pos, setPos] = useState<Pos>({ left: x, top: y, above: true, ready: false, cardH: 0 })
 
+  // spot ごとの小型アイコンHTML。spot のデータが変わらない限り再生成しない
+  const iconHtmlBySpotId = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (const spot of group.spots) {
+      map[spot.id] = buildSmallIconHtml(spot)
+    }
+    return map
+  }, [group])
+
   useLayoutEffect(() => {
     const bubble  = bubbleRef.current
     const wrapper = wrapperRef.current
@@ -557,7 +566,7 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
                 >
                   <span
                     style={{ width: 20, height: 20, display: 'inline-flex', flexShrink: 0, marginTop: 2 }}
-                    dangerouslySetInnerHTML={{ __html: buildSmallIconHtml(spot) }}
+                    dangerouslySetInnerHTML={{ __html: iconHtmlBySpotId[spot.id] }}
                   />
                   <div style={{ minWidth: 0 }}>
                     <span style={{
@@ -593,7 +602,7 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
                 >
                   <span
                     style={{ width: 20, height: 20, display: 'inline-flex', flexShrink: 0, marginTop: 2 }}
-                    dangerouslySetInnerHTML={{ __html: buildSmallIconHtml(headSpot) }}
+                    dangerouslySetInnerHTML={{ __html: iconHtmlBySpotId[headSpot.id] }}
                   />
                   <span style={{
                     display: 'block', fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0,
