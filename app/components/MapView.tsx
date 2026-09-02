@@ -26,6 +26,8 @@ type Props = {
   sheetState?: SheetState
   onMapTapClose?: () => void
   onZoomChange?: (zoom: number) => void
+  onFlyStart?: () => void
+  onFlyEnd?: () => void
 }
 
 type HoverState = { spot: Spot; x: number; y: number }
@@ -651,7 +653,7 @@ const TAP_MAX_DISTANCE = 10
 const TAP_MAX_DURATION = 300
 
 // ─── MapView（メインコンポーネント） ─────────────────────────────
-export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, userLocation = null, locationRadius = 60, recenterSignal = 0, onDetailOpen, onDetailClose, detailPanelOpen, isMobile = false, sheetState = 'closed', onMapTapClose, onZoomChange }: Props) {
+export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, userLocation = null, locationRadius = 60, recenterSignal = 0, onDetailOpen, onDetailClose, detailPanelOpen, isMobile = false, sheetState = 'closed', onMapTapClose, onZoomChange, onFlyStart, onFlyEnd }: Props) {
   const wrapperRef       = useRef<HTMLDivElement>(null)
   const containerRef     = useRef<HTMLDivElement>(null)
   const mapRef           = useRef<mapboxgl.Map | null>(null)
@@ -749,6 +751,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
   }, [clearHide])
 
   const handlePinClick = useCallback((spot: Spot) => {
+    setOpenGroupId(null)
     suppressHoverUntil.current = Date.now() + 500
     handleImmediateHide()
     onDetailOpen(spot)
@@ -781,9 +784,9 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
   }, [handlePinClick, onDetailClose, isMobile, onSpotSelect])
 
   // マーカーのDOMイベントハンドラ・地図イベントハンドラから常に最新のコールバック・spotを参照するためのref
-  const handlersRef = useRef({ handleHoverIn, scheduleHide, clearGroupHide, scheduleGroupHide, handlePinClick, handleGroupPinClick, handleMapClick, handleImmediateHide, isMobile, onMapTapClose, onZoomChange })
+  const handlersRef = useRef({ handleHoverIn, scheduleHide, clearGroupHide, scheduleGroupHide, handlePinClick, handleGroupPinClick, handleMapClick, handleImmediateHide, isMobile, onMapTapClose, onZoomChange, onFlyStart, onFlyEnd })
   useEffect(() => {
-    handlersRef.current = { handleHoverIn, scheduleHide, clearGroupHide, scheduleGroupHide, handlePinClick, handleGroupPinClick, handleMapClick, handleImmediateHide, isMobile, onMapTapClose, onZoomChange }
+    handlersRef.current = { handleHoverIn, scheduleHide, clearGroupHide, scheduleGroupHide, handlePinClick, handleGroupPinClick, handleMapClick, handleImmediateHide, isMobile, onMapTapClose, onZoomChange, onFlyStart, onFlyEnd }
   })
   const selectedSpotRef = useRef<Spot | null>(selectedSpot)
   selectedSpotRef.current = selectedSpot
@@ -1068,6 +1071,8 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
   }, [detailPanelOpen, mapReady])
 
   // ─── SelectedSpotTracker相当 ─────────────────────────────────
+  // flyTo中かどうか。zoomend が通常のパン操作によるものか flyTo 完了によるものかを区別するために使う
+  const flyToInProgressRef = useRef(false)
   useEffect(() => {
     const map = mapRef.current
     if (!map || !mapReady) return
@@ -1088,6 +1093,8 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
         // flyTo は padding を受け付けるため、fitBounds の内部 padding の影響を受けない。
         map.resize()
         const containerH = map.getContainer().clientHeight
+        flyToInProgressRef.current = true
+        handlersRef.current.onFlyStart?.()
         map.flyTo({
           center: lngLat,
           padding: { top: 0, left: 0, bottom: containerH / 2, right: 0 },
@@ -1112,14 +1119,23 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
     }
 
     const onMoveStart = () => handlePinnedHoverChange(null)
+    // flyTo完了時（moveend）に、抑制していたzoomLevel更新をまとめて反映する
+    const onFlyToMoveEnd = () => {
+      if (!flyToInProgressRef.current) return
+      flyToInProgressRef.current = false
+      handlersRef.current.onFlyEnd?.()
+      handlersRef.current.onZoomChange?.(map.getZoom())
+    }
     map.on('moveend', updatePosition)
     map.on('zoomend', updatePosition)
     map.on('movestart', onMoveStart)
     map.on('zoomstart', onMoveStart)
+    map.on('moveend', onFlyToMoveEnd)
     return () => {
       map.off('moveend', updatePosition)
       map.off('zoomend', updatePosition)
       map.off('movestart', onMoveStart)
+      map.off('moveend', onFlyToMoveEnd)
       map.off('zoomstart', onMoveStart)
     }
   }, [selectedSpot, isMobile, detailPanelOpen, mapReady, handlePinnedHoverChange])

@@ -86,6 +86,8 @@ const MapView = dynamic(() => import('./MapView'), {
 export default function MapApp() {
   const searchParams = useSearchParams()
   const eventParamHandled = useRef(false)
+  // flyToアニメーション中はzoomLevel更新を抑制し、pinGroups再計算によるチラつきを防ぐ
+  const isFlyingRef = useRef(false)
 
   const [isMobile, setIsMobile] = useState(false)
 
@@ -170,6 +172,19 @@ export default function MapApp() {
   const handleDetailOpen = useCallback((spot: Spot) => {
     setDetailSpot(spot)
     setSelectedSpot(spot)
+  }, [])
+
+  const handleFlyStart = useCallback(() => {
+    isFlyingRef.current = true
+  }, [])
+
+  const handleFlyEnd = useCallback(() => {
+    isFlyingRef.current = false
+  }, [])
+
+  const handleZoomChange = useCallback((zoom: number) => {
+    if (isFlyingRef.current) return
+    setZoomLevel(zoom)
   }, [])
 
   useEffect(() => {
@@ -447,7 +462,9 @@ export default function MapApp() {
           isMobile
           sheetState={sheetState}
           onMapTapClose={() => setSheetState('closed')}
-          onZoomChange={setZoomLevel}
+          onZoomChange={handleZoomChange}
+          onFlyStart={handleFlyStart}
+          onFlyEnd={handleFlyEnd}
         />
         {/* タイトルボタン */}
         <div className="fixed top-4 left-4" style={{ zIndex: 999 }}>
@@ -523,7 +540,9 @@ export default function MapApp() {
           userLocation={userLocation}
           locationRadius={locationRadius}
           recenterSignal={recenterSignal}
-          onZoomChange={setZoomLevel}
+          onZoomChange={handleZoomChange}
+          onFlyStart={handleFlyStart}
+          onFlyEnd={handleFlyEnd}
         />
       </main>
     </div>
