@@ -29,7 +29,7 @@ export default function BottomSheet({ spotCount, children, sheetState, onSheetSt
 
   const sheetHeights: Record<SheetState, string> = {
     closed: `${peekHeight}px`,
-    mid:    '50vh',
+    mid:    '50dvh',
     full:   '100dvh',
   }
 
