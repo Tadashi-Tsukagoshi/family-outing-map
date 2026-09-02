@@ -16,6 +16,7 @@ export default function BottomSheet({ spotCount, children, sheetState, onSheetSt
   const currentY = useRef(0)
   const headerRef = useRef<HTMLDivElement>(null)
   const [peekHeight, setPeekHeight] = useState(72)
+  const [bottomOffset, setBottomOffset] = useState(0)
 
   useEffect(() => {
     const el = headerRef.current
@@ -25,6 +26,18 @@ export default function BottomSheet({ spotCount, children, sheetState, onSheetSt
     const ro = new ResizeObserver(update)
     ro.observe(el)
     return () => ro.disconnect()
+  }, [])
+
+  // Android Chromeのボトムナビバー対応: visualViewportの下端とウィンドウ下端の差分をオフセットとして適用
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+    const update = () => {
+      setBottomOffset(window.innerHeight - vv.height - vv.offsetTop)
+    }
+    update()
+    vv.addEventListener('resize', update)
+    return () => vv.removeEventListener('resize', update)
   }, [])
 
   const sheetHeights: Record<SheetState, string> = {
@@ -66,6 +79,7 @@ export default function BottomSheet({ spotCount, children, sheetState, onSheetSt
         boxShadow:    '0 -4px 24px rgba(0,0,0,0.12)',
         zIndex:       1000,
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        bottom:       `${bottomOffset}px`,
       }}
     >
       {/* ハンドル + ピーク時ヘッダー */}
