@@ -297,21 +297,14 @@ export default function MapApp() {
       return [...filtered].sort((a, b) => (b.endDate ?? '').localeCompare(a.endDate ?? ''))
     }
 
-    // ステータスのグループ順: active → upcoming → scheduled → null（日程未定）
-    const STATUS_RANK: Record<string, number> = { active: 0, upcoming: 1, scheduled: 2 }
+    // 終了日が近い順で統一ソート。日程未定（endDateなし）は末尾、endDateが同じ場合はstartDate昇順
     return [...filtered].sort((a, b) => {
-      const statusA = getEventStatus(a.startDate, a.endDate)
-      const statusB = getEventStatus(b.startDate, b.endDate)
-      const rankA = statusA === null ? 3 : STATUS_RANK[statusA]
-      const rankB = statusB === null ? 3 : STATUS_RANK[statusB]
-      if (rankA !== rankB) return rankA - rankB
-
-      // active: 終了日が近い順 / upcoming・scheduled: 開始日が近い順
-      if (statusA === 'active') return (a.endDate ?? '').localeCompare(b.endDate ?? '')
-      if (statusA === 'upcoming' || statusA === 'scheduled') {
-        return (a.startDate ?? '').localeCompare(b.startDate ?? '')
-      }
-      return 0
+      if (!a.endDate && !b.endDate) return (a.startDate ?? '').localeCompare(b.startDate ?? '')
+      if (!a.endDate) return 1
+      if (!b.endDate) return -1
+      const endCompare = a.endDate.localeCompare(b.endDate)
+      if (endCompare !== 0) return endCompare
+      return (a.startDate ?? '').localeCompare(b.startDate ?? '')
     })
   }, [allSpots, periodFilter, activeCategories])
 
