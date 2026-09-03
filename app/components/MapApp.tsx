@@ -253,7 +253,7 @@ export default function MapApp() {
   const allSpots = useMemo(() => collectedSpots, [collectedSpots])
 
   const filteredSpots = useMemo(() => {
-    return allSpots.filter((spot) => {
+    const filtered = allSpots.filter((spot) => {
       const categoryActive = spot.category === 'event_plus'
         ? activeCategories.has(getVisualCategory(spot) as Category)
         : activeCategories.has(spot.category)
@@ -290,6 +290,28 @@ export default function MapApp() {
       }
       // 日程未定（schedule_noteのみ）のイベントは常に表示
       return true
+    })
+
+    // 過去イベント一覧（ended_年）は終了日が新しい順のまま
+    if (periodFilter.startsWith('ended_')) {
+      return [...filtered].sort((a, b) => (b.endDate ?? '').localeCompare(a.endDate ?? ''))
+    }
+
+    // ステータスのグループ順: active → upcoming → scheduled → null（日程未定）
+    const STATUS_RANK: Record<string, number> = { active: 0, upcoming: 1, scheduled: 2 }
+    return [...filtered].sort((a, b) => {
+      const statusA = getEventStatus(a.startDate, a.endDate)
+      const statusB = getEventStatus(b.startDate, b.endDate)
+      const rankA = statusA === null ? 3 : STATUS_RANK[statusA]
+      const rankB = statusB === null ? 3 : STATUS_RANK[statusB]
+      if (rankA !== rankB) return rankA - rankB
+
+      // active: 終了日が近い順 / upcoming・scheduled: 開始日が近い順
+      if (statusA === 'active') return (a.endDate ?? '').localeCompare(b.endDate ?? '')
+      if (statusA === 'upcoming' || statusA === 'scheduled') {
+        return (a.startDate ?? '').localeCompare(b.startDate ?? '')
+      }
+      return 0
     })
   }, [allSpots, periodFilter, activeCategories])
 
