@@ -907,7 +907,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
           handlersRef.current.handleHoverIn(cur, pt.x, pt.y)
         })
         el.addEventListener('mouseleave', () => {
-          // 単独・グループともにBubble/Card側のonMouseLeaveで制御するため何もしない
+          handlersRef.current.scheduleHide()
         })
         el.addEventListener('click', (e) => {
           e.stopPropagation()
