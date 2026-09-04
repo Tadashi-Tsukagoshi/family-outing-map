@@ -78,7 +78,7 @@ export async function POST(req: Request) {
     instagram_url: ((b.instagram_url as string | undefined) ?? '').trim() || null,
     x_url:         ((b.x_url as string | undefined) ?? '').trim() || null,
     collected_at:  new Date().toISOString(),
-    posted_by:     posterType === 'staff' ? 'GUNMAP' : (((b.postedBy as string | undefined) ?? '匿名').trim() || '匿名'),
+    posted_by:     posterType === 'staff' ? 'グンマップ' : (((b.postedBy as string | undefined) ?? '匿名').trim() || '匿名'),
     email,
     poster_type:   posterType,
     edit_token:    editToken,
