@@ -31,8 +31,8 @@ function buildCorrectionFormUrl(eventName: string): string {
 function buildPhotoFormUrl(eventName: string): string {
   const params = new URLSearchParams({
     usp: 'pp_url',
-    [INQUIRY_TYPE_ENTRY_ID]:   '写真のご提供',
-    [INQUIRY_DETAIL_ENTRY_ID]: `【${eventName}】の写真提供：`,
+    [INQUIRY_TYPE_ENTRY_ID]:   'チラシ・写真のご提供',
+    [INQUIRY_DETAIL_ENTRY_ID]: `【${eventName}】のチラシ・写真提供：`,
   })
   return `${CONTACT_FORM_URL}?${params.toString()}`
 }
@@ -607,7 +607,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                     fontSize: 12, color: '#3b82f6', textDecoration: 'none',
                   }}
                 >
-                  写真を提供する
+                  掲載用のチラシや写真を提供する
                 </a>
               </>
             )}
@@ -914,7 +914,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
             fontSize: 12, color: '#3b82f6', textDecoration: 'none',
           }}
         >
-          写真を提供する
+          掲載用のチラシや写真を提供する
         </a>
           </>
         )}
