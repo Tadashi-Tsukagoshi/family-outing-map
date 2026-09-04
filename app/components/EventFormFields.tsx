@@ -1010,11 +1010,13 @@ export default function EventFormFields({
                 {d.useCustomNotice && (
                   <div>
                     <Label>注意書き</Label>
-                    <Input
+                    <Textarea
                       value={d.notice}
                       onChange={e => updateEventDate(d.id, { notice: e.target.value })}
                       placeholder="※当日の開催状況は公式情報をご確認ください。"
+                      rows={2}
                       disabled={disabled}
+                      style={{ resize: 'vertical' }}
                     />
                   </div>
                 )}
