@@ -388,6 +388,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
                   lat:       d.useCustomVenue ? d.lat : null,
                   lng:       d.useCustomVenue ? d.lng : null,
                   note:      d.note,
+                  notice:    d.useCustomNotice ? d.notice : '',
                 })),
               }),
             })

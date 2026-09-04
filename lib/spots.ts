@@ -187,6 +187,9 @@ export type EventDateEntry = {
   lat: number | null
   lng: number | null
   note: string
+  /** true の場合のみ notice を使う。false の場合は親イベントの notice（または DEFAULT_NOTICE）を使う */
+  useCustomNotice: boolean
+  notice: string
 }
 
 /** event_plus の1回の開催（グルーピング・絞り込み後の event_dates の1件） */
@@ -199,6 +202,7 @@ export type EventPlusOccurrence = {
   address: string
   lat: number
   lng: number
+  notice: string
 }
 
 /**
@@ -221,6 +225,7 @@ export function resolveEventPlusOccurrences(spot: Spot): EventPlusOccurrence[] {
       address:   d.address || spot.address || '',
       lat:       d.lat ?? spot.lat,
       lng:       d.lng ?? spot.lng,
+      notice:    d.notice || '',
     }))
 
   if (effective.length === 0) return []

@@ -485,9 +485,9 @@ export default function EventFormFields({
     fetch(`/api/event-dates?event_id=${encodeURIComponent(eventId)}`)
       .then(r => r.json())
       .then(d => {
-        const rows: Omit<EventDateEntry, 'useCustomVenue'>[] = Array.isArray(d.dates) ? d.dates : []
+        const rows: Omit<EventDateEntry, 'useCustomVenue' | 'useCustomNotice'>[] = Array.isArray(d.dates) ? d.dates : []
         if (rows.length > 0) {
-          set('eventDates', rows.map(r => ({ ...r, useCustomVenue: !!(r.venue || r.address) })))
+          set('eventDates', rows.map(r => ({ ...r, useCustomVenue: !!(r.venue || r.address), useCustomNotice: !!r.notice })))
         }
       })
       .catch(() => {})
@@ -612,7 +612,7 @@ export default function EventFormFields({
   const addEventDate = () => {
     set('eventDates', [
       ...form.eventDates,
-      { id: crypto.randomUUID(), startDate: '', endDate: '', startTime: '', endTime: '', venue: '', address: '', note: '', useCustomVenue: false, lat: null, lng: null },
+      { id: crypto.randomUUID(), startDate: '', endDate: '', startTime: '', endTime: '', venue: '', address: '', note: '', useCustomVenue: false, lat: null, lng: null, notice: '', useCustomNotice: false },
     ])
   }
   const removeEventDate = (id: string) => {
@@ -672,6 +672,14 @@ export default function EventFormFields({
       updateEventDate(id, { useCustomVenue: false, venue: '', address: '', lat: null, lng: null })
       setDateGeoStatus(s => ({ ...s, [id]: 'idle' }))
       setDateGeoMessage(s => ({ ...s, [id]: '' }))
+    }
+  }
+
+  const toggleDateCustomNotice = (id: string, checked: boolean) => {
+    if (checked) {
+      updateEventDate(id, { useCustomNotice: true, notice: DEFAULT_NOTICE })
+    } else {
+      updateEventDate(id, { useCustomNotice: false, notice: '' })
     }
   }
 
@@ -988,6 +996,27 @@ export default function EventFormFields({
                       )}
                     </div>
                   </>
+                )}
+                <label className="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={d.useCustomNotice}
+                    onChange={e => toggleDateCustomNotice(d.id, e.target.checked)}
+                    disabled={disabled}
+                    className="cursor-pointer"
+                  />
+                  注意書きが異なる場合
+                </label>
+                {d.useCustomNotice && (
+                  <div>
+                    <Label>注意書き</Label>
+                    <Input
+                      value={d.notice}
+                      onChange={e => updateEventDate(d.id, { notice: e.target.value })}
+                      placeholder="※当日の開催状況は公式情報をご確認ください。"
+                      disabled={disabled}
+                    />
+                  </div>
                 )}
                 <div>
                   <Label>備考</Label>

@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   const supabase = supabaseAdmin()
   const { data, error } = await supabase
     .from('event_dates')
-    .select('id, start_date, end_date, start_time, end_time, venue, address, lat, lng, note')
+    .select('id, start_date, end_date, start_time, end_time, venue, address, lat, lng, note, notice')
     .eq('event_id', eventId)
     .order('sort_order', { ascending: true })
     .order('start_date', { ascending: true })
@@ -33,6 +33,7 @@ export async function GET(req: NextRequest) {
     lat:       row.lat ?? null,
     lng:       row.lng ?? null,
     note:      row.note ?? '',
+    notice:    row.notice ?? '',
   }))
   return Response.json({ dates })
 }
@@ -73,6 +74,7 @@ export async function POST(req: NextRequest) {
         lat: hasCustomVenue && typeof d.lat === 'number' ? d.lat : null,
         lng: hasCustomVenue && typeof d.lng === 'number' ? d.lng : null,
         note: (d.note as string | undefined)?.trim() || null,
+        notice: (d.notice as string | undefined)?.trim() || null,
       }
     })
     .filter(d => d.start_date && d.end_date)
@@ -97,6 +99,7 @@ export async function POST(req: NextRequest) {
       lat:        d.lat,
       lng:        d.lng,
       note:       d.note,
+      notice:     d.notice,
       sort_order: i,
     }))
     const { error: insError } = await supabase.from('event_dates').insert(rows)

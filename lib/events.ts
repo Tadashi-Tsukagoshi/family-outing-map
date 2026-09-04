@@ -123,6 +123,7 @@ export function eventToSpot(event: CollectedEvent): Spot {
       spot.lng       = primary.lng
       spot.date      = primary.endDate
       spot.weekendDates = [primary.endDate]
+      if (primary.notice) spot.notice = primary.notice
     }
   }
 

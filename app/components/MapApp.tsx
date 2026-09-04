@@ -338,6 +338,7 @@ export default function MapApp() {
           address: pin.address,
           lat: pin.lat,
           lng: pin.lng,
+          notice: pin.notice || spot.notice,
         })
       })
     }
