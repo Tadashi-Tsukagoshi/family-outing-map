@@ -1,12 +1,14 @@
-export type Category = 'event' | 'event_plus' | 'fireworks' | 'festival' | 'park' // | 'kumamoto_earthquake_r8'（ユーザー向け画面から非表示。データ・型・関連定数は保持。再表示はこのユニオンと CATEGORY_LABELS に戻すだけ）
+export type Category = 'event' | 'event_plus' | 'fireworks' | 'festival' // | 'park' | 'kumamoto_earthquake_r8'（ユーザー向け画面から非表示。データ・型・関連定数は保持。再表示はこのユニオンと CATEGORY_LABELS に戻すだけ）
 /** UI非表示化前のフルカテゴリ型。ota-admin側やデータ層で災害支援カテゴリを扱う箇所で使用 */
-export type AllCategory = Category | 'kumamoto_earthquake_r8'
+export type AllCategory = Category | 'park' | 'kumamoto_earthquake_r8'
 
 /** 'event'=期間限定イベント, 'permanent'=常設施設, 'disaster'=災害支援 */
 export type EventType = 'event' | 'permanent' | 'disaster'
 
-/** 種別='event'/'permanent'（通常イベント）で選択可能なカテゴリ */
-export const EVENT_CATEGORIES: Category[] = ['event', 'event_plus', 'fireworks', 'festival', 'park']
+/** 種別='event'（期間限定イベント）で選択可能なカテゴリ */
+export const EVENT_CATEGORIES: Category[] = ['event', 'event_plus', 'fireworks', 'festival']
+/** 種別='permanent'（常設施設）で選択可能なカテゴリ。ユーザー向け画面からは非表示だが管理画面での登録・編集には使用 */
+export const PARK_CATEGORIES: AllCategory[] = ['park']
 /** 種別='disaster'（災害支援）で選択可能なカテゴリ */
 export const DISASTER_CATEGORIES: AllCategory[] = ['kumamoto_earthquake_r8']
 
@@ -84,13 +86,13 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   event_plus: 'イベント＋',
   fireworks:  '花火',
   festival:   'まつり',
-  park:       '常設施設',
+  // park:       '常設施設',（ユーザー向け画面から非表示）
   // kumamoto_earthquake_r8: 'R8熊本地震支援',（ユーザー向け画面から非表示）
 }
 
 /** カテゴリ選択ボタン表示用のラベル上書き（CATEGORY_LABELS は他箇所の表示に使うため変更しない） */
 export const CATEGORY_BUTTON_LABEL_OVERRIDES: Partial<Record<Category, string>> = {
-  park: '施設・公園',
+  // park: '施設・公園',（ユーザー向け画面から非表示）
 }
 
 export const CATEGORY_EMOJIS: Record<AllCategory, string> = {

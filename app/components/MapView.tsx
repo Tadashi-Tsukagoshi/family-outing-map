@@ -281,7 +281,7 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, galleryIma
   }, [hovered, wrapperRef])
 
   const { spot } = hovered
-  const isPark    = spot.category === 'park'
+  const isPark    = (spot.category as AllCategory) === 'park'
   const status    = getEventStatus(spot.startDate, spot.endDate)
   const dateRange = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate, spot.specificDates)
   const timeRange = fmtTimeRange(spot.startTime, spot.endTime)

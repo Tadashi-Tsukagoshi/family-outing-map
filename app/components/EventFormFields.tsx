@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect, useCallback } from 'react'
 import dynamic from 'next/dynamic'
-import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, EVENT_TYPE_LABELS, EVENT_CATEGORIES, DISASTER_CATEGORIES, DEFAULT_NOTICE, type AllCategory, type EventType, type EventDateEntry } from '@/lib/spots'
+import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, EVENT_TYPE_LABELS, EVENT_CATEGORIES, PARK_CATEGORIES, DISASTER_CATEGORIES, DEFAULT_NOTICE, type AllCategory, type EventType, type EventDateEntry } from '@/lib/spots'
 import { CategoryIcon } from './Sidebar'
 import type { CollectedEvent } from '@/lib/events'
 import { resizeImage } from '@/lib/image-utils'
@@ -602,7 +602,7 @@ export default function EventFormFields({
     set('imageCaptions', next)
   }
 
-  const categories = (form.type === 'disaster' ? DISASTER_CATEGORIES : EVENT_CATEGORIES)
+  const categories = (form.type === 'disaster' ? DISASTER_CATEGORIES : form.type === 'permanent' ? PARK_CATEGORIES : EVENT_CATEGORIES)
     .filter(cat => isStaffAdmin || cat !== 'event_plus')
 
   const isEventPlus = form.category === 'event_plus'
@@ -763,6 +763,8 @@ export default function EventFormFields({
                 <CategoryIcon category={cat} active={form.category === cat} size={28} />
                 {cat === 'kumamoto_earthquake_r8'
                   ? 'R8熊本地震支援'
+                  : cat === 'park'
+                  ? '施設・公園'
                   : (CATEGORY_BUTTON_LABEL_OVERRIDES[cat] ?? CATEGORY_LABELS[cat])}
               </button>
             )

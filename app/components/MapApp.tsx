@@ -102,7 +102,6 @@ export default function MapApp() {
   const [activeCategories, setActiveCategories] = useState<Set<Category>>(
     () => {
       const all = new Set(Object.keys(CATEGORY_LABELS) as Category[])
-      all.delete('park')
       return all
     }
   )
@@ -137,7 +136,6 @@ export default function MapApp() {
       for (const cat of Object.keys(CATEGORY_LABELS) as Category[]) {
         if (saved.activeCategories.includes(cat) || !OLD_CATEGORIES.has(cat)) restored.add(cat)
       }
-      restored.delete('park') // 施設・公園は毎回起動時に非表示
       setActiveCategories(restored)
     }
   }, [])

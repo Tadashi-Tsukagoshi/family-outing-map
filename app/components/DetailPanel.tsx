@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { createPortal } from 'react-dom'
-import { BADGE_BG_COLOR, DEFAULT_NOTICE, type Spot } from '@/lib/spots'
+import { BADGE_BG_COLOR, DEFAULT_NOTICE, type AllCategory, type Spot } from '@/lib/spots'
 import { getDateDisplay, getEventStatus, STATUS_CONFIG, PARK_STATUS, fmtTimeRange } from '@/lib/date-utils'
 import PhotoCarousel from './PhotoCarousel'
 import PinchZoomImage from './PinchZoomImage'
@@ -233,7 +233,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
     }, 300)
   }
 
-  const isPark      = spot.category === 'park'
+  const isPark      = (spot.category as AllCategory) === 'park'
   const status      = getEventStatus(spot.startDate, spot.endDate)
   const dateRange   = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate, spot.specificDates)
   const timeRange   = fmtTimeRange(spot.startTime, spot.endTime)
