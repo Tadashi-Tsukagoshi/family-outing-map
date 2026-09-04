@@ -315,16 +315,6 @@ export default function Sidebar({
 
       {/* フッターリンク */}
       <div className={`border-t border-gray-200 flex flex-col ${isSheet ? 'mb-10' : 'mb-1'}`}>
-        {!isSheet && (
-          <a
-            href="https://docs.google.com/forms/d/e/1FAIpQLSfjd2ErqEMLI7gDMk4O5iutIRSUMI6AD0hkJSnN3tAT5UjIXA/viewform"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block text-sm text-blue-500 underline pl-[22px] pr-3 py-1.5"
-          >
-            お問い合わせ
-          </a>
-        )}
         <p className={`text-[8px] text-gray-300 pl-[22px] pr-3 mt-auto ${isSheet ? 'pt-2' : 'pt-1'}`}>
           アイコン: <a href="https://openmoji.org/" target="_blank" rel="noopener noreferrer" className="underline">OpenMoji</a> (CC BY-SA 4.0) / <a href="https://github.com/googlefonts/noto-emoji" target="_blank" rel="noopener noreferrer" className="underline">Noto Emoji</a> (Apache 2.0)
         </p>
