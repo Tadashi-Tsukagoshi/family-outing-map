@@ -1020,15 +1020,6 @@ export default function EventFormFields({
                     />
                   </div>
                 )}
-                <div>
-                  <Label>備考</Label>
-                  <Input
-                    value={d.note}
-                    onChange={e => updateEventDate(d.id, { note: e.target.value })}
-                    placeholder="例：荒天時は翌日順延"
-                    disabled={disabled}
-                  />
-                </div>
               </div>
             ))}
           </div>
