@@ -96,7 +96,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
       business_hours: isPermanent ? businessHours : null,
       spot_label:    isPermanent ? spotLabel : null,
       schedule_note: isPermanent ? null : scheduleNote,
-      specific_dates: isPermanent || scheduleNote ? null : specificDates,
+      specific_dates: isPermanent || scheduleNote || normalizeCategory(b.category) === 'event_plus' ? null : specificDates,
       notice,
       venue,
       address,
