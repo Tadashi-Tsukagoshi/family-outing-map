@@ -692,7 +692,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
 
   const scheduleHide = useCallback(() => {
     clearHide()
-    hideTimer.current = setTimeout(() => setHovered(null), 200)
+    hideTimer.current = setTimeout(() => setHovered(null), 100)
   }, [clearHide])
 
   const clearGroupHide = useCallback(() => {
