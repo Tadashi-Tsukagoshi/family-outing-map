@@ -922,12 +922,12 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
       }
 
       const el = marker.getElement()
-      const badgeCount = group.spots.length - 1
+      const badgeCount = group.spots.length
       // アイコンはヒットエリア中央に配置されているため、ヒットエリアとアイコンの差の半分をオフセットとして
       // バッジをアイコンの右上外側に配置する
       const badgeOffset = (iconDef.hit - iconDef.iconSize) / 2 - 6
-      const badgeHtml = badgeCount > 0
-        ? `<span style="position:absolute;top:${badgeOffset}px;right:${badgeOffset}px;background:#6b7280;color:#ffffff;font-size:10px;width:16px;height:16px;line-height:16px;text-align:center;border-radius:50%;">+${badgeCount}</span>`
+      const badgeHtml = badgeCount > 1
+        ? `<span style="position:absolute;top:${badgeOffset}px;right:${badgeOffset}px;background:#6b7280;color:#ffffff;font-size:10px;width:16px;height:16px;line-height:16px;text-align:center;border-radius:50%;">${badgeCount}</span>`
         : ''
       const newInnerHtml = iconDef.html + badgeHtml
       if (el.innerHTML !== newInnerHtml) el.innerHTML = newInnerHtml
