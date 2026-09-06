@@ -139,8 +139,8 @@ function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef
 
   if (visualCategory === 'event' || visualCategory === 'park') {
     const { src: icon } = pickIcon(visualCategory)
-    const hit  = selected ? 44 : (isMobile ? 44 : 36)
-    const size = selected ? 40 : 32
+    const hit  = selected ? 45 : (isMobile ? 45 : 37)
+    const size = selected ? 41 : 33
     const cls  = selected ? ' class="pin-selected"' : ''
     return {
       hit,
@@ -157,8 +157,8 @@ function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef
   const gradientBorderWidth = 2.5 * 0.7
 
   if (selected) {
-    const hit  = 44
-    const size = 40
+    const hit  = 45
+    const size = 41
     const img  = Math.round(size * ratio)
     const inner = size - gradientBorderWidth * 2
     const circle = useGradientBorder
@@ -171,8 +171,8 @@ function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef
     }
   }
 
-  const hit  = isMobile ? 44 : 36
-  const size = 32
+  const hit  = isMobile ? 45 : 37
+  const size = 33
   const img  = Math.round(size * ratio)
   const inner = size - gradientBorderWidth * 2
   const circle = useGradientBorder
