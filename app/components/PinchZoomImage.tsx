@@ -178,7 +178,7 @@ export default function PinchZoomImage({ src, alt = '', className, style, onErro
   const { objectFit, cursor, ...wrapperStyle } = style ?? {}
 
   return (
-    <div ref={containerRef} style={{ overflow: 'hidden', ...wrapperStyle }}>
+    <div ref={containerRef} data-pinch-zoom style={{ overflow: 'hidden', ...wrapperStyle }}>
       <img
         ref={imgRef}
         src={src}
