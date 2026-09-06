@@ -551,6 +551,9 @@ export default function EventFormFields({
       alert('グループ設定に失敗しました')
       return
     }
+    setEventsCache(prev =>
+      prev ? prev.map(ev => ev.id === targetEventId ? { ...ev, groupId: newGroupId } : ev) : prev
+    )
     set('groupId', newGroupId)
   }
 
