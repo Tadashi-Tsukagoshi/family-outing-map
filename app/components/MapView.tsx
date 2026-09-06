@@ -807,6 +807,15 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
   // ─── 地図の初期化 ────────────────────────────────────────────
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
+    const container = containerRef.current
+
+    const onWheel = (e: WheelEvent) => {
+      if (e.ctrlKey) {
+        e.preventDefault()
+      }
+    }
+    container.addEventListener('wheel', onWheel, { passive: false })
+
     const map = new mapboxgl.Map({
       container: containerRef.current,
       style: 'mapbox://styles/mapbox/streets-v12',
@@ -842,6 +851,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
     map.on('click', () => handlersRef.current.handleMapClick())
 
     return () => {
+      container.removeEventListener('wheel', onWheel)
       map.remove()
       mapRef.current = null
       markersRef.current = {}
