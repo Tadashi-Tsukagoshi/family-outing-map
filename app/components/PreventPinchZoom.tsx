@@ -11,10 +11,18 @@ export default function PreventPinchZoom() {
       e.preventDefault()
     }
 
+    const onWheel = (e: WheelEvent) => {
+      if (e.ctrlKey) {
+        e.preventDefault()
+      }
+    }
+
     document.addEventListener('touchmove', onTouchMove, { passive: false })
+    document.addEventListener('wheel', onWheel, { passive: false })
 
     return () => {
       document.removeEventListener('touchmove', onTouchMove)
+      document.removeEventListener('wheel', onWheel)
     }
   }, [])
 
