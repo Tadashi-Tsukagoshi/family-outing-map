@@ -226,7 +226,14 @@ export default function Lightbox({ images, index, onIndexChange, onClose }: Prop
         onClick={onImageClick}
         onMouseDown={onImageMouseDown}
         onDoubleClick={onImageDoubleClick}
-        style={{ overflow: 'hidden', display: 'inline-block', lineHeight: 0, cursor: 'pointer' }}
+        style={{
+          overflow: 'hidden',
+          display: 'inline-block',
+          lineHeight: 0,
+          cursor: 'pointer',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+        }}
       >
         <img
           ref={imgRef}
