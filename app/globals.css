@@ -6,6 +6,7 @@
 
 html, body {
   font-family: var(--font-noto-sans-jp), 'Noto Sans JP', sans-serif;
+  touch-action: pan-x pan-y;
 }
 
 
