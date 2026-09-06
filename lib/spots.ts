@@ -240,11 +240,22 @@ export function resolveEventPlusOccurrences(spot: Spot): EventPlusOccurrence[] {
     else groups.set(key, [d])
   }
 
-  const todayStr = new Date().toISOString().split('T')[0]
+  const now = new Date()
+  const todayStr = now.toISOString().split('T')[0]
+  const nowMinutes = now.getHours() * 60 + now.getMinutes()
   const pins: typeof effective = []
   for (const group of groups.values()) {
     const upcoming = group
-      .filter(d => d.endDate >= todayStr)
+      .filter(d => {
+        if (d.endDate > todayStr) return true
+        if (d.endDate < todayStr) return false
+        // endDate が今日 → endTime が設定されていて現在時刻を過ぎていたら除外
+        if (d.endTime) {
+          const [h, m] = d.endTime.split(':').map(Number)
+          return nowMinutes <= h * 60 + m
+        }
+        return true
+      })
       .sort((a, b) => a.startDate.localeCompare(b.startDate))
     if (upcoming.length > 0) pins.push(...upcoming)
   }
