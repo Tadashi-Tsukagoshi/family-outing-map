@@ -9,14 +9,44 @@ type Props = {
   onClose: () => void
 }
 
+const MAX_SCALE = 5
+const DRAG_THRESHOLD = 5
+
 export default function Lightbox({ images, index, onIndexChange, onClose }: Props) {
   const hasMultiple = images.length > 1
   const startX = useRef(0)
   const startY = useRef(0)
   const swiped = useRef(false)
 
+  const containerRef = useRef<HTMLDivElement>(null)
+  const imgRef = useRef<HTMLImageElement>(null)
+
+  // ズーム/パン用
+  const scale = useRef(1)
+  const translate = useRef({ x: 0, y: 0 })
+  const isDragging = useRef(false)
+  const dragStart = useRef({ x: 0, y: 0 })
+  const baseTranslate = useRef({ x: 0, y: 0 })
+  const dragMoved = useRef(false)
+
   const goPrev = () => onIndexChange((index - 1 + images.length) % images.length)
   const goNext = () => onIndexChange((index + 1) % images.length)
+
+  const applyTransform = (animate: boolean) => {
+    const img = imgRef.current
+    const container = containerRef.current
+    if (!img || !container) return
+    img.style.transition = animate ? 'transform 0.2s ease' : 'none'
+    img.style.transform = `scale(${scale.current}) translate(${translate.current.x}px, ${translate.current.y}px)`
+    container.style.cursor = scale.current > 1 ? (isDragging.current ? 'grabbing' : 'grab') : 'pointer'
+  }
+
+  // 表示画像が変わったらズーム状態をリセット
+  useEffect(() => {
+    scale.current = 1
+    translate.current = { x: 0, y: 0 }
+    applyTransform(false)
+  }, [index])
 
   useEffect(() => {
     if (!hasMultiple) return
@@ -28,6 +58,51 @@ export default function Lightbox({ images, index, onIndexChange, onClose }: Prop
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [hasMultiple, index, images.length])
+
+  // トラックパッドピンチ / Ctrl+スクロールでズーム
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey) return
+      e.preventDefault()
+      scale.current = Math.min(MAX_SCALE, Math.max(1, scale.current - e.deltaY * 0.01))
+      if (scale.current <= 1) {
+        translate.current = { x: 0, y: 0 }
+      }
+      applyTransform(false)
+    }
+
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  }, [])
+
+  // ズーム中のドラッグでパン
+  useEffect(() => {
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isDragging.current) return
+      const dx = e.clientX - dragStart.current.x
+      const dy = e.clientY - dragStart.current.y
+      if (Math.hypot(dx, dy) > DRAG_THRESHOLD) dragMoved.current = true
+      translate.current = {
+        x: baseTranslate.current.x + dx / scale.current,
+        y: baseTranslate.current.y + dy / scale.current,
+      }
+      applyTransform(false)
+    }
+    const onMouseUp = () => {
+      if (!isDragging.current) return
+      isDragging.current = false
+      applyTransform(false)
+    }
+    document.addEventListener('mousemove', onMouseMove)
+    document.addEventListener('mouseup', onMouseUp)
+    return () => {
+      document.removeEventListener('mousemove', onMouseMove)
+      document.removeEventListener('mouseup', onMouseUp)
+    }
+  }, [])
 
   const onTouchStart = (e: React.TouchEvent) => {
     startX.current = e.touches[0].clientX
@@ -50,6 +125,33 @@ export default function Lightbox({ images, index, onIndexChange, onClose }: Prop
       return
     }
     onClose()
+  }
+
+  const onImageMouseDown = (e: React.MouseEvent) => {
+    if (scale.current <= 1) return
+    isDragging.current = true
+    dragMoved.current = false
+    dragStart.current = { x: e.clientX, y: e.clientY }
+    baseTranslate.current = { ...translate.current }
+    applyTransform(false)
+  }
+
+  const onImageClick = (e: React.MouseEvent) => {
+    if (scale.current > 1 || dragMoved.current) {
+      e.stopPropagation()
+    }
+    dragMoved.current = false
+  }
+
+  const onImageDoubleClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (scale.current > 1) {
+      scale.current = 1
+      translate.current = { x: 0, y: 0 }
+    } else {
+      scale.current = 2
+    }
+    applyTransform(true)
   }
 
   return (
@@ -118,11 +220,29 @@ export default function Lightbox({ images, index, onIndexChange, onClose }: Prop
         </>
       )}
 
-      <img
-        src={images[index]}
-        alt=""
-        style={{ maxWidth: '90vw', maxHeight: '90vh', objectFit: 'contain' }}
-      />
+      <div
+        ref={containerRef}
+        data-pinch-zoom
+        onClick={onImageClick}
+        onMouseDown={onImageMouseDown}
+        onDoubleClick={onImageDoubleClick}
+        style={{ overflow: 'hidden', display: 'inline-block', lineHeight: 0, cursor: 'pointer' }}
+      >
+        <img
+          ref={imgRef}
+          src={images[index]}
+          alt=""
+          style={{
+            maxWidth: '90vw',
+            maxHeight: '90vh',
+            objectFit: 'contain',
+            pointerEvents: 'none',
+            transformOrigin: 'center center',
+            transform: 'scale(1) translate(0px, 0px)',
+            transition: 'none',
+          }}
+        />
+      </div>
 
       {hasMultiple && (
         <div

@@ -12,9 +12,10 @@ export default function PreventPinchZoom() {
     }
 
     const onWheel = (e: WheelEvent) => {
-      if (e.ctrlKey) {
-        e.preventDefault()
-      }
+      if (!e.ctrlKey) return
+      const target = e.target as Element | null
+      if (target?.closest('[data-pinch-zoom]')) return
+      e.preventDefault()
     }
 
     document.addEventListener('touchmove', onTouchMove, { passive: false })
