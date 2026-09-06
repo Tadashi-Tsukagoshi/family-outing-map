@@ -79,16 +79,25 @@ export const PARK_STATUS: StatusConfig = { label: '常設スポット', bg: '#dc
 export function getEventStatus(
   startDate?: string,
   endDate?: string,
+  endTime?: string | null,
 ): EventStatus | null {
   if (!startDate && !endDate) return null
 
+  const now = new Date()
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
   if (endDate) {
     const endDay = parseLocalDate(endDate)
-    endDay.setHours(23, 59, 59, 999)
+    // 終了日が今日より前 → 終了
     if (endDay < today) return 'ended'
+    // 終了日が今日 かつ 終了時刻が設定されている → 時刻比較
+    if (endTime && endDay.getTime() === today.getTime()) {
+      const [h, m] = endTime.split(':').map(Number)
+      const endMinutes = h * 60 + m
+      const nowMinutes = now.getHours() * 60 + now.getMinutes()
+      if (nowMinutes > endMinutes) return 'ended'
+    }
   }
 
   if (startDate) {

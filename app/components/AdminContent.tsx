@@ -425,7 +425,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
     : allItems
 
   const isEndedEvent = (ev: CollectedEvent) =>
-    getEventStatus(ev.startDate ?? ev.date, ev.endDate ?? ev.date) === 'ended'
+    getEventStatus(ev.startDate ?? ev.date, ev.endDate ?? ev.date, ev.endTime) === 'ended'
 
   const sortByEndedLast = (items: CollectedEvent[]) =>
     [...items].sort((a, b) => Number(isEndedEvent(a)) - Number(isEndedEvent(b)))

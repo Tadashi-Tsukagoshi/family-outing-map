@@ -133,7 +133,7 @@ function pickIcon(category: AllCategory): { src: string; bg: string; glow: strin
 type IconDef = { html: string; hit: number; iconSize: number; anchor?: 'center' }
 
 function buildIconDef(spot: Spot, selected: boolean, isMobile: boolean): IconDef {
-  const isActive = getEventStatus(spot.startDate, spot.endDate) === 'active'
+  const isActive = getEventStatus(spot.startDate, spot.endDate, spot.endTime) === 'active'
   const wrapperCls = isActive ? ' class="pin-vibrate"' : ''
   const visualCategory = getVisualCategory(spot)
 
@@ -282,7 +282,7 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, galleryIma
 
   const { spot } = hovered
   const isPark    = (spot.category as AllCategory) === 'park'
-  const status    = getEventStatus(spot.startDate, spot.endDate)
+  const status    = getEventStatus(spot.startDate, spot.endDate, spot.endTime)
   const dateRange = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate, spot.specificDates)
   const timeRange = fmtTimeRange(spot.startTime, spot.endTime)
   const statusCfg = isPark ? { ...PARK_STATUS, label: spot.spotLabel || PARK_STATUS.label } : (status ? STATUS_CONFIG[status] : null)
@@ -937,7 +937,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
       if (el.style.height !== newHeight) el.style.height = newHeight
 
       const isGroupSelected = group.spots.some(s => s.id === selectedSpot?.id)
-      const status = getEventStatus(repSpot.startDate, repSpot.endDate)
+      const status = getEventStatus(repSpot.startDate, repSpot.endDate, repSpot.endTime)
       const newZIndex =
         isGroupSelected ? '1000' :
         status === 'active' ? '500' :

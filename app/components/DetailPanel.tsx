@@ -234,7 +234,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
   }
 
   const isPark      = (spot.category as AllCategory) === 'park'
-  const status      = getEventStatus(spot.startDate, spot.endDate)
+  const status      = getEventStatus(spot.startDate, spot.endDate, spot.endTime)
   const dateRange   = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate, spot.specificDates)
   const timeRange   = fmtTimeRange(spot.startTime, spot.endTime)
   const statusCfg   = isPark ? { ...PARK_STATUS, label: spot.spotLabel || PARK_STATUS.label } : (status ? STATUS_CONFIG[status] : null)

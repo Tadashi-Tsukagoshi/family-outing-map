@@ -37,7 +37,7 @@ export type PinGroup = {
 
 /** グループ内ソート用の優先度。値が大きいほど前面（先頭）。z-index 計算ロジックと同じ優先順位 */
 function pinSortRank(spot: Spot, todayStartMs: number): number {
-  const status = getEventStatus(spot.startDate, spot.endDate)
+  const status = getEventStatus(spot.startDate, spot.endDate, spot.endTime)
   if (status === 'active') return 500
   if ((status === 'upcoming' || status === 'scheduled') && spot.startDate) {
     const daysUntil = Math.ceil((parseLocalDate(spot.startDate).getTime() - todayStartMs) / 86400000)
@@ -212,7 +212,7 @@ export default function MapApp() {
       const endedYears = Array.from(
         new Set(
           spots
-            .filter((s) => s.endDate && getEventStatus(s.startDate, s.endDate) === 'ended')
+            .filter((s) => s.endDate && getEventStatus(s.startDate, s.endDate, s.endTime) === 'ended')
             .map((s) => new Date(s.endDate!).getFullYear())
         )
       )
@@ -236,7 +236,7 @@ export default function MapApp() {
     eventParamHandled.current = true
     const spot = collectedSpots.find((s) => s.id === eventId)
     if (spot) {
-      if (getEventStatus(spot.startDate, spot.endDate) === 'ended') {
+      if (getEventStatus(spot.startDate, spot.endDate, spot.endTime) === 'ended') {
         setTemporarySpot(spot)
       }
       handleDetailOpen(spot)
@@ -260,13 +260,13 @@ export default function MapApp() {
       if (periodFilter.startsWith('ended_')) {
         const year = parseInt(periodFilter.replace('ended_', ''), 10)
         if (spot.type === 'permanent') return false
-        if (getEventStatus(spot.startDate, spot.endDate) !== 'ended') return false
+        if (getEventStatus(spot.startDate, spot.endDate, spot.endTime) !== 'ended') return false
         return !!spot.endDate && spot.endDate >= `${year}-01-01` && spot.endDate <= `${year}-12-31`
       }
 
       // 常設施設は期限切れ判定・期間フィルタの対象外で常に表示する
       if (spot.type === 'permanent') return true
-      if (getEventStatus(spot.startDate, spot.endDate) === 'ended') return false
+      if (getEventStatus(spot.startDate, spot.endDate, spot.endTime) === 'ended') return false
       // 期間の終了日を計算
       const today = new Date()
       today.setHours(0, 0, 0, 0)
