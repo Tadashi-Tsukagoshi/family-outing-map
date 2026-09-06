@@ -1004,7 +1004,7 @@ export default function EventFormFields({
                 <label className="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer select-none">
                   <input
                     type="checkbox"
-                    checked={d.useCustomNotice}
+                    checked={!!d.useCustomNotice}
                     onChange={e => toggleDateCustomNotice(d.id, e.target.checked)}
                     disabled={disabled}
                     className="cursor-pointer"
