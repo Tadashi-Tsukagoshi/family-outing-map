@@ -339,13 +339,13 @@ function SpotGroupSection({ groupId, events, ensureLoaded, selfId, selfName, onL
   )
 }
 
-const TIME_HOURS   = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
+const TIME_HOURS   = Array.from({ length: 15 }, (_, i) => String(i + 8).padStart(2, '0'))
 const TIME_MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'))
 
 /** "HH:MM" 文字列を時・分の select 2つで編集する。両方選択されて初めて親に反映する */
 function TimeSelect({ value, onChange, disabled }: { value: string; onChange: (v: string) => void; disabled?: boolean }) {
   const [hour, setHour]     = useState(() => value.split(':')[0] ?? '')
-  const [minute, setMinute] = useState(() => value.split(':')[1] ?? '')
+  const [minute, setMinute] = useState(() => value.split(':')[1] || '00')
 
   const commit = (h: string, m: string) => onChange(h && m ? `${h}:${m}` : '')
 
@@ -370,7 +370,6 @@ function TimeSelect({ value, onChange, disabled }: { value: string; onChange: (v
         disabled={disabled}
         className={selectClassName}
       >
-        <option value="">--</option>
         {TIME_MINUTES.map(m => <option key={m} value={m}>{m}</option>)}
       </select>
     </div>
