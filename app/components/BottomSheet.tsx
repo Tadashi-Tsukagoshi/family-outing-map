@@ -96,7 +96,7 @@ export default function BottomSheet({ spotCount, children, sheetState, onSheetSt
         </div>
         <div className="flex items-center justify-between px-[22px] py-2">
           <span className="text-base font-semibold text-gray-900">イベント一覧</span>
-          <span className="text-xs text-gray-500">{spotCount}件表示中</span>
+          <span className="text-white px-2 py-0.5 rounded-full text-xs font-medium" style={{background: 'linear-gradient(to right, #2f50c7, #5fb48c)'}}>{spotCount}件表示中</span>
         </div>
       </div>
 
