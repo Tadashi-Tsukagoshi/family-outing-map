@@ -182,13 +182,48 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
   useEffect(() => {
     if (isGunmapInfo) return
     setGalleryImages([])
-    fetch(`/api/events/${eventId}/images`)
-      .then(r => r.json())
-      .then(d => setGalleryImages(Array.isArray(d.images)
-        ? d.images.map((img: { imageUrl: string; caption?: string | null }) => ({ imageUrl: img.imageUrl, caption: img.caption ?? null }))
-        : []))
-      .catch(() => {})
-  }, [eventId, isGunmapInfo])
+
+    const parseImages = (d: { images?: { imageUrl: string; caption?: string | null }[] }) =>
+      Array.isArray(d.images)
+        ? d.images.map(img => ({ imageUrl: img.imageUrl, caption: img.caption ?? null }))
+        : []
+
+    // event_plus: ピンの startDate に一致する eventDate を探し、日程固有画像があればそちらを使う
+    const matchingDate = spot.category === 'event_plus'
+      ? (spot.eventDates ?? []).find(d => d.startDate === spot.startDate && d.endDate === spot.endDate)
+      : null
+    const dateId = matchingDate?.id
+
+    if (dateId) {
+      // 日程固有画像を試す → なければイベント全体画像にフォールバック
+      fetch(`/api/events/${eventId}/images?event_date_id=${encodeURIComponent(dateId)}`)
+        .then(r => r.json())
+        .then(d => {
+          const dateImages = parseImages(d)
+          if (dateImages.length > 0) {
+            setGalleryImages(dateImages)
+          } else {
+            // フォールバック: イベント全体画像
+            fetch(`/api/events/${eventId}/images`)
+              .then(r => r.json())
+              .then(d => setGalleryImages(parseImages(d)))
+              .catch(() => {})
+          }
+        })
+        .catch(() => {
+          // エラー時もフォールバック
+          fetch(`/api/events/${eventId}/images`)
+            .then(r => r.json())
+            .then(d => setGalleryImages(parseImages(d)))
+            .catch(() => {})
+        })
+    } else {
+      fetch(`/api/events/${eventId}/images`)
+        .then(r => r.json())
+        .then(d => setGalleryImages(parseImages(d)))
+        .catch(() => {})
+    }
+  }, [eventId, isGunmapInfo, spot.category, spot.startDate, spot.endDate, spot.eventDates])
 
   useEffect(() => {
     const zoomControl = document.querySelector('.mapboxgl-ctrl-top-right .mapboxgl-ctrl-group') as HTMLElement | null
