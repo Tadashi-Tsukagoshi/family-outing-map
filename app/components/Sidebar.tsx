@@ -277,6 +277,7 @@ export default function Sidebar({
       {/* タイトル＋スポット一覧タイトル行（サイドバーモードのみ、固定表示） */}
       {!isSheet && (
         <>
+          {/* 非表示中：地図上のロゴピンで代替
           <div className="pt-1 pb-1 pr-4 pl-[22px] border-b border-gray-200 flex items-center gap-x-4">
             <img src="/logo-pc_10.png" alt="グンマップ" className="h-[48px] w-auto -ml-[22px] shrink-0" />
             <p className="text-[11px] leading-[1.1] min-w-0 -translate-y-[0.8px]" style={{ color: '#555555' }}>
@@ -284,8 +285,9 @@ export default function Sidebar({
               <span className="block tracking-[0.13em]">プラットフォーム</span>
             </p>
           </div>
+          */}
 
-          <div className="bg-gray-50">
+          <div className="bg-gray-50 border-t border-gray-200">
             <div className="flex items-center justify-between text-sm py-2.5 pl-[22px] pr-8" style={{ color: '#1F1F1F' }}>
               <span className="font-semibold">イベント一覧</span>
               <span className="text-[11px] text-gray-500">{spots.length}件表示中</span>

@@ -18,7 +18,7 @@ const BLOCKED_USER_AGENTS = [
 
 const ALLOWED_USER_AGENTS = ["Googlebot", "bingbot"];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const userAgent = request.headers.get("user-agent") || "";
 
   const isAllowed = ALLOWED_USER_AGENTS.some((ua) =>
