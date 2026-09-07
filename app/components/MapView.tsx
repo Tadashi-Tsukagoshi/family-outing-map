@@ -1189,10 +1189,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
 
       {/* モバイルはホバーカード不要。PC: hovered は常に表示、pinnedHover は詳細パネルが閉じている時のみ。吹き出しリスト表示中は抑制 */}
       {(() => {
-        // selectedSpotが含まれるグループは openGroupId が消えても表示維持
         const activeGroupId = openGroupId
-          ?? pinGroups.find(g => g.spots.some(s => s.id === selectedSpot?.id) && g.spots.length >= 2)?.representativeId
-          ?? null
 
         // ── 個別ホバーカード ──
         const activeHover = isMobile || activeGroupId ? null : (hovered ?? pinnedHover)
