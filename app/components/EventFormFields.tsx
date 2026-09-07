@@ -406,6 +406,29 @@ export default function EventFormFields({
   const [imageStatus,  setImageStatus]  = useState<ImageStatus>('idle')
   const [imageMessage, setImageMessage] = useState('')
   const [coordsCopied, setCoordsCopied] = useState<string | null>(null) // 'main' | dateId | null
+  const [coordsPasted, setCoordsPasted] = useState<string | null>(null) // 'main' | dateId | null
+
+  const pasteCoords = async (
+    target: 'main' | string,
+    apply: (lat: number, lng: number) => void,
+  ) => {
+    try {
+      const text = await navigator.clipboard.readText()
+      const m = text.match(/^\s*([-\d.]+)\s*,\s*([-\d.]+)\s*$/)
+      if (m) {
+        const lat = parseFloat(m[1]), lng = parseFloat(m[2])
+        if (!isNaN(lat) && !isNaN(lng)) {
+          apply(lat, lng)
+          setCoordsPasted(target)
+          setTimeout(() => setCoordsPasted(null), 2000)
+          return
+        }
+      }
+      alert('クリップボードに「緯度, 経度」形式の座標がありません')
+    } catch {
+      alert('クリップボードの読み取りが許可されていません')
+    }
+  }
   const geoTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // 「既存スポットの座標を使う」モーダル・グループ一覧で共用する登録済みイベント一覧のキャッシュ
@@ -1070,17 +1093,27 @@ export default function EventFormFields({
                               />
                             </div>
                           </div>
-                          <button
-                            type="button"
-                            className="mt-1 text-xs text-gray-400 hover:text-gray-600 cursor-pointer"
-                            onClick={() => {
-                              navigator.clipboard.writeText(`${d.lat!.toFixed(6)}, ${d.lng!.toFixed(6)}`)
-                              setCoordsCopied(d.id)
-                              setTimeout(() => setCoordsCopied(null), 2000)
-                            }}
-                          >
-                            {coordsCopied === d.id ? '✅ コピーしました' : '📋 座標をコピー'}
-                          </button>
+                          <div className="mt-1 flex gap-3">
+                            <button
+                              type="button"
+                              className="text-xs text-gray-400 hover:text-gray-600 cursor-pointer"
+                              onClick={() => {
+                                navigator.clipboard.writeText(`${d.lat!.toFixed(6)}, ${d.lng!.toFixed(6)}`)
+                                setCoordsCopied(d.id)
+                                setTimeout(() => setCoordsCopied(null), 2000)
+                              }}
+                            >
+                              {coordsCopied === d.id ? '✅ コピーしました' : '📋 座標をコピー'}
+                            </button>
+                            <button
+                              type="button"
+                              className="text-xs text-gray-400 hover:text-gray-600 cursor-pointer"
+                              disabled={disabled}
+                              onClick={() => pasteCoords(d.id, (lat, lng) => updateEventDate(d.id, { lat, lng }))}
+                            >
+                              {coordsPasted === d.id ? '✅ ペーストしました' : '📋 座標をペースト'}
+                            </button>
+                          </div>
                         </div>
                       )}
                       {/* 既存スポットの座標を使う */}
@@ -1519,17 +1552,27 @@ export default function EventFormFields({
                 />
               </div>
             </div>
-            <button
-              type="button"
-              className="mt-1 text-xs text-gray-400 hover:text-gray-600 cursor-pointer"
-              onClick={() => {
-                navigator.clipboard.writeText(`${form.lat!.toFixed(6)}, ${form.lng!.toFixed(6)}`)
-                setCoordsCopied('main')
-                setTimeout(() => setCoordsCopied(null), 2000)
-              }}
-            >
-              {coordsCopied === 'main' ? '✅ コピーしました' : '📋 座標をコピー'}
-            </button>
+            <div className="mt-1 flex gap-3">
+              <button
+                type="button"
+                className="text-xs text-gray-400 hover:text-gray-600 cursor-pointer"
+                onClick={() => {
+                  navigator.clipboard.writeText(`${form.lat!.toFixed(6)}, ${form.lng!.toFixed(6)}`)
+                  setCoordsCopied('main')
+                  setTimeout(() => setCoordsCopied(null), 2000)
+                }}
+              >
+                {coordsCopied === 'main' ? '✅ コピーしました' : '📋 座標をコピー'}
+              </button>
+              <button
+                type="button"
+                className="text-xs text-gray-400 hover:text-gray-600 cursor-pointer"
+                disabled={disabled}
+                onClick={() => pasteCoords('main', (lat, lng) => { set('lat', lat); set('lng', lng) })}
+              >
+                {coordsPasted === 'main' ? '✅ ペーストしました' : '📋 座標をペースト'}
+              </button>
+            </div>
           </div>
         )}
         {form.groupId && (
