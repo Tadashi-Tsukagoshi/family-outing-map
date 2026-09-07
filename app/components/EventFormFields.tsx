@@ -405,6 +405,7 @@ export default function EventFormFields({
   const [showMapPicker, setShowMapPicker] = useState(false)
   const [imageStatus,  setImageStatus]  = useState<ImageStatus>('idle')
   const [imageMessage, setImageMessage] = useState('')
+  const [coordsCopied, setCoordsCopied] = useState<string | null>(null) // 'main' | dateId | null
   const geoTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // 「既存スポットの座標を使う」モーダル・グループ一覧で共用する登録済みイベント一覧のキャッシュ
@@ -1024,15 +1025,62 @@ export default function EventFormFields({
                         </p>
                       )}
                       {d.lat !== null && d.lng !== null && (
-                        <div className="mt-2 flex gap-2">
-                          <div className="flex-1">
-                            <span className="text-[10px] text-gray-400 block mb-0.5">緯度</span>
-                            <Input value={d.lat.toFixed(6)} readOnly className="bg-gray-50 text-gray-500 text-xs" />
+                        <div className="mt-2">
+                          <div className="flex gap-2">
+                            <div className="flex-1">
+                              <span className="text-[10px] text-gray-400 block mb-0.5">緯度</span>
+                              <Input
+                                value={d.lat.toFixed(6)}
+                                disabled={disabled}
+                                className="text-xs"
+                                onChange={e => {
+                                  const v = parseFloat(e.target.value)
+                                  if (!isNaN(v)) updateEventDate(d.id, { lat: v })
+                                }}
+                                onPaste={e => {
+                                  const text = e.clipboardData.getData('text')
+                                  const m = text.match(/^\s*([-\d.]+)\s*,\s*([-\d.]+)\s*$/)
+                                  if (m) {
+                                    e.preventDefault()
+                                    const lat = parseFloat(m[1]), lng = parseFloat(m[2])
+                                    if (!isNaN(lat) && !isNaN(lng)) updateEventDate(d.id, { lat, lng })
+                                  }
+                                }}
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <span className="text-[10px] text-gray-400 block mb-0.5">経度</span>
+                              <Input
+                                value={d.lng.toFixed(6)}
+                                disabled={disabled}
+                                className="text-xs"
+                                onChange={e => {
+                                  const v = parseFloat(e.target.value)
+                                  if (!isNaN(v)) updateEventDate(d.id, { lng: v })
+                                }}
+                                onPaste={e => {
+                                  const text = e.clipboardData.getData('text')
+                                  const m = text.match(/^\s*([-\d.]+)\s*,\s*([-\d.]+)\s*$/)
+                                  if (m) {
+                                    e.preventDefault()
+                                    const lat = parseFloat(m[1]), lng = parseFloat(m[2])
+                                    if (!isNaN(lat) && !isNaN(lng)) updateEventDate(d.id, { lat, lng })
+                                  }
+                                }}
+                              />
+                            </div>
                           </div>
-                          <div className="flex-1">
-                            <span className="text-[10px] text-gray-400 block mb-0.5">経度</span>
-                            <Input value={d.lng.toFixed(6)} readOnly className="bg-gray-50 text-gray-500 text-xs" />
-                          </div>
+                          <button
+                            type="button"
+                            className="mt-1 text-xs text-gray-400 hover:text-gray-600 cursor-pointer"
+                            onClick={() => {
+                              navigator.clipboard.writeText(`${d.lat!.toFixed(6)}, ${d.lng!.toFixed(6)}`)
+                              setCoordsCopied(d.id)
+                              setTimeout(() => setCoordsCopied(null), 2000)
+                            }}
+                          >
+                            {coordsCopied === d.id ? '✅ コピーしました' : '📋 座標をコピー'}
+                          </button>
                         </div>
                       )}
                       {/* 既存スポットの座標を使う */}
@@ -1426,15 +1474,62 @@ export default function EventFormFields({
         )}
 
         {form.lat !== null && form.lng !== null && (
-          <div className="mt-2 flex gap-2">
-            <div className="flex-1">
-              <span className="text-[10px] text-gray-400 block mb-0.5">緯度</span>
-              <Input value={form.lat.toFixed(6)} readOnly className="bg-gray-50 text-gray-500 text-xs" />
+          <div className="mt-2">
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <span className="text-[10px] text-gray-400 block mb-0.5">緯度</span>
+                <Input
+                  value={form.lat.toFixed(6)}
+                  disabled={disabled}
+                  className="text-xs"
+                  onChange={e => {
+                    const v = parseFloat(e.target.value)
+                    if (!isNaN(v)) set('lat', v)
+                  }}
+                  onPaste={e => {
+                    const text = e.clipboardData.getData('text')
+                    const m = text.match(/^\s*([-\d.]+)\s*,\s*([-\d.]+)\s*$/)
+                    if (m) {
+                      e.preventDefault()
+                      const lat = parseFloat(m[1]), lng = parseFloat(m[2])
+                      if (!isNaN(lat) && !isNaN(lng)) { set('lat', lat); set('lng', lng) }
+                    }
+                  }}
+                />
+              </div>
+              <div className="flex-1">
+                <span className="text-[10px] text-gray-400 block mb-0.5">経度</span>
+                <Input
+                  value={form.lng.toFixed(6)}
+                  disabled={disabled}
+                  className="text-xs"
+                  onChange={e => {
+                    const v = parseFloat(e.target.value)
+                    if (!isNaN(v)) set('lng', v)
+                  }}
+                  onPaste={e => {
+                    const text = e.clipboardData.getData('text')
+                    const m = text.match(/^\s*([-\d.]+)\s*,\s*([-\d.]+)\s*$/)
+                    if (m) {
+                      e.preventDefault()
+                      const lat = parseFloat(m[1]), lng = parseFloat(m[2])
+                      if (!isNaN(lat) && !isNaN(lng)) { set('lat', lat); set('lng', lng) }
+                    }
+                  }}
+                />
+              </div>
             </div>
-            <div className="flex-1">
-              <span className="text-[10px] text-gray-400 block mb-0.5">経度</span>
-              <Input value={form.lng.toFixed(6)} readOnly className="bg-gray-50 text-gray-500 text-xs" />
-            </div>
+            <button
+              type="button"
+              className="mt-1 text-xs text-gray-400 hover:text-gray-600 cursor-pointer"
+              onClick={() => {
+                navigator.clipboard.writeText(`${form.lat!.toFixed(6)}, ${form.lng!.toFixed(6)}`)
+                setCoordsCopied('main')
+                setTimeout(() => setCoordsCopied(null), 2000)
+              }}
+            >
+              {coordsCopied === 'main' ? '✅ コピーしました' : '📋 座標をコピー'}
+            </button>
           </div>
         )}
         {form.groupId && (
