@@ -389,6 +389,8 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
                   lng:       d.useCustomVenue ? d.lng : null,
                   note:      d.note,
                   notice:    d.useCustomNotice ? d.notice : '',
+                  imageUrls:     d.useCustomImages ? d.imageUrls     : [],
+                  imageCaptions: d.useCustomImages ? d.imageCaptions : [],
                 })),
               }),
             })

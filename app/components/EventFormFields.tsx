@@ -486,7 +486,7 @@ export default function EventFormFields({
       .then(d => {
         const rows: Omit<EventDateEntry, 'useCustomVenue' | 'useCustomNotice'>[] = Array.isArray(d.dates) ? d.dates : []
         if (rows.length > 0) {
-          set('eventDates', rows.map(r => ({ ...r, useCustomVenue: !!(r.venue || r.address), useCustomNotice: !!r.notice })))
+          set('eventDates', rows.map(r => ({ ...r, useCustomVenue: !!(r.venue || r.address), useCustomNotice: !!r.notice, useCustomImages: !!((r as Record<string, unknown>).imageUrls as string[] | undefined)?.length, imageUrls: ((r as Record<string, unknown>).imageUrls as string[] | undefined) ?? [], imageCaptions: ((r as Record<string, unknown>).imageCaptions as string[] | undefined) ?? [] })))
         }
       })
       .catch(() => {})
@@ -614,7 +614,7 @@ export default function EventFormFields({
   const addEventDate = () => {
     set('eventDates', [
       ...form.eventDates,
-      { id: crypto.randomUUID(), startDate: '', endDate: '', startTime: '', endTime: '', venue: '', address: '', note: '', useCustomVenue: false, lat: null, lng: null, notice: '', useCustomNotice: false },
+      { id: crypto.randomUUID(), startDate: '', endDate: '', startTime: '', endTime: '', venue: '', address: '', note: '', useCustomVenue: false, lat: null, lng: null, notice: '', useCustomNotice: false, useCustomImages: false, imageUrls: [], imageCaptions: [] },
     ])
   }
   const removeEventDate = (id: string) => {
@@ -683,6 +683,77 @@ export default function EventFormFields({
     } else {
       updateEventDate(id, { useCustomNotice: false, notice: '' })
     }
+  }
+
+  // ─── 日程ごとの画像（useCustomImages=true の場合のみ） ─────────────
+  const [dateImageStatus,  setDateImageStatus]  = useState<Record<string, ImageStatus>>({})
+  const [dateImageMessage, setDateImageMessage] = useState<Record<string, string>>({})
+
+  const toggleDateCustomImages = (id: string, checked: boolean) => {
+    if (checked) {
+      updateEventDate(id, { useCustomImages: true })
+    } else {
+      updateEventDate(id, { useCustomImages: false, imageUrls: [], imageCaptions: [] })
+    }
+  }
+
+  const handleDateImagesAdd = async (dateId: string, fileList: FileList | null) => {
+    const date = form.eventDates.find(d => d.id === dateId)
+    if (!date || !fileList || fileList.length === 0) return
+    const remaining = MAX_IMAGES - date.imageUrls.length
+    const files = Array.from(fileList).slice(0, remaining)
+    if (files.length === 0) return
+
+    setDateImageStatus(s => ({ ...s, [dateId]: 'uploading' }))
+    onUploadingChange?.(true)
+    const uploaded: string[] = []
+    try {
+      for (let i = 0; i < files.length; i++) {
+        setDateImageMessage(s => ({ ...s, [dateId]: `画像をアップロード中...（${i + 1}/${files.length}）` }))
+        const blob = await resizeImage(files[i])
+        const fd = new FormData()
+        fd.append('file', blob, 'image.jpg')
+        const res = await fetch('/api/upload-image', { method: 'POST', body: fd })
+        const data = await res.json()
+        if (!res.ok) throw new Error((data.error as string | undefined) ?? 'アップロードに失敗しました')
+        uploaded.push(data.url as string)
+      }
+      updateEventDate(dateId, {
+        imageUrls: [...date.imageUrls, ...uploaded],
+        imageCaptions: [...date.imageCaptions, ...uploaded.map(() => '')],
+      })
+      setDateImageStatus(s => ({ ...s, [dateId]: 'ok' }))
+      setDateImageMessage(s => ({ ...s, [dateId]: 'アップロードしました' }))
+    } catch (e) {
+      if (uploaded.length > 0) {
+        updateEventDate(dateId, {
+          imageUrls: [...date.imageUrls, ...uploaded],
+          imageCaptions: [...date.imageCaptions, ...uploaded.map(() => '')],
+        })
+      }
+      setDateImageStatus(s => ({ ...s, [dateId]: 'error' }))
+      setDateImageMessage(s => ({ ...s, [dateId]: e instanceof Error ? e.message : 'アップロードに失敗しました' }))
+    } finally {
+      onUploadingChange?.(false)
+    }
+  }
+
+  const handleDateImageRemoveAt = (dateId: string, index: number) => {
+    const date = form.eventDates.find(d => d.id === dateId)
+    if (!date) return
+    updateEventDate(dateId, {
+      imageUrls: date.imageUrls.filter((_, i) => i !== index),
+      imageCaptions: date.imageCaptions.filter((_, i) => i !== index),
+    })
+  }
+
+  const handleDateCaptionChange = (dateId: string, index: number, value: string) => {
+    const date = form.eventDates.find(d => d.id === dateId)
+    if (!date) return
+    const next = [...date.imageCaptions]
+    while (next.length <= index) next.push('')
+    next[index] = value
+    updateEventDate(dateId, { imageCaptions: next })
   }
 
   const typeOptions: { value: EventType; label: string }[] = [
@@ -1022,6 +1093,68 @@ export default function EventFormFields({
                       disabled={disabled}
                       style={{ resize: 'vertical' }}
                     />
+                  </div>
+                )}
+                <label className="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={!!d.useCustomImages}
+                    onChange={e => toggleDateCustomImages(d.id, e.target.checked)}
+                    disabled={disabled}
+                    className="cursor-pointer"
+                  />
+                  画像が異なる場合
+                </label>
+                {d.useCustomImages && (
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap gap-2">
+                      {d.imageUrls.map((url, imgIdx) => (
+                        <div key={url + imgIdx} className="relative w-20 h-20 flex-shrink-0">
+                          <img src={url} alt="" className="w-20 h-20 object-cover rounded-lg border border-gray-200" />
+                          <button
+                            type="button"
+                            onClick={() => handleDateImageRemoveAt(d.id, imgIdx)}
+                            disabled={disabled || dateImageStatus[d.id] === 'uploading'}
+                            aria-label="この画像を削除"
+                            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white border border-gray-300 text-gray-600 text-xs leading-none flex items-center justify-center shadow hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                          >×</button>
+                        </div>
+                      ))}
+                      {d.imageUrls.length < MAX_IMAGES && (
+                        <label className={`w-20 h-20 flex-shrink-0 rounded-lg border border-dashed border-gray-300 flex items-center justify-center text-2xl text-gray-400 transition-colors ${disabled || dateImageStatus[d.id] === 'uploading' ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:border-gray-400 hover:text-gray-500'}`}>
+                          ＋
+                          <input type="file" accept="image/*" multiple onChange={e => { handleDateImagesAdd(d.id, e.target.files); e.target.value = '' }} disabled={disabled || dateImageStatus[d.id] === 'uploading'} className="hidden" />
+                        </label>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-400">
+                      {d.imageUrls.length < MAX_IMAGES
+                        ? `残り${MAX_IMAGES - d.imageUrls.length}枚追加できます`
+                        : `最大${MAX_IMAGES}枚まで追加済みです`}
+                    </p>
+                    {dateImageMessage[d.id] && (
+                      <p className={`text-xs leading-snug ${dateImageStatus[d.id] === 'ok' ? 'text-green-600' : ''} ${dateImageStatus[d.id] === 'error' ? 'text-red-500' : ''} ${dateImageStatus[d.id] === 'uploading' ? 'text-gray-400' : ''}`}>
+                        {dateImageMessage[d.id]}
+                      </p>
+                    )}
+                    {d.imageUrls.length > 0 && (
+                      <div className="rounded-lg border border-gray-200 overflow-hidden">
+                        {d.imageUrls.map((url, imgIdx) => (
+                          <div key={url + imgIdx} className={`flex items-center gap-3 px-3 py-2 ${imgIdx < d.imageUrls.length - 1 ? 'border-b border-gray-200' : ''}`}>
+                            <img src={url} alt="" className="w-8 h-8 object-cover rounded border border-gray-200 flex-shrink-0" />
+                            <span className="text-xs text-gray-500 flex-shrink-0" style={{ width: 92 }}>{imgIdx + 1}枚目のキャプション</span>
+                            <textarea
+                              value={d.imageCaptions[imgIdx] ?? ''}
+                              onChange={e => handleDateCaptionChange(d.id, imgIdx, e.target.value)}
+                              placeholder={imgIdx === 0 ? '例：画像は○○のものです' : '例：写真提供 ○○市'}
+                              disabled={disabled}
+                              className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-green-400 focus:ring-1 focus:ring-green-200 outline-none resize-vertical"
+                              rows={2}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

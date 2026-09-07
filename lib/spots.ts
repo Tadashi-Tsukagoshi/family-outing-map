@@ -192,6 +192,10 @@ export type EventDateEntry = {
   /** true の場合のみ notice を使う。false の場合は親イベントの notice（または DEFAULT_NOTICE）を使う */
   useCustomNotice: boolean
   notice: string
+  /** true の場合のみ imageUrls/imageCaptions を使う。false の場合は親イベントの画像を使う */
+  useCustomImages: boolean
+  imageUrls: string[]
+  imageCaptions: string[]
 }
 
 /** event_plus の1回の開催（グルーピング・絞り込み後の event_dates の1件） */
