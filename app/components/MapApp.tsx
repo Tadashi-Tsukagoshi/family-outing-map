@@ -392,7 +392,7 @@ export default function MapApp() {
       }
 
       if (maxDistPx > DISSOLVE_PX) {
-        for (const spot of members) groups.push(buildSingle(spot))
+        for (const spot of members) remaining.push(spot)
         continue
       }
 
