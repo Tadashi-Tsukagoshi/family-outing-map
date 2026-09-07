@@ -290,7 +290,7 @@ export default function Sidebar({
           <div className="bg-gray-50 border-t border-gray-200">
             <div className="flex items-center justify-between text-sm py-2.5 pl-[22px] pr-8" style={{ color: '#1F1F1F' }}>
               <span className="font-semibold">イベント一覧</span>
-              <span className="text-[11px] text-gray-500">{spots.length}件表示中</span>
+              <span className="text-white px-2 py-0.5 rounded-full text-xs font-medium" style={{background: 'linear-gradient(to right, #2f50c7, #5fb48c)'}}>{spots.length}件表示中</span>
             </div>
           </div>
         </>
