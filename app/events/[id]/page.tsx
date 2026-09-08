@@ -1,9 +1,10 @@
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { type Spot } from '@/lib/spots'
+import { CATEGORY_LABELS, DEFAULT_NOTICE, type Spot } from '@/lib/spots'
 import { eventToSpot } from '@/lib/events'
 import { supabaseAdmin } from '@/lib/supabase'
+import { getDateDisplay, fmtTimeRange } from '@/lib/date-utils'
 import type { Metadata } from 'next'
-import EventRedirect from './EventRedirect'
 
 async function getSpot(id: string): Promise<Spot | null> {
   const supabase = supabaseAdmin()
@@ -64,6 +65,19 @@ export default async function EventDetailPage({ params }: Props) {
   const spot = await getSpot(id)
   if (!spot) notFound()
 
+  const supabase = supabaseAdmin()
+  const { data: imageRows } = await supabase
+    .from('event_images')
+    .select('image_url, caption')
+    .eq('event_id', id)
+    .is('event_date_id', null)
+    .order('sort_order', { ascending: true })
+
+  const galleryImages = imageRows ?? []
+
+  const dateDisplay = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate, spot.specificDates)
+  const timeDisplay = fmtTimeRange(spot.startTime, spot.endTime)
+
   const eventJsonLd: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'Event',
@@ -105,7 +119,122 @@ export default async function EventDetailPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
       />
-      <EventRedirect eventId={id} />
+      <div className="min-h-screen bg-white">
+        <div className="max-w-2xl mx-auto px-4 py-4 sm:py-6">
+          <Link href="/" className="inline-block mb-5">
+            <img src="/logo-pc_10.png" alt="グンマップ" className="h-7 w-auto" />
+          </Link>
+
+          <span className="inline-block bg-[#dbeafe] text-gray-700 text-xs font-medium px-2 py-1 rounded mb-3">
+            {CATEGORY_LABELS[spot.category]}
+          </span>
+
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-snug mb-4">
+            {spot.name}
+          </h1>
+
+          <div className="space-y-1.5 mb-5 text-sm text-gray-800">
+            {dateDisplay && (
+              <p>
+                <span className="font-semibold">日程：</span>
+                {dateDisplay}
+                {timeDisplay ? ` ${timeDisplay}` : ''}
+              </p>
+            )}
+            {spot.venue && (
+              <p>
+                <span className="font-semibold">会場：</span>
+                {spot.venue}
+              </p>
+            )}
+            {spot.address && (
+              <p>
+                <span className="font-semibold">住所：</span>
+                {spot.address}
+              </p>
+            )}
+          </div>
+
+          {spot.imageUrl && (
+            <div className="mb-5">
+              <img
+                src={spot.imageUrl}
+                alt={spot.name}
+                className="w-full h-auto rounded-lg"
+              />
+            </div>
+          )}
+
+          {galleryImages.length > 0 && (
+            <div className="grid grid-cols-2 gap-2 mb-5">
+              {galleryImages.map((img, i) => (
+                <figure key={i}>
+                  <img
+                    src={img.image_url}
+                    alt={img.caption ?? `${spot.name}の写真`}
+                    className="w-full h-auto rounded-lg"
+                  />
+                  {img.caption && (
+                    <figcaption className="text-xs text-gray-500 mt-1">{img.caption}</figcaption>
+                  )}
+                </figure>
+              ))}
+            </div>
+          )}
+
+          {spot.description && (
+            <p
+              className="text-sm text-gray-800 leading-relaxed mb-4"
+              style={{ whiteSpace: 'pre-line' }}
+            >
+              {spot.description}
+            </p>
+          )}
+
+          <p className="text-xs text-gray-500 mb-5" style={{ whiteSpace: 'pre-line' }}>
+            {spot.notice ?? DEFAULT_NOTICE}
+          </p>
+
+          {spot.url && (
+            <p className="mb-2">
+              <a
+                href={spot.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-blue-600 underline"
+              >
+                公式サイトを見る
+              </a>
+            </p>
+          )}
+
+          {spot.posterType === 'staff' && (
+            <p className="text-xs text-gray-500 mb-6">情報提供元：グンマップ</p>
+          )}
+
+          <Link
+            href={`/?event=${spot.id}`}
+            className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-lg mb-10 transition-colors"
+          >
+            <span>📍</span>
+            <span>地図で見る</span>
+          </Link>
+
+          <footer className="border-t border-gray-200 pt-4 pb-8 text-center text-xs text-gray-400 space-y-1">
+            <p>© グンマップ｜GUNMAp</p>
+            <p>
+              <a
+                href="https://docs.google.com/forms/d/e/1FAIpQLSfjd2ErqEMLI7gDMk4O5iutIRSUMI6AD0hkJSnN3tAT5UjIXA/viewform"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
+                お問い合わせ
+              </a>
+            </p>
+          </footer>
+        </div>
+      </div>
     </>
   )
 }
