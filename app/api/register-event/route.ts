@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   const address      = (b.address      as string | undefined)?.trim() || null
   const fee          = (b.fee          as string | undefined)?.trim() || null
   const imageUrls    = Array.isArray(b.imageUrls)
-    ? (b.imageUrls as unknown[]).filter((u): u is string => typeof u === 'string' && u.trim() !== '').slice(0, 5)
+    ? (b.imageUrls as unknown[]).filter((u): u is string => typeof u === 'string' && u.trim() !== '').slice(0, 10)
     : []
   const imageUrl     = imageUrls[0] ?? ((b.imageUrl as string | undefined)?.trim() || null)
   const imageCaptions = Array.isArray(b.imageCaptions)

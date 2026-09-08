@@ -63,7 +63,7 @@ async function fetchGeocode(address: string): Promise<{ lat: number; lng: number
   return { lat: data.lat, lng: data.lng, displayName: data.display_name }
 }
 
-const MAX_IMAGES = 5
+const MAX_IMAGES = 10
 
 export const POSTER_TYPE_LABELS: Record<string, string> = {
   general:   '一般ユーザー',
@@ -621,6 +621,16 @@ export default function EventFormFields({
     set('imageCaptions', form.imageCaptions.filter((_, i) => i !== index))
   }
 
+  const handleImageMove = (from: number, to: number) => {
+    if (to < 0 || to >= form.imageUrls.length) return
+    const urls = [...form.imageUrls]
+    const caps = [...form.imageCaptions]
+    ;[urls[from], urls[to]] = [urls[to], urls[from]]
+    ;[caps[from], caps[to]] = [caps[to], caps[from]]
+    set('imageUrls', urls)
+    set('imageCaptions', caps)
+  }
+
   const handleCaptionChange = (index: number, value: string) => {
     const next = [...form.imageCaptions]
     while (next.length <= index) next.push('')
@@ -769,6 +779,16 @@ export default function EventFormFields({
       imageUrls: date.imageUrls.filter((_, i) => i !== index),
       imageCaptions: date.imageCaptions.filter((_, i) => i !== index),
     })
+  }
+
+  const handleDateImageMove = (dateId: string, from: number, to: number) => {
+    const date = form.eventDates.find(d => d.id === dateId)
+    if (!date || to < 0 || to >= date.imageUrls.length) return
+    const urls = [...date.imageUrls]
+    const caps = [...date.imageCaptions]
+    ;[urls[from], urls[to]] = [urls[to], urls[from]]
+    ;[caps[from], caps[to]] = [caps[to], caps[from]]
+    updateEventDate(dateId, { imageUrls: urls, imageCaptions: caps })
   }
 
   const handleDateCaptionChange = (dateId: string, index: number, value: string) => {
@@ -1222,6 +1242,26 @@ export default function EventFormFields({
                       <div className="rounded-lg border border-gray-200 overflow-hidden">
                         {d.imageUrls.map((url, imgIdx) => (
                           <div key={url + imgIdx} className={`flex items-center gap-3 px-3 py-2 ${imgIdx < d.imageUrls.length - 1 ? 'border-b border-gray-200' : ''}`}>
+                            <div className="flex flex-col gap-0.5 flex-shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => handleDateImageMove(d.id, imgIdx, imgIdx - 1)}
+                                disabled={disabled || dateImageStatus[d.id] === 'uploading' || imgIdx === 0}
+                                aria-label="上へ移動"
+                                className="w-5 h-5 rounded text-[10px] leading-none flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                              >
+                                ▲
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDateImageMove(d.id, imgIdx, imgIdx + 1)}
+                                disabled={disabled || dateImageStatus[d.id] === 'uploading' || imgIdx === d.imageUrls.length - 1}
+                                aria-label="下へ移動"
+                                className="w-5 h-5 rounded text-[10px] leading-none flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                              >
+                                ▼
+                              </button>
+                            </div>
                             <img src={url} alt="" className="w-8 h-8 object-cover rounded border border-gray-200 flex-shrink-0" />
                             <span className="text-xs text-gray-500 flex-shrink-0" style={{ width: 92 }}>{imgIdx + 1}枚目のキャプション</span>
                             <textarea
@@ -1740,6 +1780,26 @@ export default function EventFormFields({
                 className={`flex items-center gap-3 px-3 py-2
                   ${i < form.imageUrls.length - 1 ? 'border-b border-gray-200' : ''}`}
               >
+                <div className="flex flex-col gap-0.5 flex-shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => handleImageMove(i, i - 1)}
+                    disabled={disabled || imageStatus === 'uploading' || i === 0}
+                    aria-label="上へ移動"
+                    className="w-5 h-5 rounded text-[10px] leading-none flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleImageMove(i, i + 1)}
+                    disabled={disabled || imageStatus === 'uploading' || i === form.imageUrls.length - 1}
+                    aria-label="下へ移動"
+                    className="w-5 h-5 rounded text-[10px] leading-none flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    ▼
+                  </button>
+                </div>
                 <img
                   src={url}
                   alt=""
