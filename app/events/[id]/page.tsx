@@ -25,6 +25,7 @@ async function getSpot(id: string): Promise<Spot | null> {
     imageUrl:    data.image_url ?? undefined,
     lat:         data.lat,
     lng:         data.lng,
+    address:     data.address ?? undefined,
     category:    data.category,
     type:        data.type ?? undefined,
     url:          data.url ?? undefined,
@@ -38,6 +39,18 @@ async function getSpot(id: string): Promise<Spot | null> {
   })
 }
 
+function extractCity(address?: string, prefecture?: string): string | null {
+  if (!address) return null
+  const cleaned = address.replace(/〒?\d{3}-?\d{4}\s*/, '')
+  const withoutPref = prefecture
+    ? cleaned.replace(prefecture, '')
+    : cleaned.replace(/^.+?[都道府県]/, '')
+  const match = withoutPref.match(/^(.+?市)/)
+    || withoutPref.match(/^(.+?区)/)
+    || withoutPref.match(/^(.+?(?:町|村))/)
+  return match ? match[1] : null
+}
+
 type Props = { params: Promise<{ id: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -47,7 +60,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description = spot.description
     ? spot.description.slice(0, 80).replace(/\n/g, ' ')
     : `${spot.venue ?? '群馬'}で開催のイベント情報 | グンマップ`
-  const title = `${spot.name}｜${spot.prefecture ?? '群馬県'}のイベント - グンマップ｜GUNMAp`
+  const city = extractCity(spot.address, spot.prefecture)
+  const area = city
+    ? `${spot.prefecture ?? '群馬県'}${city}`
+    : (spot.prefecture ?? '群馬県')
+  const title = `${spot.name}｜${area}のイベント｜グンマップ`
   return {
     title,
     description,
