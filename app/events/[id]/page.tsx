@@ -51,19 +51,35 @@ function extractCity(address?: string, prefecture?: string): string | null {
   return match ? match[1] : null
 }
 
+function buildFallbackDescription(spot: Spot, area: string): string {
+  const parts: string[] = [spot.name]
+  if (spot.startDate) {
+    const d = new Date(spot.startDate + 'T00:00:00')
+    const month = d.getMonth() + 1
+    const day = d.getDate()
+    parts.push(`${month}/${day}開催`)
+  }
+  if (spot.venue) {
+    parts.push(spot.venue)
+  }
+  parts.push(`${area}のイベント情報`)
+  parts.push('グンマップ')
+  return parts.join(' - ')
+}
+
 type Props = { params: Promise<{ id: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params
   const spot = await getSpot(id)
   if (!spot) return {}
-  const description = spot.description
-    ? spot.description.slice(0, 80).replace(/\n/g, ' ')
-    : `${spot.venue ?? '群馬'}で開催のイベント情報 | グンマップ`
   const city = extractCity(spot.address, spot.prefecture)
   const area = city
     ? `${spot.prefecture ?? '群馬県'}${city}`
     : (spot.prefecture ?? '群馬県')
+  const description = spot.description
+    ? spot.description.slice(0, 80).replace(/\n/g, ' ')
+    : buildFallbackDescription(spot, area)
   const title = `${spot.name}｜${area}のイベント｜グンマップ`
   return {
     title,
