@@ -211,12 +211,14 @@ export default function Sidebar({
               <button
                 key={cat}
                 onClick={() => onCategoryToggle(cat)}
-                className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full transition-colors cursor-pointer border ${
+                className={`inline-flex items-center gap-0.5 rounded-full transition-colors cursor-pointer border ${
+                  isSheet ? 'px-2.5 py-1' : 'px-2 py-0.5'
+                } ${
                   active
                     ? 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
                     : 'bg-gray-100 border-transparent text-gray-400 hover:bg-gray-200'
                 }`}
-                style={{ fontSize: 13, lineHeight: 1 }}
+                style={{ fontSize: isSheet ? 14 : 13, lineHeight: 1 }}
               >
                 <CategoryIcon category={cat} active={active} size={15} />
                 {CATEGORY_BUTTON_LABEL_OVERRIDES[cat] ?? CATEGORY_LABELS[cat]}
