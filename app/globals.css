@@ -67,6 +67,15 @@ html, body {
   animation: sheet-slide-up 0.3s cubic-bezier(0.32, 0.72, 0, 1) both;
 }
 
+/* ── スクロールバーを完全に非表示にする（エリアチップの横スクロール等） ── */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* ── PCサイドバーのスクロール領域：スクロールバーをカスタマイズ（モバイルには影響しない） ── */
 .pc-sidebar-scroll {
   scrollbar-width: thin;

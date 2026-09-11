@@ -6,7 +6,9 @@ import dynamic from 'next/dynamic'
 import Sidebar from './Sidebar'
 import DetailPanel from './DetailPanel'
 import BottomSheet, { buildSheetPositionStyle, useBottomOffset, type SheetState } from './BottomSheet'
-import { CATEGORY_LABELS, buildPeriodOptions, getVisualCategory, type Category, type PeriodFilter, type PeriodOption, type Spot } from '@/lib/spots'
+import AreaChips, { type AreaCount } from './AreaChips'
+import AreaOtherModal from './AreaOtherModal'
+import { CATEGORY_LABELS, EVENT_CATEGORIES, buildPeriodOptions, extractMunicipality, getVisualCategory, matchesCityArea, type Category, type PeriodFilter, type PeriodOption, type Spot } from '@/lib/spots'
 import { eventToSpot, type EventsDatabase } from '@/lib/events'
 import { getEventStatus, parseLocalDate } from '@/lib/date-utils'
 
@@ -25,6 +27,9 @@ const GUNMAP_INFO_SPOT: Spot = {
 // ─── 地図ピンのグループ化（同じ groupId のイベントをまとめる） ──────────
 /** グループ内メンバー間の画面ピクセル距離がこれを超えるとズームインでグループ解除する */
 const DISSOLVE_PX = 15
+
+/** エリアチップに常時表示する上位エリア数。これを超える分は「その他」チップにまとめる */
+const TOP_AREA_CHIP_COUNT = 6
 
 export type PinGroup = {
   /** 最前面（吹き出しの先頭）に表示する spot の id */
@@ -112,6 +117,10 @@ export default function MapApp() {
   const [sheetState,     setSheetState]     = useState<SheetState>('closed')
   // イベント一覧・イベント詳細の両ボトムシートで共有する単一のインスタンス（BottomSheet.tsx参照）
   const bottomOffset = useBottomOffset()
+  // イベント一覧ボトムシートの現在の高さ（CSS height文字列）。エリアチップ行を直上に追従させるために使う
+  const [sheetHeight, setSheetHeight] = useState('72px')
+  const [activeArea,    setActiveArea]      = useState<string | null>(null)
+  const [areaOtherModalOpen, setAreaOtherModalOpen] = useState(false)
   const [collectedSpots, setCollectedSpots] = useState<Spot[]>([])
   const [periodOptions, setPeriodOptions] = useState<PeriodOption[]>(buildPeriodOptions([2026]))
   const [userLocation,  setUserLocation]    = useState<[number, number] | null>(null)
@@ -308,6 +317,34 @@ export default function MapApp() {
     })
   }, [allSpots, periodFilter, activeCategories])
 
+  // エリアチップの集計（登録数の多い順）。カテゴリ・期間フィルタの選択状態に関わらず対象は一定にし、
+  // チップの並びが他のフィルタ操作で不用意に変わらないようにする。常設施設・終了イベントは対象外。
+  const areaCounts = useMemo<AreaCount[]>(() => {
+    const counts = new Map<string, number>()
+    for (const spot of allSpots) {
+      if (spot.type === 'permanent') continue
+      const visualCategory = getVisualCategory(spot)
+      if (!(EVENT_CATEGORIES as readonly string[]).includes(visualCategory)) continue
+      if (getEventStatus(spot.startDate, spot.endDate, spot.endTime) === 'ended') continue
+      const municipality = extractMunicipality(spot.address)
+      if (!municipality) continue
+      counts.set(municipality, (counts.get(municipality) ?? 0) + 1)
+    }
+    return [...counts.entries()]
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'ja'))
+  }, [allSpots])
+
+  const topAreas         = useMemo(() => areaCounts.slice(0, TOP_AREA_CHIP_COUNT), [areaCounts])
+  const otherAreas       = useMemo(() => areaCounts.slice(TOP_AREA_CHIP_COUNT), [areaCounts])
+  const otherAreaActive  = activeArea !== null && otherAreas.some((a) => a.name === activeArea)
+
+  // エリアチップ選択時、ボトムシートの一覧のみを該当エリアに絞り込む（地図ピンは絞り込んで非該当を非表示にする）
+  const areaFilteredSpots = useMemo(() => {
+    if (!activeArea) return filteredSpots
+    return filteredSpots.filter((spot) => matchesCityArea(spot.address, activeArea))
+  }, [filteredSpots, activeArea])
+
   // 終了イベントの ?event= リンクから来た場合、フィルターは変えずにピン表示にだけ一時追加する
   const displaySpots = useMemo(() => {
     if (!temporarySpot) return filteredSpots
@@ -477,6 +514,7 @@ export default function MapApp() {
           recenterSignal={recenterSignal}
           isMobile
           sheetState={sheetState}
+          activeArea={activeArea}
           onMapTapClose={() => setSheetState('closed')}
           onZoomChange={handleZoomChange}
           onFlyStart={handleFlyStart}
@@ -493,13 +531,37 @@ export default function MapApp() {
           </button>
         </div>
 
+        {!detailSpot && (
+          <AreaChips
+            areas={topAreas}
+            activeArea={activeArea}
+            onAreaChange={setActiveArea}
+            hasOther={otherAreas.length > 0}
+            otherActive={otherAreaActive}
+            onOtherClick={() => setAreaOtherModalOpen(true)}
+            positionStyle={{
+              bottom: `calc(${sheetHeight} + ${bottomOffset > 0 ? bottomOffset + 10 : 0}px + 8px)`,
+              transition: 'bottom 0.3s cubic-bezier(0.32,0.72,0,1)',
+            }}
+          />
+        )}
+        {areaOtherModalOpen && (
+          <AreaOtherModal
+            areas={otherAreas}
+            onSelect={(name) => { setActiveArea(name); setAreaOtherModalOpen(false) }}
+            onClose={() => setAreaOtherModalOpen(false)}
+          />
+        )}
+
         <BottomSheet
-          spotCount={filteredSpots.length}
+          title={activeArea ? `${activeArea}のイベント` : 'イベント一覧'}
+          spotCount={areaFilteredSpots.length}
           sheetState={sheetState}
           onSheetStateChange={setSheetState}
           bottomOffset={bottomOffset}
+          onHeightChange={setSheetHeight}
         >
-          <Sidebar {...sidebarProps} mode="sheet" />
+          <Sidebar {...sidebarProps} spots={areaFilteredSpots} mode="sheet" />
         </BottomSheet>
         {detailSpot && (
           <div

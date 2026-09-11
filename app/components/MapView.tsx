@@ -3,7 +3,7 @@
 import 'mapbox-gl/dist/mapbox-gl.css'
 import mapboxgl from 'mapbox-gl'
 import { useRef, useState, useMemo, useCallback, useEffect, useLayoutEffect } from 'react'
-import { getCategoryIconSrc, getVisualCategory, BADGE_BG_COLOR, type AllCategory, type Spot } from '@/lib/spots'
+import { getCategoryIconSrc, getVisualCategory, matchesCityArea, BADGE_BG_COLOR, type AllCategory, type Spot } from '@/lib/spots'
 import { getDateDisplay, getEventStatus, parseLocalDate, STATUS_CONFIG, PARK_STATUS, fmtTimeRange } from '@/lib/date-utils'
 import { type SheetState } from './BottomSheet'
 import { type PinGroup } from './MapApp'
@@ -24,6 +24,8 @@ type Props = {
   detailPanelOpen: boolean
   isMobile?: boolean
   sheetState?: SheetState
+  /** エリアチップで選択中のエリア（市区町村名）。null＝「すべて」（絞り込みなし） */
+  activeArea?: string | null
   onMapTapClose?: () => void
   onZoomChange?: (zoom: number) => void
   onFlyStart?: () => void
@@ -653,7 +655,7 @@ const TAP_MAX_DISTANCE = 10
 const TAP_MAX_DURATION = 300
 
 // ─── MapView（メインコンポーネント） ─────────────────────────────
-export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, userLocation = null, locationRadius = 60, recenterSignal = 0, onDetailOpen, onDetailClose, detailPanelOpen, isMobile = false, sheetState = 'closed', onMapTapClose, onZoomChange, onFlyStart, onFlyEnd }: Props) {
+export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, userLocation = null, locationRadius = 60, recenterSignal = 0, onDetailOpen, onDetailClose, detailPanelOpen, isMobile = false, sheetState = 'closed', activeArea = null, onMapTapClose, onZoomChange, onFlyStart, onFlyEnd }: Props) {
   const wrapperRef       = useRef<HTMLDivElement>(null)
   const containerRef     = useRef<HTMLDivElement>(null)
   const mapRef           = useRef<mapboxgl.Map | null>(null)
@@ -871,7 +873,12 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
     const map = mapRef.current
     if (!map || !mapReady) return
 
-    const representativeIds = new Set(pinGroups.map(g => g.representativeId))
+    // エリアチップで絞り込み中は、該当エリア外のピンをマーカーごと除外する（「すべて」選択時は絞り込みなし）
+    const visibleGroups = activeArea
+      ? pinGroups.filter(g => g.spots.some(s => matchesCityArea(s.address, activeArea)))
+      : pinGroups
+
+    const representativeIds = new Set(visibleGroups.map(g => g.representativeId))
     for (const id of Object.keys(markersRef.current)) {
       if (!representativeIds.has(id)) {
         markersRef.current[id].remove()
@@ -879,7 +886,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
       }
     }
 
-    for (const group of pinGroups) {
+    for (const group of visibleGroups) {
       const repId = group.representativeId
       const repSpot = group.spots[0]
       const iconDef = icons[repId]
@@ -951,7 +958,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
       const pinEl = el.firstElementChild as HTMLElement | null
       if (pinEl && pinEl.style.opacity !== opacity) pinEl.style.opacity = opacity
     }
-  }, [pinGroups, icons, selectedSpot?.id, mapReady])
+  }, [pinGroups, icons, selectedSpot?.id, activeArea, mapReady])
 
   // ─── 現在地マーカー・円表示 ──────────────────────────────────
   useEffect(() => {
@@ -1050,6 +1057,28 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
       map.fitBounds(bounds, { padding, animate: true, duration: 300 })
     }
   }, [userLocation, locationRadius, isMobile, mapReady])
+
+  // ─── エリアチップ選択時：ズームは変えずに該当エリアのピン中心へパン移動。「すべて」はデフォルト中心に戻す ──
+  const isFirstAreaFit = useRef(true)
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+    // マウント時点では activeArea は常に null（デフォルト表示のまま）なので何もしない
+    if (isFirstAreaFit.current) { isFirstAreaFit.current = false; return }
+
+    if (!activeArea) {
+      map.flyTo({ center: toLngLat(OTA_CENTER[0], OTA_CENTER[1]), zoom: map.getZoom(), duration: 500 })
+      return
+    }
+
+    const matched = pinGroups.filter(g => g.spots.some(s => matchesCityArea(s.address, activeArea)))
+    if (matched.length === 0) return
+
+    const centerLat = matched.reduce((sum, g) => sum + g.lat, 0) / matched.length
+    const centerLng = matched.reduce((sum, g) => sum + g.lng, 0) / matched.length
+    map.flyTo({ center: toLngLat(centerLat, centerLng), zoom: map.getZoom(), duration: 500 })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeArea, mapReady])
 
   // ─── RecenterToOta相当 ───────────────────────────────────────
   const isFirstRecenter = useRef(true)

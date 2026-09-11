@@ -132,6 +132,33 @@ export const EVENT_TYPE_LABELS: Record<EventType, string> = {
 
 export const BADGE_BG_COLOR = '#dbeafe'
 
+/** （旧・固定エリアチップ用。現在はイベント登録数からの動的集計に置き換え済みだが参照用に残置） */
+export const CITY_AREAS = ['前橋市', '高崎市', '太田市', '伊勢崎市', '桐生市'] as const
+export type CityArea = typeof CITY_AREAS[number]
+
+/** 住所文字列がエリアに合致するか判定する。area が null（＝「すべて」）の場合は常に true */
+export function matchesCityArea(address: string | undefined, area: string | null): boolean {
+  if (!area) return true
+  return !!address && address.includes(area)
+}
+
+/**
+ * 住所文字列から市区町村名を抽出する（エリアチップの動的集計用）。
+ * 郵便番号・都道府県・郡名を除去し、最初に現れる「市」「町」「村」までを市区町村名として取り出す。
+ * 群馬県に限らず、距離ベースで収録される近隣県（埼玉・栃木など）の住所にも対応する。
+ * 市町村を含まない住所（施設名・駅名のみ等）は null を返す。
+ */
+export function extractMunicipality(address: string | undefined | null): string | null {
+  if (!address) return null
+  let s = address.trim()
+  s = s.replace(/^日本[、,]?\s*/, '')
+  s = s.replace(/^〒?\s*\d{3}-?\d{4}\s*/, '')
+  s = s.replace(/^(北海道|東京都|(?:京都|大阪)府|.{2,3}県)/, '')
+  s = s.replace(/^[^\d0-9０-９]{1,6}郡/, '')
+  const m = s.match(/^[^\d0-9０-９]{1,7}?(市|町|村)/)
+  return m ? m[0] : null
+}
+
 /** 注意書きの初期値・フォールバック表示（spot.notice が未設定の場合に使用） */
 export const DEFAULT_NOTICE = '※当日の開催状況は公式情報をご確認ください。'
 
