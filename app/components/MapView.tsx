@@ -1059,12 +1059,24 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
   }, [userLocation, locationRadius, isMobile, mapReady])
 
   // ─── エリアチップ選択時：ズームは変えずに該当エリアのピン中心へパン移動。「すべて」はデフォルト中心に戻す ──
-  const isFirstAreaFit = useRef(true)
+  // /area/[slug] からの ?area= リダイレクトでは、activeArea が mapReady より先に確定することがある
+  // （mapReady=false のうちは早期returnするため、単純な「初回だけスキップ」フラグだと
+  //  そのケースの“実質的な初回発火”を誤って無視してしまう）。
+  // そこで prevActiveArea を使い、「mapReady が初めて true になった時点で activeArea が
+  // まだ null だった場合のみ」スキップする。
+  const prevActiveAreaRef = useRef<string | null | undefined>(undefined)
   useEffect(() => {
     const map = mapRef.current
     if (!map || !mapReady) return
-    // マウント時点では activeArea は常に null（デフォルト表示のまま）なので何もしない
-    if (isFirstAreaFit.current) { isFirstAreaFit.current = false; return }
+
+    const prevActiveArea = prevActiveAreaRef.current
+    prevActiveAreaRef.current = activeArea
+
+    // mapReady 確定時点で初めてこの効果が走り、かつ activeArea がまだ null（デフォルト表示のまま）
+    // → ページ読み込み直後の無意味なデフォルト位置への flyTo を防ぐため何もしない
+    if (prevActiveArea === undefined && !activeArea) return
+    // 実質的に変化していなければ何もしない
+    if (prevActiveArea === activeArea) return
 
     if (!activeArea) {
       map.flyTo({ center: toLngLat(OTA_CENTER[0], OTA_CENTER[1]), zoom: map.getZoom(), duration: 500 })

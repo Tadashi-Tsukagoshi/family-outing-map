@@ -8,6 +8,7 @@ import DetailPanel from './DetailPanel'
 import BottomSheet, { buildSheetPositionStyle, useBottomOffset, type SheetState } from './BottomSheet'
 import AreaChips, { type AreaCount } from './AreaChips'
 import AreaOtherModal from './AreaOtherModal'
+import { getAreaBySlug } from '@/lib/areas'
 import { CATEGORY_LABELS, EVENT_CATEGORIES, buildPeriodOptions, extractMunicipality, getVisualCategory, matchesCityArea, type Category, type PeriodFilter, type PeriodOption, type Spot } from '@/lib/spots'
 import { eventToSpot, type EventsDatabase } from '@/lib/events'
 import { getEventStatus, parseLocalDate } from '@/lib/date-utils'
@@ -91,6 +92,7 @@ const MapView = dynamic(() => import('./MapView'), {
 export default function MapApp() {
   const searchParams = useSearchParams()
   const eventParamHandled = useRef(false)
+  const areaParamHandled = useRef(false)
   // flyToアニメーション中はzoomLevel更新を抑制し、pinGroups再計算によるチラつきを防ぐ
   const isFlyingRef = useRef(false)
 
@@ -254,6 +256,21 @@ export default function MapApp() {
     }
     window.history.replaceState(null, '', '/')
   }, [collectedSpots, searchParams, handleDetailOpen])
+
+  // /area/[slug] からのリダイレクト（?area=xxx）を受けて、該当エリアをエリアチップ選択状態にする
+  // collectedSpots のロードを待ってから activeArea をセットすることで、MapView側のfitBounds/flyTo計算に
+  // 使う pinGroups が空のまま処理されてしまう（マップが動かない）事態を避ける
+  useEffect(() => {
+    if (areaParamHandled.current) return
+    if (collectedSpots.length === 0) return
+    const slug = searchParams.get('area')
+    if (!slug) return
+
+    areaParamHandled.current = true
+    const area = getAreaBySlug(slug)
+    if (area) setActiveArea(area.name)
+    window.history.replaceState(null, '', '/')
+  }, [collectedSpots, searchParams])
 
   useEffect(() => {
     handleLocate()
