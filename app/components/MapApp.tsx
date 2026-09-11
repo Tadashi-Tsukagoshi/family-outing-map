@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import Sidebar from './Sidebar'
 import DetailPanel from './DetailPanel'
-import BottomSheet, { useBottomOffset, type SheetState } from './BottomSheet'
+import BottomSheet, { buildSheetPositionStyle, useBottomOffset, type SheetState } from './BottomSheet'
 import { CATEGORY_LABELS, buildPeriodOptions, getVisualCategory, type Category, type PeriodFilter, type PeriodOption, type Spot } from '@/lib/spots'
 import { eventToSpot, type EventsDatabase } from '@/lib/events'
 import { getEventStatus, parseLocalDate } from '@/lib/date-utils'
@@ -110,7 +110,8 @@ export default function MapApp() {
   const [temporarySpot,  setTemporarySpot]  = useState<Spot | null>(null)
   const [detailSheetHeight, setDetailSheetHeight] = useState<'50dvh' | '100dvh'>('50dvh')
   const [sheetState,     setSheetState]     = useState<SheetState>('closed')
-  const detailBottomOffset = useBottomOffset()
+  // イベント一覧・イベント詳細の両ボトムシートで共有する単一のインスタンス（BottomSheet.tsx参照）
+  const bottomOffset = useBottomOffset()
   const [collectedSpots, setCollectedSpots] = useState<Spot[]>([])
   const [periodOptions, setPeriodOptions] = useState<PeriodOption[]>(buildPeriodOptions([2026]))
   const [userLocation,  setUserLocation]    = useState<[number, number] | null>(null)
@@ -496,6 +497,7 @@ export default function MapApp() {
           spotCount={filteredSpots.length}
           sheetState={sheetState}
           onSheetStateChange={setSheetState}
+          bottomOffset={bottomOffset}
         >
           <Sidebar {...sidebarProps} mode="sheet" />
         </BottomSheet>
@@ -504,11 +506,8 @@ export default function MapApp() {
             key={detailSpot.id}
             className="detail-sheet-enter fixed left-0 right-0 z-[1001] overflow-hidden"
             style={{
-              height: detailSheetHeight,
-              borderRadius: '16px 16px 0 0',
+              ...buildSheetPositionStyle({ height: detailSheetHeight, bottomOffset }),
               boxShadow: '0 -4px 24px rgba(0,0,0,0.15)',
-              transition: 'height 0.3s cubic-bezier(0.32,0.72,0,1)',
-              bottom: `${detailBottomOffset > 0 ? detailBottomOffset + 10 : 0}px`,
             }}
           >
             <DetailPanel

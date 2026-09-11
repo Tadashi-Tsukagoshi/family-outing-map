@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 export type SheetState = 'closed' | 'mid' | 'full'
 
 // Android Chromeのボトムナビバー対応: visualViewportの下端とウィンドウ下端の差分をオフセットとして適用
+// イベント一覧・イベント詳細の両ボトムシートで共有する単一のインスタンスとして、呼び出し元（MapApp）で一度だけ使う
 export function useBottomOffset(): number {
   const [bottomOffset, setBottomOffset] = useState(0)
 
@@ -22,19 +23,31 @@ export function useBottomOffset(): number {
   return bottomOffset
 }
 
+// イベント一覧・イベント詳細の両ボトムシートで共通の位置決めスタイルを生成する。
+// 高さ・下端位置の計算式を1箇所に集約し、2つのシートの見た目のズレを防ぐ。
+export function buildSheetPositionStyle(params: { height: string; bottomOffset: number }): React.CSSProperties {
+  const { height, bottomOffset } = params
+  return {
+    height,
+    bottom:     `${bottomOffset > 0 ? bottomOffset + 10 : 0}px`,
+    borderRadius: '16px 16px 0 0',
+    transition: 'height 0.3s cubic-bezier(0.32,0.72,0,1)',
+  }
+}
+
 type Props = {
   spotCount: number
   children: React.ReactNode
   sheetState: SheetState
   onSheetStateChange: (v: SheetState) => void
+  bottomOffset: number
 }
 
-export default function BottomSheet({ spotCount, children, sheetState, onSheetStateChange }: Props) {
+export default function BottomSheet({ spotCount, children, sheetState, onSheetStateChange, bottomOffset }: Props) {
   const startY   = useRef(0)
   const currentY = useRef(0)
   const headerRef = useRef<HTMLDivElement>(null)
   const [peekHeight, setPeekHeight] = useState(72)
-  const bottomOffset = useBottomOffset()
 
   useEffect(() => {
     const el = headerRef.current
@@ -77,15 +90,11 @@ export default function BottomSheet({ spotCount, children, sheetState, onSheetSt
 
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 bg-white flex flex-col overflow-hidden"
+      className="fixed left-0 right-0 bg-white flex flex-col overflow-hidden"
       style={{
-        height:       sheetHeights[sheetState],
-        transition:   'height 0.3s cubic-bezier(0.32,0.72,0,1)',
-        borderRadius: '16px 16px 0 0',
-        boxShadow:    '0 -4px 24px rgba(0,0,0,0.12)',
-        zIndex:       1000,
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        bottom:       `${bottomOffset > 0 ? bottomOffset + 10 : 0}px`,
+        ...buildSheetPositionStyle({ height: sheetHeights[sheetState], bottomOffset }),
+        boxShadow: '0 -4px 24px rgba(0,0,0,0.12)',
+        zIndex:    1000,
       }}
     >
       {/* ハンドル + ピーク時ヘッダー */}
