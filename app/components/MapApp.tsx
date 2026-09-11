@@ -9,7 +9,7 @@ import BottomSheet, { buildSheetPositionStyle, useBottomOffset, type SheetState 
 import AreaChips, { type AreaCount } from './AreaChips'
 import AreaOtherModal from './AreaOtherModal'
 import { getAreaBySlug } from '@/lib/areas'
-import { CATEGORY_LABELS, EVENT_CATEGORIES, buildPeriodOptions, extractMunicipality, getVisualCategory, matchesCityArea, type Category, type PeriodFilter, type PeriodOption, type Spot } from '@/lib/spots'
+import { CATEGORY_LABELS, buildPeriodOptions, extractMunicipality, getVisualCategory, matchesCityArea, type Category, type PeriodFilter, type PeriodOption, type Spot } from '@/lib/spots'
 import { eventToSpot, type EventsDatabase } from '@/lib/events'
 import { getEventStatus, parseLocalDate } from '@/lib/date-utils'
 
@@ -341,15 +341,12 @@ export default function MapApp() {
     })
   }, [allSpots, periodFilter, activeCategories])
 
-  // エリアチップの集計（登録数の多い順）。カテゴリ・期間フィルタの選択状態に関わらず対象は一定にし、
-  // チップの並びが他のフィルタ操作で不用意に変わらないようにする。常設施設・終了イベントは対象外。
+  // エリアチップの集計（登録数の多い順）。表示期間・カテゴリフィルタ適用後の filteredSpots から集計するため、
+  // 期間フィルタ「終了イベント(年別)」選択時は終了イベントの件数順、それ以外は期間内イベントの件数順になる。
+  // 常設施設・非対象カテゴリ・終了イベントの除外は filteredSpots 側の絞り込みで既に反映済み。
   const areaCounts = useMemo<AreaCount[]>(() => {
     const counts = new Map<string, number>()
-    for (const spot of allSpots) {
-      if (spot.type === 'permanent') continue
-      const visualCategory = getVisualCategory(spot)
-      if (!(EVENT_CATEGORIES as readonly string[]).includes(visualCategory)) continue
-      if (getEventStatus(spot.startDate, spot.endDate, spot.endTime) === 'ended') continue
+    for (const spot of filteredSpots) {
       const municipality = extractMunicipality(spot.address)
       if (!municipality) continue
       counts.set(municipality, (counts.get(municipality) ?? 0) + 1)
@@ -357,7 +354,7 @@ export default function MapApp() {
     return [...counts.entries()]
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'ja'))
-  }, [allSpots])
+  }, [filteredSpots])
 
   const topAreas         = useMemo(() => areaCounts.slice(0, TOP_AREA_CHIP_COUNT), [areaCounts])
   const otherAreas       = useMemo(() => areaCounts.slice(TOP_AREA_CHIP_COUNT), [areaCounts])
