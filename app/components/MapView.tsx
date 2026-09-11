@@ -1078,8 +1078,17 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
     // 実質的に変化していなければ何もしない
     if (prevActiveArea === activeArea) return
 
+    // モバイルはボトムシートがmidまで上がるため、見える地図領域は画面の上半分になる。
+    // イベント選択時（SelectedSpotTracker相当）と同じく bottom padding で上半分の中央に合わせる。
+    let padding: mapboxgl.PaddingOptions | undefined
+    if (isMobile) {
+      map.resize()
+      const containerH = map.getContainer().clientHeight
+      padding = { top: 0, left: 0, bottom: containerH / 2, right: 0 }
+    }
+
     if (!activeArea) {
-      map.flyTo({ center: toLngLat(OTA_CENTER[0], OTA_CENTER[1]), zoom: map.getZoom(), duration: 500 })
+      map.flyTo({ center: toLngLat(OTA_CENTER[0], OTA_CENTER[1]), zoom: map.getZoom(), padding, duration: 500 })
       return
     }
 
@@ -1088,7 +1097,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
 
     const centerLat = matched.reduce((sum, g) => sum + g.lat, 0) / matched.length
     const centerLng = matched.reduce((sum, g) => sum + g.lng, 0) / matched.length
-    map.flyTo({ center: toLngLat(centerLat, centerLng), zoom: map.getZoom(), duration: 500 })
+    map.flyTo({ center: toLngLat(centerLat, centerLng), zoom: map.getZoom(), padding, duration: 500 })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeArea, mapReady])
 

@@ -185,6 +185,13 @@ export default function MapApp() {
     setSelectedSpot(spot)
   }, [])
 
+  // エリアチップ／その他リストでのエリア選択（「すべて」含む）はボトムシートをmidまで上げる
+  // （現在地ONにする際の挙動と同様、closed/fullどちらの状態からでもmidに揃える）
+  const handleAreaChange = useCallback((area: string | null) => {
+    setActiveArea(area)
+    setSheetState('mid')
+  }, [])
+
   const handleFlyStart = useCallback(() => {
     isFlyingRef.current = true
   }, [])
@@ -268,9 +275,9 @@ export default function MapApp() {
 
     areaParamHandled.current = true
     const area = getAreaBySlug(slug)
-    if (area) setActiveArea(area.name)
+    if (area) handleAreaChange(area.name)
     window.history.replaceState(null, '', '/')
-  }, [collectedSpots, searchParams])
+  }, [collectedSpots, searchParams, handleAreaChange])
 
   useEffect(() => {
     handleLocate()
@@ -552,7 +559,7 @@ export default function MapApp() {
           <AreaChips
             areas={topAreas}
             activeArea={activeArea}
-            onAreaChange={setActiveArea}
+            onAreaChange={handleAreaChange}
             hasOther={otherAreas.length > 0}
             otherActive={otherAreaActive}
             onOtherClick={() => setAreaOtherModalOpen(true)}
@@ -565,7 +572,7 @@ export default function MapApp() {
         {areaOtherModalOpen && (
           <AreaOtherModal
             areas={otherAreas}
-            onSelect={(name) => { setActiveArea(name); setAreaOtherModalOpen(false) }}
+            onSelect={(name) => { handleAreaChange(name); setAreaOtherModalOpen(false) }}
             onClose={() => setAreaOtherModalOpen(false)}
           />
         )}
