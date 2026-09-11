@@ -604,7 +604,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                     fontSize: 14, color: '#3b82f6', textDecoration: 'none',
                   }}
                 >
-                  お問い合わせ
+                  お問い合わせ（Google フォーム）
                 </a>
                 <a
                   href="https://www.instagram.com/gunmap_jp/?hl=ja"
@@ -783,7 +783,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                 fontSize: 14, color: '#3b82f6', textDecoration: 'none',
               }}
             >
-              お問い合わせ
+              お問い合わせ（Google フォーム）
             </a>
             <a
               href="https://www.instagram.com/gunmap_jp/?hl=ja"
