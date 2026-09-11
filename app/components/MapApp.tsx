@@ -41,6 +41,43 @@ export type PinGroup = {
   lng: number
 }
 
+/**
+ * event_plus（複数日程）の1開催回が、現在選択中の表示期間フィルタに合致するかを判定する。
+ * filteredSpots の期間判定ロジック（スポット単位）と同じ基準を、mapSpots展開時に開催回単位で
+ * 再適用するために使う。常設施設・カテゴリの考慮はここでは行わない（event_plusの開催回は常に type='event' のため不要）。
+ */
+function eventPlusOccurrencePassesPeriod(
+  startDate: string | undefined,
+  endDate: string | undefined,
+  endTime: string | undefined,
+  periodFilter: PeriodFilter,
+): boolean {
+  if (periodFilter.startsWith('ended_')) {
+    const year = parseInt(periodFilter.replace('ended_', ''), 10)
+    if (getEventStatus(startDate, endDate, endTime) !== 'ended') return false
+    return !!endDate && endDate >= `${year}-01-01` && endDate <= `${year}-12-31`
+  }
+
+  if (getEventStatus(startDate, endDate, endTime) === 'ended') return false
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const cutoff = new Date(today)
+  switch (periodFilter) {
+    case '1w': cutoff.setDate(cutoff.getDate() + 7); break
+    case '2w': cutoff.setDate(cutoff.getDate() + 14); break
+    case '1m': cutoff.setMonth(cutoff.getMonth() + 1); break
+    case '3m': cutoff.setMonth(cutoff.getMonth() + 3); break
+  }
+  const cutoffStr = cutoff.toISOString().split('T')[0]
+  const todayStr = today.toISOString().split('T')[0]
+  if (startDate || endDate) {
+    const start = startDate ?? endDate!
+    const end = endDate ?? startDate!
+    return start <= cutoffStr && end >= todayStr
+  }
+  return true
+}
+
 /** グループ内ソート用の優先度。値が大きいほど前面（先頭）。z-index 計算ロジックと同じ優先順位 */
 function pinSortRank(spot: Spot, todayStartMs: number): number {
   const status = getEventStatus(spot.startDate, spot.endDate, spot.endTime)
@@ -374,11 +411,16 @@ export default function MapApp() {
   }, [filteredSpots, temporarySpot])
 
   // event_plus: 会場（lat/lng）が複数ある場合、地図には会場ごとに別ピンを表示する。
+  // 各開催回についても表示期間フィルタを再適用し、期間外の回はピンとして出さない
+  // （eventPlusPinsは「終了していない全開催回」であり、期間フィルタ自体は考慮されていないため）。
   // サイドバー一覧（filteredSpots）は1件のまま変更しない。
   const mapSpots = useMemo(() => {
     const result: Spot[] = []
     for (const spot of displaySpots) {
-      const pins = spot.category === 'event_plus' ? spot.eventPlusPins : undefined
+      const allPins = spot.category === 'event_plus' ? spot.eventPlusPins : undefined
+      const pins = allPins?.filter((pin) =>
+        eventPlusOccurrencePassesPeriod(pin.startDate, pin.endDate, pin.endTime, periodFilter)
+      )
       if (!pins || pins.length <= 1) {
         result.push(spot)
         continue
@@ -401,7 +443,7 @@ export default function MapApp() {
       })
     }
     return result
-  }, [displaySpots])
+  }, [displaySpots, periodFilter])
 
   // 1) 同じ groupId の mapSpots 同士をグループ化（ズームインしてメンバー間の画面ピクセル距離が
   //    DISSOLVE_PX を超えるとグループを解除し、各spotが個別座標で表示される）。
