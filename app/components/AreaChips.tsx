@@ -35,7 +35,7 @@ export default function AreaChips({ areas, activeArea, onAreaChange, hasOther, o
       <button
         type="button"
         onClick={() => onAreaChange(null)}
-        className="shrink-0 whitespace-nowrap rounded-full border px-2.5 py-1 text-[13px] font-medium transition-colors cursor-pointer"
+        className="shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer"
         style={chipStyle(activeArea === null)}
       >
         {ALL_LABEL}
@@ -46,7 +46,7 @@ export default function AreaChips({ areas, activeArea, onAreaChange, hasOther, o
           key={area.name}
           type="button"
           onClick={() => onAreaChange(area.name)}
-          className="shrink-0 whitespace-nowrap rounded-full border px-2.5 py-1 text-[13px] font-medium transition-colors cursor-pointer"
+          className="shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer"
           style={chipStyle(activeArea === area.name)}
         >
           {area.name}
@@ -57,7 +57,7 @@ export default function AreaChips({ areas, activeArea, onAreaChange, hasOther, o
         <button
           type="button"
           onClick={onOtherClick}
-          className="shrink-0 whitespace-nowrap rounded-full border px-2.5 py-1 text-[13px] font-medium transition-colors cursor-pointer"
+          className="shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer"
           style={chipStyle(otherActive)}
         >
           {OTHER_LABEL}
