@@ -111,7 +111,7 @@ export default function BottomSheet({ title = 'イベント一覧', spotCount, c
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
-        className="flex-shrink-0 select-none cursor-pointer"
+        className="flex-shrink-0 select-none cursor-pointer border-b border-gray-200"
         style={{ touchAction: 'none' }}
       >
         <div className="flex justify-center pt-2.5 pb-1.5">

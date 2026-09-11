@@ -201,8 +201,10 @@ export default function Sidebar({
       </div>
 
       <div>
-        <span className="text-sm" style={{ color: '#1F1F1F' }}>カテゴリ</span>
-        <div className="flex flex-wrap gap-1.5 mt-2">
+        {!isSheet && (
+          <span className="text-sm" style={{ color: '#1F1F1F' }}>カテゴリ</span>
+        )}
+        <div className={`flex flex-wrap gap-1.5 ${isSheet ? '' : 'mt-2'}`}>
           {(Object.keys(CATEGORY_LABELS) as Category[]).filter((cat) => cat !== 'event_plus').map((cat) => {
             const active = activeCategories.has(cat)
             return (
