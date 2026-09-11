@@ -4,6 +4,24 @@ import { useEffect, useRef, useState } from 'react'
 
 export type SheetState = 'closed' | 'mid' | 'full'
 
+// Android Chromeのボトムナビバー対応: visualViewportの下端とウィンドウ下端の差分をオフセットとして適用
+export function useBottomOffset(): number {
+  const [bottomOffset, setBottomOffset] = useState(0)
+
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+    const update = () => {
+      setBottomOffset(window.innerHeight - vv.height - vv.offsetTop)
+    }
+    update()
+    vv.addEventListener('resize', update)
+    return () => vv.removeEventListener('resize', update)
+  }, [])
+
+  return bottomOffset
+}
+
 type Props = {
   spotCount: number
   children: React.ReactNode
@@ -16,7 +34,7 @@ export default function BottomSheet({ spotCount, children, sheetState, onSheetSt
   const currentY = useRef(0)
   const headerRef = useRef<HTMLDivElement>(null)
   const [peekHeight, setPeekHeight] = useState(72)
-  const [bottomOffset, setBottomOffset] = useState(0)
+  const bottomOffset = useBottomOffset()
 
   useEffect(() => {
     const el = headerRef.current
@@ -26,18 +44,6 @@ export default function BottomSheet({ spotCount, children, sheetState, onSheetSt
     const ro = new ResizeObserver(update)
     ro.observe(el)
     return () => ro.disconnect()
-  }, [])
-
-  // Android Chromeのボトムナビバー対応: visualViewportの下端とウィンドウ下端の差分をオフセットとして適用
-  useEffect(() => {
-    const vv = window.visualViewport
-    if (!vv) return
-    const update = () => {
-      setBottomOffset(window.innerHeight - vv.height - vv.offsetTop)
-    }
-    update()
-    vv.addEventListener('resize', update)
-    return () => vv.removeEventListener('resize', update)
   }, [])
 
   const sheetHeights: Record<SheetState, string> = {

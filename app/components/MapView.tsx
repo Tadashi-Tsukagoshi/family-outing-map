@@ -1089,7 +1089,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
       const lngLat = toLngLat(selectedSpot.lat, selectedSpot.lng)
 
       if (isMobile) {
-        // 詳細パネル（50vh）上の可視エリア中央にピンを配置する。
+        // 詳細パネル（50dvh）上の可視エリア中央にピンを配置する。
         // flyTo は padding を受け付けるため、fitBounds の内部 padding の影響を受けない。
         map.resize()
         const containerH = map.getContainer().clientHeight

@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import Sidebar from './Sidebar'
 import DetailPanel from './DetailPanel'
-import BottomSheet, { type SheetState } from './BottomSheet'
+import BottomSheet, { useBottomOffset, type SheetState } from './BottomSheet'
 import { CATEGORY_LABELS, buildPeriodOptions, getVisualCategory, type Category, type PeriodFilter, type PeriodOption, type Spot } from '@/lib/spots'
 import { eventToSpot, type EventsDatabase } from '@/lib/events'
 import { getEventStatus, parseLocalDate } from '@/lib/date-utils'
@@ -108,8 +108,9 @@ export default function MapApp() {
   const [selectedSpot,   setSelectedSpot]   = useState<Spot | null>(null)
   const [detailSpot,     setDetailSpot]     = useState<Spot | null>(null)
   const [temporarySpot,  setTemporarySpot]  = useState<Spot | null>(null)
-  const [detailSheetHeight, setDetailSheetHeight] = useState<'50vh' | '100dvh'>('50vh')
+  const [detailSheetHeight, setDetailSheetHeight] = useState<'50dvh' | '100dvh'>('50dvh')
   const [sheetState,     setSheetState]     = useState<SheetState>('closed')
+  const detailBottomOffset = useBottomOffset()
   const [collectedSpots, setCollectedSpots] = useState<Spot[]>([])
   const [periodOptions, setPeriodOptions] = useState<PeriodOption[]>(buildPeriodOptions([2026]))
   const [userLocation,  setUserLocation]    = useState<[number, number] | null>(null)
@@ -186,7 +187,7 @@ export default function MapApp() {
   }, [])
 
   useEffect(() => {
-    setDetailSheetHeight('50vh')
+    setDetailSheetHeight('50dvh')
   }, [detailSpot])
 
   const handleDetailClose = useCallback(() => {
@@ -501,19 +502,20 @@ export default function MapApp() {
         {detailSpot && (
           <div
             key={detailSpot.id}
-            className="detail-sheet-enter fixed bottom-0 left-0 right-0 z-[1001] overflow-hidden"
+            className="detail-sheet-enter fixed left-0 right-0 z-[1001] overflow-hidden"
             style={{
               height: detailSheetHeight,
               borderRadius: '16px 16px 0 0',
               boxShadow: '0 -4px 24px rgba(0,0,0,0.15)',
               transition: 'height 0.3s cubic-bezier(0.32,0.72,0,1)',
+              bottom: `${detailBottomOffset > 0 ? detailBottomOffset + 10 : 0}px`,
             }}
           >
             <DetailPanel
               spot={detailSpot}
               onClose={() => { handleDetailClose(); setSheetState('closed') }}
               onExpand={() => setDetailSheetHeight('100dvh')}
-              onCollapse={() => setDetailSheetHeight('50vh')}
+              onCollapse={() => setDetailSheetHeight('50dvh')}
               expanded={detailSheetHeight === '100dvh'}
               mobile
             />
