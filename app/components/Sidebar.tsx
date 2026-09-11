@@ -138,7 +138,7 @@ export default function Sidebar({
 
   // フィルター（表示期間・現在地距離円・カテゴリ）：PC/モバイルで共通。配置位置のみモードで異なる
   const filterSection = (
-    <div className={`pl-[22px] border-b border-gray-100 ${isSheet ? 'p-4 space-y-3' : 'pt-4 pb-2.5 pr-4 space-y-2'}`}>
+    <div className={`pl-[22px] border-b border-gray-100 ${isSheet ? 'pt-4 pr-4 pb-2.5 space-y-5' : 'pt-4 pb-2.5 pr-4 space-y-2'}`}>
       {/* 表示期間・現在地を表示：同じグリッドの列として並べることで、プルダウンとスライダーの幅・右端を揃える */}
       <div className={`grid grid-cols-[auto_auto] items-center justify-between ${isSheet ? 'gap-y-3' : 'gap-y-2'}`}>
         <span className="text-sm" style={{ color: '#1F1F1F' }}>表示期間</span>
