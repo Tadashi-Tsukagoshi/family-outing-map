@@ -453,10 +453,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
           </div>} */}
 
           {/* ④ キャプション層 */}
-          <div style={{
-            padding: isGunmapInfo ? '12px 16px 0' : '12px 16px 20px',
-            ...(isGunmapInfo ? { display: 'flex', flexDirection: 'column', minHeight: '100%' } : {}),
-          }}>
+          <div style={{ padding: isGunmapInfo ? '12px 16px 0' : '12px 16px 20px' }}>
             {spot.venue && (
               <p style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 14, fontWeight: 500, color: '#111', margin: '0 0 8px' }}>
                 <span style={{
@@ -620,10 +617,10 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                 >
                   Instagram（@gunmap_jp）
                 </a>
-                <div style={{ marginTop: 'auto' }}>
+                <div style={{ marginTop: 80 }}>
                   <div
                     style={{
-                      marginTop: 12, paddingTop: 10,
+                      paddingTop: 10,
                       borderTop: '1px solid #f3f4f6',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                       fontSize: 13, color: '#9ca3af',
@@ -791,10 +788,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
         </div> */}
 
         {/* コンテンツ層 */}
-        <div style={{
-          padding: isGunmapInfo ? '12px 16px 0' : '12px 16px 20px',
-          ...(isGunmapInfo ? { display: 'flex', flexDirection: 'column', minHeight: '100%' } : {}),
-        }}>
+        <div style={{ padding: isGunmapInfo ? '12px 16px 0' : '12px 16px 20px' }}>
         {isGunmapInfo ? (
           <>
             <p style={{ fontSize: 14, fontWeight: 500, color: '#111', lineHeight: 1.65, margin: '0 0 16px', whiteSpace: 'pre-line' }}>
@@ -823,10 +817,10 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
             >
               Instagram（@gunmap_jp）
             </a>
-            <div style={{ marginTop: 'auto' }}>
+            <div style={{ marginTop: 80 }}>
               <div
                 style={{
-                  marginTop: 12, paddingTop: 10,
+                  paddingTop: 10,
                   borderTop: '1px solid #f3f4f6',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                   fontSize: 13, color: '#9ca3af',
