@@ -398,7 +398,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
         </div>
 
         {/* ②③④ スクロール領域 */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto" style={isGunmapInfo ? { display: 'flex', flexDirection: 'column' } : undefined}>
           {/* ② 画像層 */}
           {hasGallery ? (
             <PhotoCarousel
@@ -453,7 +453,11 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
           </div>} */}
 
           {/* ④ キャプション層 */}
-          <div style={{ padding: isGunmapInfo ? '12px 16px 0' : '12px 16px 20px' }}>
+          <div style={{
+            padding: isGunmapInfo ? '12px 16px 0' : '12px 16px 20px',
+            ...(isGunmapInfo ? { display: 'flex', flexDirection: 'column', flex: '1 0 auto' } : {}),
+          }}>
+          <div>
             {spot.venue && (
               <p style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 14, fontWeight: 500, color: '#111', margin: '0 0 8px' }}>
                 <span style={{
@@ -617,27 +621,6 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                 >
                   Instagram（@gunmap_jp）
                 </a>
-                <div style={{ marginTop: 80 }}>
-                  <div
-                    style={{
-                      paddingTop: 10,
-                      borderTop: '1px solid #f3f4f6',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                      fontSize: 13, color: '#9ca3af',
-                    }}
-                  >
-                    <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none' }}>
-                      利用規約
-                    </a>
-                    <span>・</span>
-                    <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none' }}>
-                      プライバシーポリシー
-                    </a>
-                  </div>
-                  <p style={{ marginTop: 8, paddingBottom: 16, fontSize: 13, color: '#9ca3af', textAlign: 'center' }}>
-                    © 2026 GUNMAp
-                  </p>
-                </div>
               </>
             ) : (
               <>
@@ -667,6 +650,30 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                 </a>
               </>
             )}
+          </div>
+          {isGunmapInfo && (
+            <div style={{ marginTop: 'auto' }}>
+              <div
+                style={{
+                  paddingTop: 10,
+                  borderTop: '1px solid #f3f4f6',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  fontSize: 13, color: '#9ca3af',
+                }}
+              >
+                <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none' }}>
+                  利用規約
+                </a>
+                <span>・</span>
+                <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none' }}>
+                  プライバシーポリシー
+                </a>
+              </div>
+              <p style={{ marginTop: 8, paddingBottom: 16, fontSize: 13, color: '#9ca3af', textAlign: 'center' }}>
+                © 2026 GUNMAp
+              </p>
+            </div>
+          )}
           </div>
         </div>
       </aside>
@@ -727,7 +734,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
       </div>
 
       {/* スクロール領域 */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto" style={isGunmapInfo ? { display: 'flex', flexDirection: 'column' } : undefined}>
         {/* 画像層 */}
         <div className="shrink-0">
           {hasGallery ? (
@@ -788,36 +795,41 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
         </div> */}
 
         {/* コンテンツ層 */}
-        <div style={{ padding: isGunmapInfo ? '12px 16px 0' : '12px 16px 20px' }}>
+        <div style={{
+          padding: isGunmapInfo ? '12px 16px 0' : '12px 16px 20px',
+          ...(isGunmapInfo ? { display: 'flex', flexDirection: 'column', flex: '1 0 auto' } : {}),
+        }}>
         {isGunmapInfo ? (
           <>
-            <p style={{ fontSize: 14, fontWeight: 500, color: '#111', lineHeight: 1.65, margin: '0 0 16px', whiteSpace: 'pre-line' }}>
-              {spot.description}
-            </p>
-            <a
-              href="https://docs.google.com/forms/d/e/1FAIpQLSfjd2ErqEMLI7gDMk4O5iutIRSUMI6AD0hkJSnN3tAT5UjIXA/viewform"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'block', marginTop: 16, paddingTop: 10,
-                borderTop: '1px solid #f3f4f6',
-                fontSize: 14, color: '#3b82f6', textDecoration: 'none',
-              }}
-            >
-              お問い合わせ（Google フォーム）
-            </a>
-            <a
-              href="https://www.instagram.com/gunmap_jp/?hl=ja"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'block', marginTop: 10,
-                fontSize: 14, color: '#3b82f6', textDecoration: 'none',
-              }}
-            >
-              Instagram（@gunmap_jp）
-            </a>
-            <div style={{ marginTop: 80 }}>
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 500, color: '#111', lineHeight: 1.65, margin: '0 0 16px', whiteSpace: 'pre-line' }}>
+                {spot.description}
+              </p>
+              <a
+                href="https://docs.google.com/forms/d/e/1FAIpQLSfjd2ErqEMLI7gDMk4O5iutIRSUMI6AD0hkJSnN3tAT5UjIXA/viewform"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'block', marginTop: 16, paddingTop: 10,
+                  borderTop: '1px solid #f3f4f6',
+                  fontSize: 14, color: '#3b82f6', textDecoration: 'none',
+                }}
+              >
+                お問い合わせ（Google フォーム）
+              </a>
+              <a
+                href="https://www.instagram.com/gunmap_jp/?hl=ja"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'block', marginTop: 10,
+                  fontSize: 14, color: '#3b82f6', textDecoration: 'none',
+                }}
+              >
+                Instagram（@gunmap_jp）
+              </a>
+            </div>
+            <div style={{ marginTop: 'auto' }}>
               <div
                 style={{
                   paddingTop: 10,
