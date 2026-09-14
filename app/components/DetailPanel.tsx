@@ -453,7 +453,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
           </div>} */}
 
           {/* ④ キャプション層 */}
-          <div style={{ padding: '12px 16px 20px' }}>
+          <div style={{ padding: isGunmapInfo ? '12px 16px 0' : '12px 16px 20px' }}>
             {spot.venue && (
               <p style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 14, fontWeight: 500, color: '#111', margin: '0 0 8px' }}>
                 <span style={{
@@ -633,7 +633,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                     プライバシーポリシー
                   </a>
                 </div>
-                <p style={{ marginTop: 8, fontSize: 13, color: '#9ca3af', textAlign: 'center' }}>
+                <p style={{ marginTop: 8, paddingBottom: 16, fontSize: 13, color: '#9ca3af', textAlign: 'center' }}>
                   © 2026 GUNMAp
                 </p>
               </>
@@ -786,7 +786,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
         </div> */}
 
         {/* コンテンツ層 */}
-        <div style={{ padding: '12px 16px 20px' }}>
+        <div style={{ padding: isGunmapInfo ? '12px 16px 0' : '12px 16px 20px' }}>
         {isGunmapInfo ? (
           <>
             <p style={{ fontSize: 14, fontWeight: 500, color: '#111', lineHeight: 1.65, margin: '0 0 16px', whiteSpace: 'pre-line' }}>
@@ -831,7 +831,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                 プライバシーポリシー
               </a>
             </div>
-            <p style={{ marginTop: 8, fontSize: 13, color: '#9ca3af', textAlign: 'center' }}>
+            <p style={{ marginTop: 8, paddingBottom: 16, fontSize: 13, color: '#9ca3af', textAlign: 'center' }}>
               © 2026 GUNMAp
             </p>
           </>
