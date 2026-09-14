@@ -398,7 +398,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
         </div>
 
         {/* ②③④ スクロール領域 */}
-        <div className="flex-1 overflow-y-auto" style={isGunmapInfo ? { display: 'flex', flexDirection: 'column' } : undefined}>
+        <div className="flex-1 overflow-y-auto">
           {/* ② 画像層 */}
           {hasGallery ? (
             <PhotoCarousel
@@ -453,7 +453,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
           </div>} */}
 
           {/* ④ キャプション層 */}
-          <div style={{ padding: '12px 16px 20px', ...(isGunmapInfo ? { flex: 1, display: 'flex', flexDirection: 'column' } : {}) }}>
+          <div style={{ padding: '12px 16px 20px' }}>
             {spot.venue && (
               <p style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 14, fontWeight: 500, color: '#111', margin: '0 0 8px' }}>
                 <span style={{
@@ -619,7 +619,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                 </a>
                 <div
                   style={{
-                    marginTop: 'auto', paddingTop: 10,
+                    marginTop: 16, paddingTop: 10,
                     borderTop: '1px solid #f3f4f6',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                     fontSize: 13, color: '#9ca3af',
@@ -786,7 +786,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
         </div> */}
 
         {/* コンテンツ層 */}
-        <div style={{ padding: '12px 16px 20px', ...(isGunmapInfo ? { flex: 1, display: 'flex', flexDirection: 'column' } : {}) }}>
+        <div style={{ padding: '12px 16px 20px' }}>
         {isGunmapInfo ? (
           <>
             <p style={{ fontSize: 14, fontWeight: 500, color: '#111', lineHeight: 1.65, margin: '0 0 16px', whiteSpace: 'pre-line' }}>
@@ -817,7 +817,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
             </a>
             <div
               style={{
-                marginTop: 'auto', paddingTop: 10,
+                marginTop: 16, paddingTop: 10,
                 borderTop: '1px solid #f3f4f6',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                 fontSize: 13, color: '#9ca3af',
