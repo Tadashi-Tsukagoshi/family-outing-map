@@ -617,25 +617,6 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                 >
                   Instagram（@gunmap_jp）
                 </a>
-                <div
-                  style={{
-                    marginTop: 16, paddingTop: 10,
-                    borderTop: '1px solid #f3f4f6',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                    fontSize: 13, color: '#9ca3af',
-                  }}
-                >
-                  <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none' }}>
-                    利用規約
-                  </a>
-                  <span>・</span>
-                  <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none' }}>
-                    プライバシーポリシー
-                  </a>
-                </div>
-                <p style={{ marginTop: 8, fontSize: 13, color: '#9ca3af', textAlign: 'center' }}>
-                  © 2026 GUNMAp
-                </p>
               </>
             ) : (
               <>
@@ -667,6 +648,24 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
             )}
           </div>
         </div>
+
+        {/* フッター層（利用規約・著作権、スクロールしない固定表示） */}
+        {isGunmapInfo && (
+          <div className="shrink-0 bg-white" style={{ borderTop: '1px solid #f3f4f6', padding: '10px 16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 13, color: '#9ca3af' }}>
+              <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none' }}>
+                利用規約
+              </a>
+              <span>・</span>
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none' }}>
+                プライバシーポリシー
+              </a>
+            </div>
+            <p style={{ marginTop: 8, fontSize: 13, color: '#9ca3af', textAlign: 'center' }}>
+              © 2026 GUNMAp
+            </p>
+          </div>
+        )}
       </aside>
 
       {lightboxIndex !== null && typeof document !== 'undefined' && createPortal(
@@ -815,25 +814,6 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
             >
               Instagram（@gunmap_jp）
             </a>
-            <div
-              style={{
-                marginTop: 16, paddingTop: 10,
-                borderTop: '1px solid #f3f4f6',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                fontSize: 13, color: '#9ca3af',
-              }}
-            >
-              <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none' }}>
-                利用規約
-              </a>
-              <span>・</span>
-              <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none' }}>
-                プライバシーポリシー
-              </a>
-            </div>
-            <p style={{ marginTop: 8, fontSize: 13, color: '#9ca3af', textAlign: 'center' }}>
-              © 2026 GUNMAp
-            </p>
           </>
         ) : (
           <>
@@ -993,6 +973,24 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
         )}
         </div>
       </div>
+
+      {/* フッター層（利用規約・著作権、スクロールしない固定表示） */}
+      {isGunmapInfo && (
+        <div className="shrink-0 bg-white" style={{ borderTop: '1px solid #f3f4f6', padding: '10px 16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 13, color: '#9ca3af' }}>
+            <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none' }}>
+              利用規約
+            </a>
+            <span>・</span>
+            <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none' }}>
+              プライバシーポリシー
+            </a>
+          </div>
+          <p style={{ marginTop: 8, fontSize: 13, color: '#9ca3af', textAlign: 'center' }}>
+            © 2026 GUNMAp
+          </p>
+        </div>
+      )}
     </aside>
 
     {lightboxIndex !== null && typeof document !== 'undefined' && createPortal(
