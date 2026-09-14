@@ -415,7 +415,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
             <PinchZoomImage
               src={image}
               className="bg-gray-100"
-              style={{ display: 'block', width: '100%', height: 'auto' }}
+              style={isGunmapInfo ? { display: 'block', width: '100%', height: 'auto', flexShrink: 0 } : { display: 'block', width: '100%', height: 'auto' }}
               onError={() => setImageLoadFailed(true)}
             />
           )}
