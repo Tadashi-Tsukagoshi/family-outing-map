@@ -617,6 +617,22 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                 >
                   Instagram（@gunmap_jp）
                 </a>
+                <div
+                  style={{
+                    marginTop: 10, paddingTop: 10,
+                    borderTop: '1px solid #f3f4f6',
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    fontSize: 13, color: '#9ca3af',
+                  }}
+                >
+                  <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none' }}>
+                    利用規約
+                  </a>
+                  <span>・</span>
+                  <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none' }}>
+                    プライバシーポリシー
+                  </a>
+                </div>
               </>
             ) : (
               <>
@@ -796,6 +812,22 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
             >
               Instagram（@gunmap_jp）
             </a>
+            <div
+              style={{
+                marginTop: 10, paddingTop: 10,
+                borderTop: '1px solid #f3f4f6',
+                display: 'flex', alignItems: 'center', gap: 6,
+                fontSize: 13, color: '#9ca3af',
+              }}
+            >
+              <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none' }}>
+                利用規約
+              </a>
+              <span>・</span>
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none' }}>
+                プライバシーポリシー
+              </a>
+            </div>
           </>
         ) : (
           <>
