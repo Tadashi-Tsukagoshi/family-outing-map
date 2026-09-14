@@ -633,6 +633,9 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                     プライバシーポリシー
                   </a>
                 </div>
+                <p style={{ marginTop: 8, fontSize: 13, color: '#9ca3af', textAlign: 'center' }}>
+                  © 2026 GUNMAp
+                </p>
               </>
             ) : (
               <>
@@ -828,6 +831,9 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                 プライバシーポリシー
               </a>
             </div>
+            <p style={{ marginTop: 8, fontSize: 13, color: '#9ca3af', textAlign: 'center' }}>
+              © 2026 GUNMAp
+            </p>
           </>
         ) : (
           <>
