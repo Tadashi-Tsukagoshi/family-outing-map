@@ -175,6 +175,10 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
           scheduleNote: isPermanent ? '' : (formValues.dateConfirmed ? '' : formValues.scheduleNote),
           startDate:    isPermanent ? '' : (formValues.dateConfirmed ? formValues.startDate : ''),
           endDate:      isPermanent ? '' : (formValues.dateConfirmed ? formValues.endDate   : ''),
+          instagram_url: formValues.instagramUrl.trim() || null,
+          x_url:         formValues.xUrl.trim() || null,
+          sub_category:  formValues.subCategory || null,
+          group_id:      formValues.groupId || null,
         }),
       })
       if (!putRes.ok) {
