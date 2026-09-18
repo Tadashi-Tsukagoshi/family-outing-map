@@ -9,6 +9,7 @@ import BottomSheet, { buildSheetPositionStyle, useBottomOffset, type SheetState 
 import AreaChips, { type AreaCount } from './AreaChips'
 import AreaOtherModal from './AreaOtherModal'
 import PeriodChip from './PeriodChip'
+import LocationRadiusChip from './LocationRadiusChip'
 import { getAreaBySlug } from '@/lib/areas'
 import { CATEGORY_LABELS, buildPeriodOptions, extractMunicipality, getVisualCategory, matchesCityArea, type Category, type PeriodFilter, type PeriodOption, type Spot } from '@/lib/spots'
 import { eventToSpot, type EventsDatabase } from '@/lib/events'
@@ -614,11 +615,20 @@ export default function MapApp() {
           </button>
         </div>
 
-        {/* 表示期間チップ（モバイルのみ） */}
+        {/* 現在地距離円チップ＋表示期間チップ（モバイルのみ、右上に横並び） */}
         <div
-          className="fixed top-4 right-4 flex items-center justify-end md:hidden"
+          className="fixed top-4 right-4 flex items-center justify-end gap-2 md:hidden"
           style={{ height: 55, zIndex: 999 }}
         >
+          <LocationRadiusChip
+            hasLocation={userLocation !== null}
+            locationRadius={locationRadius}
+            onSelectOff={handleLocateClear}
+            onSelectRadius={(radius) => {
+              setLocationRadius(radius)
+              if (userLocation === null) handleLocate()
+            }}
+          />
           <PeriodChip
             periodFilter={periodFilter}
             onPeriodChange={setPeriodFilter}

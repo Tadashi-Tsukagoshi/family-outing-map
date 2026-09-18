@@ -1,13 +1,7 @@
 'use client'
 
-import { useRef } from 'react'
 import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, getCategoryIconSrc, getVisualCategory, isDarkPin, type Category, type AllCategory, type PeriodFilter, type PeriodOption, type Spot } from '@/lib/spots'
 import { getDateDisplay, fmtTimeRange } from '@/lib/date-utils'
-
-// モバイル版の現在地スライダー：つまみタップ（動かさない）とドラッグ（動かす）を判別するための閾値
-const RADIUS_TAP_MAX_DISTANCE  = 10 // px。これ未満の移動は「タップ」とみなす
-const RADIUS_TAP_MAX_DURATION  = 300 // ms。これ未満の押下時間は「タップ」とみなす
-const RADIUS_THUMB_TAP_RADIUS  = 17 // px。つまみ中心からこの距離以内で押し始めたら「つまみタップ」候補とする
 
 type Props = {
   periodFilter: PeriodFilter
@@ -95,100 +89,52 @@ export default function Sidebar({
 }: Props) {
   const isSheet = mode === 'sheet'
 
-  // 現在地スライダー：つまみの中心位置（%）。モバイルはタップ領域拡大のためつまみを大きく描画するので、計算に使う幅もそれに合わせる
+  // 現在地スライダー：つまみの中心位置（%）
   const radiusPercent    = (locationRadius - 10) / 50
-  const radiusThumbWidth = isSheet ? 22 : 16
+  const radiusThumbWidth = 16
   const radiusThumbLeft  = `calc(${radiusPercent * 100}% + ${radiusThumbWidth / 2 - radiusPercent * radiusThumbWidth}px)`
-  // モバイル用トラックの塗り（つまみより左＝現在値まで を色付け）。CSS変数として渡し、globals.css側の
-  // ::-webkit-slider-runnable-track / ::-moz-range-track の background で参照する（PC版のトラックには影響しない）
-  const radiusTrackFill = hasLocation
-    ? `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${radiusPercent * 100}%, #d1d5db ${radiusPercent * 100}%, #d1d5db 100%)`
-    : '#e5e7eb'
-
-  // モバイル版のスライダー：つまみタップ＝ON/OFF切り替え、ドラッグ・線上タップ＝距離変更（既存のonChangeに任せる）を両立させる。
-  // pointerdown時点のつまみ位置と押下座標から「つまみ付近で押し始めたか」を記録しておき、
-  // pointerupで移動量・経過時間が小さければ「タップ」と判定してON/OFFを切り替える。
-  // 移動量が閾値を超えた場合は「ドラッグ」とみなし、rangeのonChangeによる距離変更のみが働く（ここでは何もしない）。
-  const radiusPointerStart = useRef<{ x: number; y: number; time: number; onThumb: boolean } | null>(null)
-
-  const handleRadiusPointerDown = (e: React.PointerEvent<HTMLInputElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect()
-    const thumbCenterPx = radiusPercent * rect.width + (radiusThumbWidth / 2 - radiusPercent * radiusThumbWidth)
-    const onThumb = Math.abs(e.clientX - rect.left - thumbCenterPx) <= RADIUS_THUMB_TAP_RADIUS
-    radiusPointerStart.current = { x: e.clientX, y: e.clientY, time: Date.now(), onThumb }
-  }
-
-  const handleRadiusPointerUp = (e: React.PointerEvent<HTMLInputElement>) => {
-    const start = radiusPointerStart.current
-    radiusPointerStart.current = null
-    if (!start || !start.onThumb || locateStatus === 'loading') return
-    const dx = e.clientX - start.x
-    const dy = e.clientY - start.y
-    const elapsed = Date.now() - start.time
-    const isTap = Math.sqrt(dx * dx + dy * dy) < RADIUS_TAP_MAX_DISTANCE && elapsed < RADIUS_TAP_MAX_DURATION
-    if (isTap) {
-      if (hasLocation) onLocateClear()
-      else onLocate()
-    }
-  }
-
-  const handleRadiusPointerCancel = () => {
-    radiusPointerStart.current = null
-  }
 
   // フィルター（表示期間・現在地距離円・カテゴリ）：PC/モバイルで共通。配置位置のみモードで異なる
   const filterSection = (
     <div className={`pl-[22px] border-b border-gray-100 ${isSheet ? 'pt-4 pr-4 pb-2.5 space-y-5' : 'pt-4 pb-2.5 pr-4 space-y-2'}`}>
-      {/* 表示期間・現在地を表示：同じグリッドの列として並べることで、プルダウンとスライダーの幅・右端を揃える */}
-      <div className={`grid grid-cols-[auto_auto] items-center justify-between ${isSheet ? 'gap-y-3' : 'gap-y-2'}`}>
-        {!isSheet && (
-          <>
-            <span className="text-sm" style={{ color: '#1F1F1F' }}>表示期間</span>
-            <select
-              value={periodFilter}
-              onChange={(e) => onPeriodChange(e.target.value as PeriodFilter)}
-              className="justify-self-end text-sm border border-gray-300 rounded-md px-2 py-1 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-400"
-            >
-              {periodOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-          </>
-        )}
-
-        <div className="self-start pt-5">
-          <span
-            className={`-mt-0.5 flex items-center text-sm ${isSheet ? 'h-7' : 'h-5'}`}
-            style={{ color: '#1F1F1F' }}
+      {/* 表示期間・現在地を表示：同じグリッドの列として並べることで、プルダウンとスライダーの幅・右端を揃える（PCのみ。モバイルは地図上のチップに移動） */}
+      {!isSheet && (
+        <div className="grid grid-cols-[auto_auto] items-center justify-between gap-y-2">
+          <span className="text-sm" style={{ color: '#1F1F1F' }}>表示期間</span>
+          <select
+            value={periodFilter}
+            onChange={(e) => onPeriodChange(e.target.value as PeriodFilter)}
+            className="justify-self-end text-sm border border-gray-300 rounded-md px-2 py-1 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-400"
           >
-            現在地・距離円
-          </span>
-        </div>
-        <div className="relative w-full self-start pt-5">
-          <div className="relative">
-            <div
-              className={`absolute -top-5 -translate-x-1/2 text-xs ${isSheet ? 'font-semibold' : 'font-normal'} tabular-nums pointer-events-none whitespace-nowrap ${hasLocation ? 'text-blue-600' : 'text-gray-400'}`}
-              style={{ left: radiusThumbLeft }}
-            >
-              半径{locationRadius}km
-            </div>
-            <input
-              type="range"
-              min={10}
-              max={60}
-              step={10}
-              value={locationRadius}
-              onChange={(e) => onRadiusChange(Number(e.target.value))}
-              disabled={isSheet ? false : !hasLocation}
-              onPointerDown={isSheet ? handleRadiusPointerDown : undefined}
-              onPointerUp={isSheet ? handleRadiusPointerUp : undefined}
-              onPointerCancel={isSheet ? handleRadiusPointerCancel : undefined}
-              className={`w-full cursor-pointer disabled:cursor-not-allowed ${isSheet ? 'h-7 mobile-radius-slider' : 'h-5'} ${hasLocation ? 'accent-blue-500 text-blue-600' : 'accent-gray-400 text-gray-400'}`}
-              style={{ '--mobile-track-fill': radiusTrackFill } as React.CSSProperties}
-            />
-            {/* つまみ位置に重ねた透明ボタン（PC版のみ）：クリックで現在地表示のON/OFFを切り替える（線上クリックでの距離変更とは独立）。
-                モバイルはこのボタンがつまみのドラッグ操作を奪ってしまうため描画せず、input側のpointerdown/upでタップ/ドラッグを判別する */}
-            {!isSheet && (
+            {periodOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+
+          <div className="self-start pt-5">
+            <span className="-mt-0.5 flex items-center text-sm h-5" style={{ color: '#1F1F1F' }}>
+              現在地・距離円
+            </span>
+          </div>
+          <div className="relative w-full self-start pt-5">
+            <div className="relative">
+              <div
+                className={`absolute -top-5 -translate-x-1/2 text-xs font-normal tabular-nums pointer-events-none whitespace-nowrap ${hasLocation ? 'text-blue-600' : 'text-gray-400'}`}
+                style={{ left: radiusThumbLeft }}
+              >
+                半径{locationRadius}km
+              </div>
+              <input
+                type="range"
+                min={10}
+                max={60}
+                step={10}
+                value={locationRadius}
+                onChange={(e) => onRadiusChange(Number(e.target.value))}
+                disabled={!hasLocation}
+                className={`w-full cursor-pointer disabled:cursor-not-allowed h-5 ${hasLocation ? 'accent-blue-500 text-blue-600' : 'accent-gray-400 text-gray-400'}`}
+              />
+              {/* つまみ位置に重ねた透明ボタン：クリックで現在地表示のON/OFFを切り替える（線上クリックでの距離変更とは独立） */}
               <button
                 type="button"
                 role="switch"
@@ -199,10 +145,10 @@ export default function Sidebar({
                 className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-transparent cursor-pointer disabled:cursor-wait"
                 style={{ left: radiusThumbLeft }}
               />
-            )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div>
         {!isSheet && (
