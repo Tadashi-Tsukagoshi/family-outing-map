@@ -67,6 +67,7 @@ function eventPlusOccurrencePassesPeriod(
     case '2w': cutoff.setDate(cutoff.getDate() + 14); break
     case '1m': cutoff.setMonth(cutoff.getMonth() + 1); break
     case '3m': cutoff.setMonth(cutoff.getMonth() + 3); break
+    case '6m': cutoff.setMonth(cutoff.getMonth() + 6); break
   }
   const cutoffStr = cutoff.toISOString().split('T')[0]
   const todayStr = today.toISOString().split('T')[0]
@@ -77,6 +78,9 @@ function eventPlusOccurrencePassesPeriod(
   }
   return true
 }
+
+/** ?event=xxx 受信時、イベントを含む最短の期間フィルタを探す際の探索順 */
+const PERIOD_SEARCH_ORDER: PeriodFilter[] = ['1w', '2w', '1m', '3m', '6m']
 
 /** グループ内ソート用の優先度。値が大きいほど前面（先頭）。z-index 計算ロジックと同じ優先順位 */
 function pinSortRank(spot: Spot, todayStartMs: number): number {
@@ -167,13 +171,16 @@ export default function MapApp() {
   const [locationRadius, setLocationRadius] = useState(20)
   const [recenterSignal, setRecenterSignal] = useState(0)
   const [zoomLevel, setZoomLevel] = useState(12)
+  // localStorageからの設定復元が完了したかどうか（?event=xxx の期間フィルタ自動切り替えが
+  // 復元前の初期値(periodFilter='3m')を見てしまう競合を避けるためのガード）
+  const [settingsRestored, setSettingsRestored] = useState(false)
 
   // ハイドレーション後にlocalStorageから設定を復元
   useEffect(() => {
     const saved = loadSettings()
     if (saved.periodFilter !== undefined) {
       // 廃止された期間フィルタ値が保存されている場合は '3m' にフォールバック
-      const REMOVED_PERIOD_FILTERS = new Set(['2m', '6m', 'all'])
+      const REMOVED_PERIOD_FILTERS = new Set(['2m', 'all'])
       setPeriodFilter(
         REMOVED_PERIOD_FILTERS.has(saved.periodFilter) ? '3m' : saved.periodFilter
       )
@@ -188,6 +195,7 @@ export default function MapApp() {
       }
       setActiveCategories(restored)
     }
+    setSettingsRestored(true)
   }, [])
 
   const handleLocate = useCallback(() => {
@@ -287,6 +295,8 @@ export default function MapApp() {
   useEffect(() => {
     if (eventParamHandled.current) return
     if (collectedSpots.length === 0) return
+    // periodFilter の localStorage 復元が完了する前に判定してしまう競合を避ける
+    if (!settingsRestored) return
     const eventId = searchParams.get('event')
     if (!eventId) return
 
@@ -295,11 +305,19 @@ export default function MapApp() {
     if (spot) {
       if (getEventStatus(spot.startDate, spot.endDate, spot.endTime) === 'ended') {
         setTemporarySpot(spot)
+      } else {
+        const alreadyVisible = eventPlusOccurrencePassesPeriod(spot.startDate, spot.endDate, spot.endTime, periodFilter)
+        if (!alreadyVisible) {
+          const matched = PERIOD_SEARCH_ORDER.find((p) =>
+            eventPlusOccurrencePassesPeriod(spot.startDate, spot.endDate, spot.endTime, p)
+          )
+          setPeriodFilter(matched ?? '6m')
+        }
       }
       handleDetailOpen(spot)
     }
     window.history.replaceState(null, '', '/')
-  }, [collectedSpots, searchParams, handleDetailOpen])
+  }, [collectedSpots, searchParams, handleDetailOpen, periodFilter, settingsRestored])
 
   // /area/[slug] からのリダイレクト（?area=xxx）を受けて、該当エリアをエリアチップ選択状態にする
   // collectedSpots のロードを待ってから activeArea をセットすることで、MapView側のfitBounds/flyTo計算に
@@ -348,6 +366,7 @@ export default function MapApp() {
         case '2w': cutoff.setDate(cutoff.getDate() + 14); break
         case '1m': cutoff.setMonth(cutoff.getMonth() + 1); break
         case '3m': cutoff.setMonth(cutoff.getMonth() + 3); break
+        case '6m': cutoff.setMonth(cutoff.getMonth() + 6); break
       }
       const cutoffStr = cutoff.toISOString().split('T')[0]
       const todayStr = today.toISOString().split('T')[0]
