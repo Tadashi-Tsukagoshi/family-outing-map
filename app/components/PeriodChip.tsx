@@ -13,14 +13,30 @@ const WIDEST_LABEL = "終了'99"
 
 export default function PeriodChip({ periodFilter, onPeriodChange, periodOptions }: Props) {
   const currentLabel = periodOptions.find((opt) => opt.value === periodFilter)?.label ?? ''
+  const isEnded = periodFilter.startsWith('ended_')
+
+  // 未終了: グラデーション白抜き / 終了イベント: グレー単色白抜き
+  const backgroundImage = isEnded
+    ? 'none'
+    : 'linear-gradient(to right, #2f50c7, #5fb48c)'
+  const backgroundColor = isEnded
+    ? '#9ca3af'  // 終了イベント詳細ヘッダーのbg-gray-400と同色
+    : 'transparent'
+  const borderColor = 'transparent'
+  const color = '#fff'
 
   return (
     <div
       className="relative md:hidden inline-flex items-center justify-center whitespace-nowrap rounded-full border px-3 py-1.5 text-sm font-medium"
       style={{
-        background: 'rgba(255,255,255,0.92)',
-        borderColor: '#e5e7eb',
-        color: '#4b5563',
+        backgroundImage,
+        backgroundColor,
+        // 角丸ピル形状のため、境界線の内側にだけ背景を描画してborder-radiusの丸みと
+        // 背景の描画範囲を一致させる（AreaChips/LocationRadiusChipと同じ対応）
+        backgroundClip: 'padding-box',
+        WebkitBackgroundClip: 'padding-box',
+        borderColor,
+        color,
         boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
       }}
     >
