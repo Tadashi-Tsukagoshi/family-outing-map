@@ -447,9 +447,26 @@ type GroupBubbleProps = {
   onMouseLeave?:  () => void
   isMobile:       boolean
   isSingle?:      boolean
+  sheetState?:    SheetState
 }
 
-function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, onMouseEnter, onMouseLeave, isMobile, isSingle }: GroupBubbleProps) {
+// モバイル時、吹き出しがはみ出さないための計算用定数
+const TOP_LIMIT = 79            // GUNMApロゴ(top:16, h:55) + 余白8
+const BOTTOM_LIMIT_OFFSET = 51  // 市町村チップ(35px) + チップ余白(16px)
+const PEEK_PX = 72              // ボトムシート最小(closed)時の高さ
+const MIN_BUBBLE_HEIGHT = 100   // 最低確保高さ
+
+function calcSheetHeightPx(sheetState: SheetState | undefined): number {
+  if (typeof window === 'undefined') return PEEK_PX
+  switch (sheetState) {
+    case 'closed': return PEEK_PX
+    case 'mid':    return window.innerHeight * 0.5
+    case 'full':   return window.innerHeight
+    default:       return PEEK_PX
+  }
+}
+
+function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, onMouseEnter, onMouseLeave, isMobile, isSingle, sheetState }: GroupBubbleProps) {
   const bubbleRef = useRef<HTMLDivElement>(null)
   const aboveGap = BUBBLE_GAP
 
@@ -471,13 +488,51 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
 
     const cW    = wrapper.offsetWidth
     const cH    = wrapper.offsetHeight
-    const cardH = bubble.offsetHeight
+    const naturalH = bubble.scrollHeight
 
-    const above = cardH <= y - aboveGap
-    // 外側divの上端/下端はピン中心(y)に固定し、padding分（BUBBLE_GAP）でカードとの隙間を作る。
-    // padding領域もdivのボックスに含まれるため、ピン⇔カード間のホバー判定が連続する。
+    // モバイル時：吹き出しの許容領域（top側とbottom側）を算出
+    // PC・isSingle時は wrapper 全体を許容領域として扱う（従来通り）
+    let topLimit = MARGIN
+    let bottomLimit = cH - MARGIN
+    if (isMobile && !isSingle) {
+      const sheetHeightPx = calcSheetHeightPx(sheetState)
+      topLimit    = TOP_LIMIT
+      bottomLimit = Math.max(topLimit + MIN_BUBBLE_HEIGHT, window.innerHeight - sheetHeightPx - BOTTOM_LIMIT_OFFSET)
+    }
+    const maxAvailableH = bottomLimit - topLimit
+    const cardH = Math.min(naturalH, Math.max(MIN_BUBBLE_HEIGHT, maxAvailableH))
+
+    // 配置方向の決定：ピン上に収まるなら上向き、そうでなければ下向き
+    // 「収まる」= ピン上に cardH + BUBBLE_GAP を確保しつつ、その上端が topLimit 以上
+    const aboveFits = (y - BUBBLE_GAP - cardH) >= topLimit
+    const belowFits = (y + BUBBLE_GAP + cardH) <= bottomLimit
+    const above = aboveFits || !belowFits  // 両方ダメなら上向きにフォールバック
+
+    // 実描画top（外側divのtop値）をピン基準で決めるが、
+    // 実際に描画される吹き出しの上端/下端が許容領域を超える場合はtop値を補正する
     let top = y
-    if (!above && top + BUBBLE_GAP + cardH > cH - MARGIN) top = cH - MARGIN - cardH - BUBBLE_GAP
+    if (above) {
+      // 上向き：外側divのtop=y、transform:translateY(-100%)で上に伸びる
+      // 実際の吹き出し上端 = y - BUBBLE_GAP - cardH、下端 = y - BUBBLE_GAP
+      const bubbleTop = y - BUBBLE_GAP - cardH
+      if (bubbleTop < topLimit) {
+        // 上に収まらない分だけtopを下にずらす（＝吹き出し全体が下にスライド）
+        top = topLimit + cardH + BUBBLE_GAP
+      }
+    } else {
+      // 下向き：外側divのtop=y、transform:translateY(0)で下に伸びる
+      // 実際の吹き出し上端 = y + BUBBLE_GAP、下端 = y + BUBBLE_GAP + cardH
+      const bubbleBottom = y + BUBBLE_GAP + cardH
+      if (bubbleBottom > bottomLimit) {
+        // 下に収まらない分だけtopを上にずらす（＝吹き出し全体が上にスライド）
+        top = bottomLimit - cardH - BUBBLE_GAP
+      }
+      // ずらした結果、上端が topLimit より上に行ってしまう場合（＝許容領域より
+      // カードが大きい）は topLimit に張り付ける
+      if (top + BUBBLE_GAP < topLimit) {
+        top = topLimit - BUBBLE_GAP
+      }
+    }
 
     const halfW = BUBBLE_W / 2
     let left = x
@@ -485,7 +540,7 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
     if (left + halfW > cW - MARGIN) left = cW - MARGIN - halfW
 
     setPos({ left, top, above, ready: true, cardH })
-  }, [group, x, y, wrapperRef, aboveGap])
+  }, [group, x, y, wrapperRef, aboveGap, isMobile, isSingle, sheetState])
 
   return (
     <div
@@ -529,6 +584,9 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
           background:   'white',
           boxShadow:    '0 2px 8px rgba(0,0,0,0.15)',
           pointerEvents: 'all',
+          maxHeight:    isMobile && !isSingle ? pos.cardH : undefined,
+          overflowY:    isMobile && !isSingle ? 'auto' : undefined,
+          WebkitOverflowScrolling: 'touch',
         }}
       >
         {(() => {
@@ -1280,6 +1338,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
               onMouseEnter={handleBubbleMouseEnter}
               onMouseLeave={handleBubbleMouseLeave}
               isMobile={isMobile}
+              sheetState={sheetState}
             />
           )
         })() : null
