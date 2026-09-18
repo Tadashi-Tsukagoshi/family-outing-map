@@ -146,7 +146,7 @@ export default function MapApp() {
     return () => window.removeEventListener('resize', check)
   }, [])
 
-  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('3m')
+  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('1m')
   const [activeCategories, setActiveCategories] = useState<Set<Category>>(
     () => {
       const all = new Set(Object.keys(CATEGORY_LABELS) as Category[])
@@ -172,17 +172,17 @@ export default function MapApp() {
   const [recenterSignal, setRecenterSignal] = useState(0)
   const [zoomLevel, setZoomLevel] = useState(12)
   // localStorageからの設定復元が完了したかどうか（?event=xxx の期間フィルタ自動切り替えが
-  // 復元前の初期値(periodFilter='3m')を見てしまう競合を避けるためのガード）
+  // 復元前の初期値(periodFilter='1m')を見てしまう競合を避けるためのガード）
   const [settingsRestored, setSettingsRestored] = useState(false)
 
   // ハイドレーション後にlocalStorageから設定を復元
   useEffect(() => {
     const saved = loadSettings()
     if (saved.periodFilter !== undefined) {
-      // 廃止された期間フィルタ値が保存されている場合は '3m' にフォールバック
+      // 廃止された期間フィルタ値が保存されている場合は '1m' にフォールバック
       const REMOVED_PERIOD_FILTERS = new Set(['2m', 'all'])
       setPeriodFilter(
-        REMOVED_PERIOD_FILTERS.has(saved.periodFilter) ? '3m' : saved.periodFilter
+        REMOVED_PERIOD_FILTERS.has(saved.periodFilter) ? '1m' : saved.periodFilter
       )
     }
     if (saved.activeCategories) {
