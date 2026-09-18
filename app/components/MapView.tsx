@@ -499,14 +499,20 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
       topLimit    = TOP_LIMIT
       bottomLimit = Math.max(topLimit + MIN_BUBBLE_HEIGHT, window.innerHeight - sheetHeightPx - BOTTOM_LIMIT_OFFSET)
     }
-    const maxAvailableH = bottomLimit - topLimit
+    // 許容領域を最大限使うと、ピンが画面上部にある場合に下向きの吹き出しがピンを
+    // 覆ってしまう。画面高さの45%を上限としてさらにキャップし、どちらの向きでも
+    // リストがピンを覆いにくくする
+    const HEIGHT_CAP_RATIO = 0.45
+    const heightCap = isMobile && !isSingle ? window.innerHeight * HEIGHT_CAP_RATIO : Infinity
+    const maxAvailableH = Math.min(bottomLimit - topLimit, heightCap)
     const cardH = Math.min(naturalH, Math.max(MIN_BUBBLE_HEIGHT, maxAvailableH))
 
     // 配置方向の決定：ピン上に収まるなら上向き、そうでなければ下向き
     // 「収まる」= ピン上に cardH + BUBBLE_GAP を確保しつつ、その上端が topLimit 以上
     const aboveFits = (y - BUBBLE_GAP - cardH) >= topLimit
-    const belowFits = (y + BUBBLE_GAP + cardH) <= bottomLimit
-    const above = aboveFits || !belowFits  // 両方ダメなら上向きにフォールバック
+    // ピンは画面上部にあることが多いため、上向きに収まらない場合は下向きに
+    // フォールバックする（従来は上向きフォールバックだった）
+    const above = aboveFits
 
     // 実描画top（外側divのtop値）をピン基準で決めるが、
     // 実際に描画される吹き出しの上端/下端が許容領域を超える場合はtop値を補正する
@@ -880,10 +886,14 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
     const result: Record<string, IconDef> = {}
     for (const g of pinGroups) {
       const activeSpot = g.spots.find(s => s.id === selectedSpot?.id) ?? g.spots[0]
-      result[g.representativeId] = buildIconDef(activeSpot, activeSpot.id === selectedSpot?.id, isMobile)
+      // グループピンが吹き出し表示中（openGroupId一致）でも、単独spot選択と同様に
+      // 拡大＋バウンスさせる
+      const isGroupBubbleOpen = g.representativeId === openGroupId
+      const isSpotSelected = activeSpot.id === selectedSpot?.id
+      result[g.representativeId] = buildIconDef(activeSpot, isSpotSelected || isGroupBubbleOpen, isMobile)
     }
     return result
-  }, [pinGroups, selectedSpot?.id, isMobile])
+  }, [pinGroups, selectedSpot?.id, openGroupId, isMobile])
 
   // ─── 地図の初期化 ────────────────────────────────────────────
   useEffect(() => {
@@ -1023,9 +1033,14 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
       if (el.style.height !== newHeight) el.style.height = newHeight
 
       const isGroupSelected = group.spots.some(s => s.id === selectedSpot?.id)
+      // グループピン吹き出し表示中（PC・単独ピンHovered時は無関係、モバイル・PC
+      // どちらもグループタップ時のopenGroupId一致で真になる）も選択扱いする
+      const isGroupBubbleOpen = group.representativeId === openGroupId
+      const isActiveGroup = isGroupSelected || isGroupBubbleOpen
+
       const status = getEventStatus(repSpot.startDate, repSpot.endDate, repSpot.endTime)
       const newZIndex =
-        isGroupSelected ? '1000' :
+        isActiveGroup ? '1000' :
         status === 'active' ? '500' :
         (status === 'upcoming' || status === 'scheduled') && repSpot.startDate ?
           String(Math.max(1, Math.min(499, 500 - Math.ceil((parseLocalDate(repSpot.startDate).getTime() - new Date().setHours(0, 0, 0, 0)) / 86400000)))) :
@@ -1033,11 +1048,14 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
       if (el.style.zIndex !== newZIndex) el.style.zIndex = newZIndex
       // el（marker.getElement()）は Mapbox が map "move" イベントごとに
       // el.style.opacity を強制上書きするため、内側の描画用 div に設定する
-      const opacity = selectedSpot && !isGroupSelected ? '0.6' : '1'
+      // selectedSpot がある場合は選択グループ以外を薄く、openGroupId がある場合は
+      // 吹き出し表示中グループ以外を薄くする
+      const shouldDim = (selectedSpot && !isGroupSelected) || (openGroupId && !isGroupBubbleOpen)
+      const opacity = shouldDim ? '0.6' : '1'
       const pinEl = el.firstElementChild as HTMLElement | null
       if (pinEl && pinEl.style.opacity !== opacity) pinEl.style.opacity = opacity
     }
-  }, [pinGroups, icons, selectedSpot?.id, activeArea, mapReady])
+  }, [pinGroups, icons, selectedSpot?.id, openGroupId, activeArea, mapReady])
 
   // ─── 現在地マーカー・円表示 ──────────────────────────────────
   useEffect(() => {
