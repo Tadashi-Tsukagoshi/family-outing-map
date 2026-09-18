@@ -74,7 +74,7 @@ export const POSTER_TYPE_LABELS: Record<string, string> = {
 
 export const INITIAL_FORM: FormState = {
   name: '', category: 'event',
-  subCategory: '',
+  subCategory: 'event',
   groupId: '',
   type: 'event',
   dateConfirmed: true,
@@ -94,7 +94,7 @@ export function eventToFormState(ev: CollectedEvent): FormState {
   return {
     name:          ev.name,
     category:      ev.category ?? 'event',
-    subCategory:   ev.subCategory ?? '',
+    subCategory:   ev.subCategory ?? 'event',
     groupId:       ev.groupId ?? '',
     type:          ev.type ?? 'event',
     dateConfirmed: !hasScheduleNote,
