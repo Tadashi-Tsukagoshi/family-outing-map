@@ -141,16 +141,20 @@ export default function Sidebar({
     <div className={`pl-[22px] border-b border-gray-100 ${isSheet ? 'pt-4 pr-4 pb-2.5 space-y-5' : 'pt-4 pb-2.5 pr-4 space-y-2'}`}>
       {/* 表示期間・現在地を表示：同じグリッドの列として並べることで、プルダウンとスライダーの幅・右端を揃える */}
       <div className={`grid grid-cols-[auto_auto] items-center justify-between ${isSheet ? 'gap-y-3' : 'gap-y-2'}`}>
-        <span className="text-sm" style={{ color: '#1F1F1F' }}>表示期間</span>
-        <select
-          value={periodFilter}
-          onChange={(e) => onPeriodChange(e.target.value as PeriodFilter)}
-          className="justify-self-end text-sm border border-gray-300 rounded-md px-2 py-1 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-400"
-        >
-          {periodOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
+        {!isSheet && (
+          <>
+            <span className="text-sm" style={{ color: '#1F1F1F' }}>表示期間</span>
+            <select
+              value={periodFilter}
+              onChange={(e) => onPeriodChange(e.target.value as PeriodFilter)}
+              className="justify-self-end text-sm border border-gray-300 rounded-md px-2 py-1 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-400"
+            >
+              {periodOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </>
+        )}
 
         <div className="self-start pt-5">
           <span

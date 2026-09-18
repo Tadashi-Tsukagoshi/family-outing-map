@@ -177,7 +177,7 @@ export function buildPeriodOptions(endedYears: number[]): PeriodOption[] {
   const ended = endedYears
     .slice()
     .sort((a, b) => a - b)
-    .map((y) => ({ value: `ended_${y}` as PeriodFilter, label: `終了イベント(${y})` }))
+    .map((y) => ({ value: `ended_${y}` as PeriodFilter, label: `終了'${String(y).slice(-2)}` }))
   return [...base, ...ended]
 }
 

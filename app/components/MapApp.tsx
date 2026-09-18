@@ -8,6 +8,7 @@ import DetailPanel from './DetailPanel'
 import BottomSheet, { buildSheetPositionStyle, useBottomOffset, type SheetState } from './BottomSheet'
 import AreaChips, { type AreaCount } from './AreaChips'
 import AreaOtherModal from './AreaOtherModal'
+import PeriodChip from './PeriodChip'
 import { getAreaBySlug } from '@/lib/areas'
 import { CATEGORY_LABELS, buildPeriodOptions, extractMunicipality, getVisualCategory, matchesCityArea, type Category, type PeriodFilter, type PeriodOption, type Spot } from '@/lib/spots'
 import { eventToSpot, type EventsDatabase } from '@/lib/events'
@@ -611,6 +612,18 @@ export default function MapApp() {
           >
             <img src="/gunmap_icon_02.png" alt="グンマップ" width={55} height={55} className="h-full w-full object-cover" />
           </button>
+        </div>
+
+        {/* 表示期間チップ（モバイルのみ） */}
+        <div
+          className="fixed top-4 right-4 flex items-center justify-end md:hidden"
+          style={{ height: 55, zIndex: 999 }}
+        >
+          <PeriodChip
+            periodFilter={periodFilter}
+            onPeriodChange={setPeriodFilter}
+            periodOptions={periodOptions}
+          />
         </div>
 
         {!detailSpot && (
