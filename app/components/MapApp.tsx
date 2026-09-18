@@ -169,7 +169,7 @@ export default function MapApp() {
   const [periodOptions, setPeriodOptions] = useState<PeriodOption[]>(buildPeriodOptions([2026]))
   const [userLocation,  setUserLocation]    = useState<[number, number] | null>(null)
   const [locateStatus,  setLocateStatus]    = useState<'idle' | 'loading'>('idle')
-  const [locationRadius, setLocationRadius] = useState(20)
+  const [locationRadius, setLocationRadius] = useState(10)
   const [recenterSignal, setRecenterSignal] = useState(0)
   const [zoomLevel, setZoomLevel] = useState(12)
   // localStorageからの設定復元が完了したかどうか（?event=xxx の期間フィルタ自動切り替えが
