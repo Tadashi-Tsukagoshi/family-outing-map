@@ -573,10 +573,31 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
         }
         .group-bubble-arrow-down::after { bottom: -6px; border-top: 6px solid white; }
         .group-bubble-arrow-up::after   { top: -6px;    border-bottom: 6px solid white; }
+
+        /* iOS Safariでも常時表示される細めのカスタムスクロールバー */
+        .group-bubble-scroll::-webkit-scrollbar {
+          width: 5px;
+          -webkit-appearance: none;
+        }
+        .group-bubble-scroll::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .group-bubble-scroll::-webkit-scrollbar-thumb {
+          background-color: rgba(0, 0, 0, 0.25);
+          border-radius: 3px;
+        }
+        .group-bubble-scroll::-webkit-scrollbar-thumb:hover {
+          background-color: rgba(0, 0, 0, 0.4);
+        }
+        /* Firefox向け（thin指定＋色指定） */
+        .group-bubble-scroll {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+        }
       `}</style>
       <div
         ref={bubbleRef}
-        className={pos.above ? 'group-bubble-arrow-down' : 'group-bubble-arrow-up'}
+        className={`group-bubble-scroll ${pos.above ? 'group-bubble-arrow-down' : 'group-bubble-arrow-up'}`}
         style={{
           position:     'relative',
           borderRadius: 8,
