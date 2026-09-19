@@ -1,11 +1,15 @@
 'use client'
 
 import { useEffect, useState, useCallback, useMemo } from 'react'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine, ResponsiveContainer } from 'recharts'
+import { ANALYTICS_CUTOVER_DATE } from '@/lib/analytics-cutover'
 
 type Period = 'all' | '30d' | '7d'
 
 type Overview = {
   totalViews: number
+  vercelViews: number
+  selfViews: number
   uniqueVisitors: number | null
   eventCount: number
   dateRangeLabel: string
@@ -18,12 +22,20 @@ type RankingItem = {
   categoryLabel: string
   city: string | null
   viewCount: number
+  vercelPv: number
+  selfPv: number
   imageCount: number
   descriptionLength: number
   status: string | null
   statusLabel: string
   startDate: string | null
   url: string
+}
+
+type TimeSeriesPoint = {
+  date: string
+  vercelPv: number
+  selfPv: number
 }
 
 type CategoryStat = {
@@ -42,6 +54,7 @@ type AreaStat = { city: string; eventCount: number; avgViews: number }
 type SummaryResponse = {
   overview: Overview
   ranking: RankingItem[]
+  timeSeries: TimeSeriesPoint[]
   byCategory: CategoryStat[]
   byImageCount: BucketStat[]
   byDescriptionLength: BucketStat[]
@@ -97,6 +110,7 @@ function BarRow({ label, value, maxValue, sub }: { label: string; value: number;
 }
 
 type SortDir = 'desc' | 'asc'
+type SortKey = 'selfPv' | 'vercelPv'
 
 export default function AnalyticsContent() {
   const [period, setPeriod] = useState<Period>('all')
@@ -104,6 +118,7 @@ export default function AnalyticsContent() {
   const [data, setData] = useState<SummaryResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [sortKey, setSortKey] = useState<SortKey>('selfPv')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
 
   const load = useCallback(async (p: Period, ie: boolean) => {
@@ -129,10 +144,21 @@ export default function AnalyticsContent() {
     if (!data) return []
     return [...data.ranking].sort((a, b) => (
       sortDir === 'desc'
-        ? b.viewCount - a.viewCount || a.name.localeCompare(b.name, 'ja')
-        : a.viewCount - b.viewCount || a.name.localeCompare(b.name, 'ja')
+        ? b[sortKey] - a[sortKey] || a.name.localeCompare(b.name, 'ja')
+        : a[sortKey] - b[sortKey] || a.name.localeCompare(b.name, 'ja')
     ))
-  }, [data, sortDir])
+  }, [data, sortKey, sortDir])
+
+  const toggleSort = useCallback((key: SortKey) => {
+    setSortKey(prevKey => {
+      if (prevKey === key) {
+        setSortDir(prevDir => prevDir === 'desc' ? 'asc' : 'desc')
+        return key
+      }
+      setSortDir('desc')
+      return key
+    })
+  }, [])
 
   const maxCategoryAvg = data ? Math.max(0, ...data.byCategory.map(c => c.avgViews)) : 0
   const maxImageAvg    = data ? Math.max(0, ...data.byImageCount.map(c => c.avgViews)) : 0
@@ -171,9 +197,9 @@ export default function AnalyticsContent() {
 
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
         <p className="text-xs text-gray-500 bg-yellow-50 border border-yellow-200 rounded p-3">
-          ※ 2026-09-19以前のPVはVercel Analyticsによる集計（SEO・外部リンク経由）、
-          以降は自前計測（アプリ内クリック含む全アクセス）です。
-          カットオーバー前後で計測範囲が異なるため、期間をまたぐ比較時はご留意ください。
+          ※ 「自前計測」は9/19以前のデータをVercel Analyticsで補完しています（両線が重なる期間）。
+          9/19以降は自前計測（アプリ内クリック含む全アクセス）とVercel計測（SEO・外部リンク経由）
+          で線が乖離し始めます。ランキングとカテゴリ別集計は「自前 PV」ベースです。
         </p>
 
         {loading && (
@@ -187,10 +213,14 @@ export default function AnalyticsContent() {
         {!loading && !error && data && (
           <>
             {/* 概要カード */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-                <div className="text-xs text-gray-500 mb-1">総PV</div>
-                <div className="text-2xl font-bold text-gray-800">{data.overview.totalViews.toLocaleString()}</div>
+                <div className="text-xs text-gray-500 mb-1">自前PV</div>
+                <div className="text-2xl font-bold text-gray-800">{data.overview.selfViews.toLocaleString()}</div>
+              </div>
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+                <div className="text-xs text-gray-500 mb-1">Vercel PV</div>
+                <div className="text-2xl font-bold text-gray-800">{data.overview.vercelViews.toLocaleString()}</div>
               </div>
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
                 <div className="text-xs text-gray-500 mb-1">対象イベント数</div>
@@ -201,6 +231,32 @@ export default function AnalyticsContent() {
                 <div className="text-2xl font-bold text-gray-800">{data.overview.dateRangeLabel}</div>
               </div>
             </div>
+
+            {/* PV推移グラフ */}
+            <Card title="PV推移">
+              {data.timeSeries.length === 0 ? (
+                <p className="text-xs text-gray-400">対象データがありません。</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={data.timeSeries} margin={{ top: 4, right: 12, left: 0, bottom: 4 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fontSize: 11, fill: '#6b7280' }}
+                      tickFormatter={d => d.slice(5).replace('-', '/')}
+                    />
+                    <YAxis tick={{ fontSize: 11, fill: '#6b7280' }} allowDecimals={false} />
+                    <Tooltip labelFormatter={d => String(d)} />
+                    <Legend wrapperStyle={{ fontSize: 12 }} />
+                    {data.timeSeries.some(p => p.date === ANALYTICS_CUTOVER_DATE) && (
+                      <ReferenceLine x={ANALYTICS_CUTOVER_DATE} stroke="#9ca3af" strokeDasharray="4 4" label={{ value: 'カットオーバー', fontSize: 10, fill: '#9ca3af', position: 'top' }} />
+                    )}
+                    <Line type="monotone" dataKey="vercelPv" name="Vercel計測" stroke="#3b82f6" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="selfPv" name="自前計測" stroke="#10b981" strokeWidth={2} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
+            </Card>
 
             {/* イベント別PVランキング */}
             <Card title="イベント別PVランキング">
@@ -218,11 +274,21 @@ export default function AnalyticsContent() {
                         <th className="sticky top-0 bg-white z-10 text-right font-medium py-2 pr-2">
                           <button
                             type="button"
-                            onClick={() => setSortDir(d => d === 'desc' ? 'asc' : 'desc')}
+                            onClick={() => toggleSort('vercelPv')}
                             className="inline-flex items-center gap-0.5 cursor-pointer hover:text-gray-800"
                           >
-                            PV
-                            <span aria-hidden="true">{sortDir === 'desc' ? '↓' : '↑'}</span>
+                            Vercel PV
+                            {sortKey === 'vercelPv' && <span aria-hidden="true">{sortDir === 'desc' ? '↓' : '↑'}</span>}
+                          </button>
+                        </th>
+                        <th className="sticky top-0 bg-white z-10 text-right font-medium py-2 pr-2">
+                          <button
+                            type="button"
+                            onClick={() => toggleSort('selfPv')}
+                            className="inline-flex items-center gap-0.5 cursor-pointer hover:text-gray-800"
+                          >
+                            自前 PV
+                            {sortKey === 'selfPv' && <span aria-hidden="true">{sortDir === 'desc' ? '↓' : '↑'}</span>}
                           </button>
                         </th>
                         <th className="sticky top-0 bg-white z-10 text-right font-medium py-2 pr-2">画像</th>
@@ -243,7 +309,8 @@ export default function AnalyticsContent() {
                             </td>
                             <td className="py-2 pr-2 text-gray-600 whitespace-nowrap">{item.categoryLabel}</td>
                             <td className="py-2 pr-2 text-gray-600 whitespace-nowrap">{item.city ?? '-'}</td>
-                            <td className="py-2 pr-2 text-right font-bold text-gray-800">{item.viewCount}</td>
+                            <td className="py-2 pr-2 text-right text-gray-600">{item.vercelPv}</td>
+                            <td className="py-2 pr-2 text-right font-bold text-gray-800">{item.selfPv}</td>
                             <td className="py-2 pr-2 text-right text-gray-600">{item.imageCount}</td>
                             <td className="py-2 pr-2 text-right text-gray-600">{item.descriptionLength}</td>
                             <td className="py-2 pl-2 whitespace-nowrap">

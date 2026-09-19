@@ -33,6 +33,17 @@ function addDaysToDateString(dateStr: string, days: number): string {
   return d.toISOString().slice(0, 10)
 }
 
+/** since〜until（JST日付、両端含む）を1日刻みで列挙する */
+function enumerateDates(since: string, until: string): string[] {
+  const dates: string[] = []
+  let cursor = since
+  while (cursor <= until) {
+    dates.push(cursor)
+    cursor = addDaysToDateString(cursor, 1)
+  }
+  return dates
+}
+
 function periodLabel(period: Period): string {
   if (period === '30d') return '直近30日'
   if (period === '7d')  return '直近7日'
@@ -82,6 +93,8 @@ type EventStat = {
   categoryLabel: string
   city: string | null
   viewCount: number
+  vercelPv: number
+  selfPv: number
   imageCount: number
   descriptionLength: number
   status: EventStatus | null
@@ -119,6 +132,7 @@ export async function GET(req: NextRequest) {
     console.error('[GET /api/analytics/summary] events fetch failed', eventsError)
     return NextResponse.json({ error: 'failed to load events' }, { status: 500 })
   }
+  const eventIds = new Set(eventRows.map(e => e.id))
 
   // 2. 期間の since/until（JST日付）を組み立て
   const until = todayJst()
@@ -137,23 +151,33 @@ export async function GET(req: NextRequest) {
     since = (earliestRow?.date as string | undefined) ?? ANALYTICS_CUTOVER_DATE
   }
 
-  // 3. カットオーバー日（2026-09-19）でクリーンに分割し、event_pv_daily（バックフィル）と
-  //    event_views（自前計測）の両方からPVを取得してイベントごとに合算する
-  const viewCountByEvent = new Map<string, number>()
+  const cutoverMinusOne = addDaysToDateString(ANALYTICS_CUTOVER_DATE, -1)
 
-  const pvDailyUntil = until < ANALYTICS_CUTOVER_DATE ? until : addDaysToDateString(ANALYTICS_CUTOVER_DATE, -1)
-  if (since <= pvDailyUntil) {
-    const { data: pvDailyRows, error: pvDailyError } = await supabase
-      .from('event_pv_daily')
-      .select('event_id, pageviews')
-      .gte('date', since)
-      .lte('date', pvDailyUntil)
-    if (pvDailyError || !pvDailyRows) {
-      console.error('[GET /api/analytics/summary] event_pv_daily fetch failed', pvDailyError)
-      return NextResponse.json({ error: 'failed to load event_pv_daily' }, { status: 500 })
-    }
-    for (const row of pvDailyRows) {
-      viewCountByEvent.set(row.event_id, (viewCountByEvent.get(row.event_id) ?? 0) + row.pageviews)
+  // 3. Vercel計測（event_pv_daily）と自前計測（event_views）を取得する。
+  //    - Vercel PV: 期間内 event_pv_daily の pageviews をそのまま合算（cronで継続同期される想定）
+  //    - 自前 PV: カットオーバー日（2026-09-19）でクリーンに分割。
+  //      9/18以前は Vercel データしか無いため event_pv_daily を流用し、9/19以降は event_views を使う
+  const vercelPvByEvent = new Map<string, number>()
+  const selfPvByEvent = new Map<string, number>()
+  const vercelPvByDate = new Map<string, number>()
+  const selfPvByDate = new Map<string, number>()
+
+  const { data: pvDailyRows, error: pvDailyError } = await supabase
+    .from('event_pv_daily')
+    .select('event_id, date, pageviews')
+    .gte('date', since)
+    .lte('date', until)
+  if (pvDailyError || !pvDailyRows) {
+    console.error('[GET /api/analytics/summary] event_pv_daily fetch failed', pvDailyError)
+    return NextResponse.json({ error: 'failed to load event_pv_daily' }, { status: 500 })
+  }
+  for (const row of pvDailyRows) {
+    if (!eventIds.has(row.event_id)) continue
+    vercelPvByEvent.set(row.event_id, (vercelPvByEvent.get(row.event_id) ?? 0) + row.pageviews)
+    vercelPvByDate.set(row.date, (vercelPvByDate.get(row.date) ?? 0) + row.pageviews)
+    if (row.date <= cutoverMinusOne) {
+      selfPvByEvent.set(row.event_id, (selfPvByEvent.get(row.event_id) ?? 0) + row.pageviews)
+      selfPvByDate.set(row.date, (selfPvByDate.get(row.date) ?? 0) + row.pageviews)
     }
   }
 
@@ -161,7 +185,7 @@ export async function GET(req: NextRequest) {
   if (viewsSince <= until) {
     const { data: viewRows, error: viewsError } = await supabase
       .from('event_views')
-      .select('event_id')
+      .select('event_id, viewed_date_jst')
       .gte('viewed_date_jst', viewsSince)
       .lte('viewed_date_jst', until)
     if (viewsError || !viewRows) {
@@ -169,12 +193,13 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'failed to load event_views' }, { status: 500 })
     }
     for (const row of viewRows) {
-      viewCountByEvent.set(row.event_id, (viewCountByEvent.get(row.event_id) ?? 0) + 1)
+      if (!eventIds.has(row.event_id)) continue
+      selfPvByEvent.set(row.event_id, (selfPvByEvent.get(row.event_id) ?? 0) + 1)
+      selfPvByDate.set(row.viewed_date_jst, (selfPvByDate.get(row.viewed_date_jst) ?? 0) + 1)
     }
   }
 
   // 4. イベントごとの画像枚数
-  const eventIds = new Set(eventRows.map(e => e.id))
   const { data: imageRows, error: imagesError } = await supabase
     .from('event_images')
     .select('event_id')
@@ -192,13 +217,16 @@ export async function GET(req: NextRequest) {
   const stats: EventStat[] = (eventRows as EventRow[]).map(e => {
     const category = normalizeCategory(e.category)
     const status = getEventStatus(e.start_date ?? undefined, e.end_date ?? undefined, e.end_time ?? undefined)
+    const selfPv = selfPvByEvent.get(e.id) ?? 0
     return {
       eventId: e.id,
       name: e.name,
       category,
       categoryLabel: CATEGORY_LABELS[category] ?? category,
       city: extractMunicipality(e.address ?? undefined),
-      viewCount: viewCountByEvent.get(e.id) ?? 0,
+      viewCount: selfPv,
+      vercelPv: vercelPvByEvent.get(e.id) ?? 0,
+      selfPv,
       imageCount: imageCountByEvent.get(e.id) ?? 0,
       descriptionLength: (e.description ?? '').length,
       status,
@@ -208,12 +236,21 @@ export async function GET(req: NextRequest) {
     }
   })
 
-  const totalViews = stats.reduce((sum, s) => sum + s.viewCount, 0)
+  const totalViews  = stats.reduce((sum, s) => sum + s.selfPv, 0)
+  const vercelViews = stats.reduce((sum, s) => sum + s.vercelPv, 0)
 
-  // 5. イベント別PVランキング（並び順はクライアント側で決める）
+  // 6. イベント別PVランキング（並び順はクライアント側で決める）
   const ranking = stats
 
-  // 6. カテゴリ別集計
+  // 7. 日別の時系列データ（Vercel計測 vs 自前計測の推移グラフ用）
+  //    TODO: 期間が90日を超える場合は週次集計への切替を検討する
+  const timeSeries = enumerateDates(since, until).map(date => ({
+    date,
+    vercelPv: vercelPvByDate.get(date) ?? 0,
+    selfPv: selfPvByDate.get(date) ?? 0,
+  }))
+
+  // 8. カテゴリ別集計（自前PVベース）
   const categoryGroups = new Map<Category, EventStat[]>()
   for (const s of stats) {
     const list = categoryGroups.get(s.category)
@@ -221,7 +258,7 @@ export async function GET(req: NextRequest) {
     else categoryGroups.set(s.category, [s])
   }
   const byCategory = [...categoryGroups.entries()].map(([category, list]) => {
-    const views = list.map(s => s.viewCount)
+    const views = list.map(s => s.selfPv)
     const total = views.reduce((sum, v) => sum + v, 0)
     return {
       category,
@@ -233,7 +270,7 @@ export async function GET(req: NextRequest) {
     }
   }).sort((a, b) => b.eventCount - a.eventCount)
 
-  // 7. 画像枚数バケット別集計
+  // 9. 画像枚数バケット別集計（自前PVベース）
   const imageGroups = new Map<string, EventStat[]>()
   for (const s of stats) {
     const bucket = imageCountBucket(s.imageCount)
@@ -245,11 +282,11 @@ export async function GET(req: NextRequest) {
     .filter(bucket => imageGroups.has(bucket))
     .map(bucket => {
       const list = imageGroups.get(bucket)!
-      const total = list.reduce((sum, s) => sum + s.viewCount, 0)
+      const total = list.reduce((sum, s) => sum + s.selfPv, 0)
       return { bucket, eventCount: list.length, avgViews: total / list.length }
     })
 
-  // 8. 説明文字数バケット別集計
+  // 10. 説明文字数バケット別集計（自前PVベース）
   const descGroups = new Map<string, EventStat[]>()
   for (const s of stats) {
     const bucket = descriptionLengthBucket(s.descriptionLength)
@@ -261,11 +298,11 @@ export async function GET(req: NextRequest) {
     .filter(bucket => descGroups.has(bucket))
     .map(bucket => {
       const list = descGroups.get(bucket)!
-      const total = list.reduce((sum, s) => sum + s.viewCount, 0)
+      const total = list.reduce((sum, s) => sum + s.selfPv, 0)
       return { bucket, eventCount: list.length, avgViews: total / list.length }
     })
 
-  // 9. イベントタイプ別（event / event_plus）
+  // 11. イベントタイプ別（event / event_plus、自前PVベース）
   const typeGroups = new Map<string, EventStat[]>()
   for (const s of stats) {
     if (s.category !== 'event' && s.category !== 'event_plus') continue
@@ -274,11 +311,11 @@ export async function GET(req: NextRequest) {
     else typeGroups.set(s.category, [s])
   }
   const byType = [...typeGroups.entries()].map(([type, list]) => {
-    const total = list.reduce((sum, s) => sum + s.viewCount, 0)
+    const total = list.reduce((sum, s) => sum + s.selfPv, 0)
     return { type, eventCount: list.length, avgViews: total / list.length }
   })
 
-  // 10. エリア別集計（登録数上位20市）
+  // 12. エリア別集計（登録数上位20市、自前PVベース）
   const areaGroups = new Map<string, EventStat[]>()
   for (const s of stats) {
     if (!s.city) continue
@@ -288,7 +325,7 @@ export async function GET(req: NextRequest) {
   }
   const byArea = [...areaGroups.entries()]
     .map(([city, list]) => {
-      const total = list.reduce((sum, s) => sum + s.viewCount, 0)
+      const total = list.reduce((sum, s) => sum + s.selfPv, 0)
       return { city, eventCount: list.length, avgViews: total / list.length }
     })
     .sort((a, b) => b.eventCount - a.eventCount)
@@ -297,11 +334,14 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     overview: {
       totalViews,
+      vercelViews,
+      selfViews: totalViews,
       uniqueVisitors: null,
       eventCount: stats.length,
       dateRangeLabel: periodLabel(period),
     },
     ranking,
+    timeSeries,
     byCategory,
     byImageCount,
     byDescriptionLength,
