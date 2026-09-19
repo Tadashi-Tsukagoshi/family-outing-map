@@ -4,7 +4,7 @@ import { isAdminRequest } from '@/lib/admin-session'
 import { CATEGORY_LABELS, EVENT_CATEGORIES, extractMunicipality, normalizeCategory, type Category } from '@/lib/spots'
 import { getEventStatus, type EventStatus } from '@/lib/date-utils'
 
-type Period = 'all' | '30d' | '7d'
+type Period = '30d' | '7d'
 
 const STATUS_LABELS: Record<EventStatus, string> = {
   active:    '開催中',
@@ -18,17 +18,8 @@ function todayJst(): string {
   return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10)
 }
 
-/** JST で今日から daysAgo 日前（当日含む）の日付を YYYY-MM-DD で返す */
-function jstDateDaysAgo(daysAgo: number): string {
-  const jst = new Date(Date.now() + 9 * 60 * 60 * 1000)
-  jst.setUTCDate(jst.getUTCDate() - daysAgo)
-  return jst.toISOString().slice(0, 10)
-}
-
 function periodLabel(period: Period): string {
-  if (period === '30d') return '直近30日'
-  if (period === '7d')  return '直近7日'
-  return '全期間'
+  return period === '30d' ? '直近30日' : '直近7日'
 }
 
 function median(values: number[]): number {
@@ -82,16 +73,36 @@ type EventStat = {
   url: string
 }
 
+type VercelAnalyticsRow = {
+  requestPath: string
+  visitors: number
+  pageviews: number
+}
+
+type VercelAnalyticsResponse = {
+  data: VercelAnalyticsRow[]
+}
+
+const EVENT_PATH_PREFIX = '/events/'
+
 export async function GET(req: NextRequest) {
   if (!isAdminRequest(req)) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
   }
 
   const { searchParams } = new URL(req.url)
-  const period: Period = (['all', '30d', '7d'] as const).includes(searchParams.get('period') as Period)
-    ? (searchParams.get('period') as Period)
-    : 'all'
+  const period: Period = searchParams.get('period') === '7d' ? '7d' : '30d'
   const includeEnded = searchParams.get('include_ended') !== 'false'
+
+  const vercelApiToken = process.env.VERCEL_API_TOKEN
+  const vercelProjectId = process.env.VERCEL_PROJECT_ID
+  if (!vercelApiToken || !vercelProjectId) {
+    const missing = [
+      !vercelApiToken ? 'VERCEL_API_TOKEN' : null,
+      !vercelProjectId ? 'VERCEL_PROJECT_ID' : null,
+    ].filter(Boolean).join(', ')
+    return NextResponse.json({ error: `missing environment variable(s): ${missing}` }, { status: 500 })
+  }
 
   const supabase = supabaseAdmin()
 
@@ -113,31 +124,41 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'failed to load events' }, { status: 500 })
   }
 
-  const eventIds = new Set(eventRows.map(e => e.id))
+  // 2. Vercel Web Analytics API から期間別PVを取得
+  const until = new Date()
+  const since = new Date(until.getTime() - (period === '30d' ? 30 : 7) * 24 * 60 * 60 * 1000)
 
-  // 2. ビュー計測（期間フィルタ後、対象イベントのみに絞ってJS側で集計）
-  let viewsQuery = supabase.from('event_views').select('event_id, ip_hash')
-  if (period !== 'all') {
-    const cutoff = jstDateDaysAgo(period === '30d' ? 29 : 6)
-    viewsQuery = viewsQuery.gte('viewed_date_jst', cutoff)
+  const vercelUrl = new URL('https://api.vercel.com/v1/query/web-analytics/visits/aggregate')
+  vercelUrl.searchParams.set('projectId', vercelProjectId)
+  vercelUrl.searchParams.set('by', 'requestPath')
+  vercelUrl.searchParams.set('since', since.toISOString())
+  vercelUrl.searchParams.set('until', until.toISOString())
+  vercelUrl.searchParams.set('limit', '100')
+
+  const vercelRes = await fetch(vercelUrl.toString(), {
+    headers: { Authorization: `Bearer ${vercelApiToken}` },
+  })
+
+  if (!vercelRes.ok) {
+    const body = await vercelRes.text()
+    console.error('[GET /api/analytics/summary] Vercel API request failed', vercelRes.status, body)
+    return new NextResponse(body, { status: vercelRes.status })
   }
-  const { data: viewRows, error: viewsError } = await viewsQuery
-  if (viewsError || !viewRows) {
-    console.error('[GET /api/analytics/summary] event_views fetch failed', viewsError)
-    return NextResponse.json({ error: 'failed to load views' }, { status: 500 })
+
+  const vercelData = await vercelRes.json() as VercelAnalyticsResponse
+  if (vercelData.data.length > 90) {
+    console.warn(`[analytics] Vercel API returned ${vercelData.data.length} rows (near limit=100). Some events may be missing.`)
   }
 
   const viewCountByEvent = new Map<string, number>()
-  const uniqueVisitors = new Set<string>()
-  let totalViews = 0
-  for (const row of viewRows) {
-    if (!eventIds.has(row.event_id)) continue
-    viewCountByEvent.set(row.event_id, (viewCountByEvent.get(row.event_id) ?? 0) + 1)
-    uniqueVisitors.add(row.ip_hash)
-    totalViews += 1
+  for (const row of vercelData.data) {
+    if (!row.requestPath.startsWith(EVENT_PATH_PREFIX)) continue
+    const eventId = row.requestPath.slice(EVENT_PATH_PREFIX.length)
+    viewCountByEvent.set(eventId, row.pageviews)
   }
 
   // 3. イベントごとの画像枚数
+  const eventIds = new Set(eventRows.map(e => e.id))
   const { data: imageRows, error: imagesError } = await supabase
     .from('event_images')
     .select('event_id')
@@ -151,7 +172,7 @@ export async function GET(req: NextRequest) {
     imageCountByEvent.set(row.event_id, (imageCountByEvent.get(row.event_id) ?? 0) + 1)
   }
 
-  // 4. イベント単位の集計データを組み立て
+  // 4. イベント単位の集計データを組み立て（PVが取れなかったイベントは PV=0 として全件含める）
   const stats: EventStat[] = (eventRows as EventRow[]).map(e => {
     const category = normalizeCategory(e.category)
     const status = getEventStatus(e.start_date ?? undefined, e.end_date ?? undefined, e.end_time ?? undefined)
@@ -170,6 +191,8 @@ export async function GET(req: NextRequest) {
       url: `/events/${e.id}`,
     }
   })
+
+  const totalViews = stats.reduce((sum, s) => sum + s.viewCount, 0)
 
   // 5. イベント別PVランキング（並び順はクライアント側で決める）
   const ranking = stats
@@ -258,7 +281,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     overview: {
       totalViews,
-      uniqueVisitors: uniqueVisitors.size,
+      uniqueVisitors: null,
       eventCount: stats.length,
       dateRangeLabel: periodLabel(period),
     },

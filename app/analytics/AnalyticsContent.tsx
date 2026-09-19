@@ -2,11 +2,11 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react'
 
-type Period = 'all' | '30d' | '7d'
+type Period = '30d' | '7d'
 
 type Overview = {
   totalViews: number
-  uniqueVisitors: number
+  uniqueVisitors: number | null
   eventCount: number
   dateRangeLabel: string
 }
@@ -50,7 +50,6 @@ type SummaryResponse = {
 }
 
 const PERIOD_OPTIONS: { value: Period; label: string }[] = [
-  { value: 'all', label: '全期間' },
   { value: '30d', label: '直近30日' },
   { value: '7d',  label: '直近7日' },
 ]
@@ -99,7 +98,7 @@ function BarRow({ label, value, maxValue, sub }: { label: string; value: number;
 type SortDir = 'desc' | 'asc'
 
 export default function AnalyticsContent() {
-  const [period, setPeriod] = useState<Period>('all')
+  const [period, setPeriod] = useState<Period>('30d')
   const [includeEnded, setIncludeEnded] = useState(true)
   const [data, setData] = useState<SummaryResponse | null>(null)
   const [loading, setLoading] = useState(true)
@@ -181,14 +180,10 @@ export default function AnalyticsContent() {
         {!loading && !error && data && (
           <>
             {/* 概要カード */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
                 <div className="text-xs text-gray-500 mb-1">総PV</div>
                 <div className="text-2xl font-bold text-gray-800">{data.overview.totalViews.toLocaleString()}</div>
-              </div>
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-                <div className="text-xs text-gray-500 mb-1">ユニーク訪問者</div>
-                <div className="text-2xl font-bold text-gray-800">{data.overview.uniqueVisitors.toLocaleString()}</div>
               </div>
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
                 <div className="text-xs text-gray-500 mb-1">対象イベント数</div>
