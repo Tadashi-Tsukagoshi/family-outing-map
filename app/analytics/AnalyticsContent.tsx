@@ -251,8 +251,8 @@ export default function AnalyticsContent() {
                     {data.timeSeries.some(p => p.date === ANALYTICS_CUTOVER_DATE) && (
                       <ReferenceLine x={ANALYTICS_CUTOVER_DATE} stroke="#9ca3af" strokeDasharray="4 4" label={{ value: 'カットオーバー', fontSize: 10, fill: '#9ca3af', position: 'top' }} />
                     )}
-                    <Line type="monotone" dataKey="vercelPv" name="Vercel計測" stroke="#3b82f6" strokeWidth={2} dot={false} />
-                    <Line type="monotone" dataKey="selfPv" name="自前計測" stroke="#10b981" strokeWidth={2} dot={false} />
+                    <Line type="linear" dataKey="vercelPv" name="Vercel計測" stroke="#3b82f6" strokeWidth={2} dot={false} />
+                    <Line type="linear" dataKey="selfPv" name="自前計測" stroke="#10b981" strokeWidth={2} dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
               )}
