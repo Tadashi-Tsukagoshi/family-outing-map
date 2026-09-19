@@ -459,13 +459,21 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
         <span className="text-gray-300">|</span>
         <h1 className="text-base font-bold text-gray-800">スポット管理</h1>
         {onLogout && (
-          <button
-            type="button"
-            onClick={onLogout}
-            className="ml-auto text-xs text-gray-400 hover:text-gray-600 cursor-pointer"
-          >
-            ログアウト
-          </button>
+          <>
+            <a
+              href="/analytics"
+              className="ml-auto text-xs text-blue-600 hover:text-blue-800 underline"
+            >
+              アクセス分析
+            </a>
+            <button
+              type="button"
+              onClick={onLogout}
+              className="text-xs text-gray-400 hover:text-gray-600 cursor-pointer"
+            >
+              ログアウト
+            </button>
+          </>
         )}
       </header>
 
