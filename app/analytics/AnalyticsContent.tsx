@@ -104,7 +104,7 @@ function makeSelectedDot(color: string, selectedDate: string | null) {
   }
 }
 
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
+function Card({ title, children }: { title: React.ReactNode; children: React.ReactNode }) {
   return (
     <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
       <h2 className="text-sm font-semibold text-gray-700 mb-4">{title}</h2>
@@ -296,38 +296,52 @@ export default function AnalyticsContent() {
             </Card>
 
             {/* 選択日のイベント別内訳 */}
-            <Card title={selectedDate ? `${selectedDate}のイベント別内訳（自前計測PV）` : '日別イベント内訳（自前計測PV）'}>
-              {dailyBreakdownItems.length === 0 ? (
-                <p className="text-xs text-gray-400">グラフの点をクリックすると内訳が表示されます。</p>
-              ) : (
-                <table className="w-full text-xs border-collapse">
-                  <thead>
-                    <tr className="text-gray-500 border-b border-gray-100">
-                      <th className="text-left font-medium py-2 pr-2 w-10">順位</th>
-                      <th className="text-left font-medium py-2 pr-2">イベント名</th>
-                      <th className="text-left font-medium py-2 pr-2">カテゴリ</th>
-                      <th className="text-left font-medium py-2 pr-2">エリア</th>
-                      <th className="text-right font-medium py-2 pl-2">PV</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dailyBreakdownItems.map((item, idx) => (
-                      <tr key={item.eventId} className="border-b border-gray-50 hover:bg-gray-50">
-                        <td className="py-2 pr-2 text-gray-400">{idx + 1}</td>
-                        <td className="py-2 pr-2 max-w-[220px]">
-                          <a href={`/events/${item.eventId}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate block">
-                            {item.name}
-                          </a>
-                        </td>
-                        <td className="py-2 pr-2 text-gray-600 whitespace-nowrap">{CATEGORY_LABELS[item.category as Category] ?? item.category}</td>
-                        <td className="py-2 pr-2 text-gray-600 whitespace-nowrap">{item.city ?? '-'}</td>
-                        <td className="py-2 pl-2 text-right font-bold text-gray-800">{item.pv}</td>
+            {selectedDate && (
+              <Card title={
+                <div className="flex justify-between items-center">
+                  <span>{`${selectedDate}のイベント別内訳（自前計測PV）`}</span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDate(null)}
+                    className="text-gray-400 hover:text-gray-600 text-base leading-none px-1 cursor-pointer"
+                    aria-label="内訳を閉じる"
+                  >
+                    ×
+                  </button>
+                </div>
+              }>
+                {dailyBreakdownItems.length === 0 ? (
+                  <p className="text-xs text-gray-400">この日はPVがありませんでした。</p>
+                ) : (
+                  <table className="w-full text-xs border-collapse">
+                    <thead>
+                      <tr className="text-gray-500 border-b border-gray-100">
+                        <th className="text-left font-medium py-2 pr-2 w-10">順位</th>
+                        <th className="text-left font-medium py-2 pr-2">イベント名</th>
+                        <th className="text-left font-medium py-2 pr-2">カテゴリ</th>
+                        <th className="text-left font-medium py-2 pr-2">エリア</th>
+                        <th className="text-right font-medium py-2 pl-2">PV</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </Card>
+                    </thead>
+                    <tbody>
+                      {dailyBreakdownItems.map((item, idx) => (
+                        <tr key={item.eventId} className="border-b border-gray-50 hover:bg-gray-50">
+                          <td className="py-2 pr-2 text-gray-400">{idx + 1}</td>
+                          <td className="py-2 pr-2 max-w-[220px]">
+                            <a href={`/events/${item.eventId}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate block">
+                              {item.name}
+                            </a>
+                          </td>
+                          <td className="py-2 pr-2 text-gray-600 whitespace-nowrap">{CATEGORY_LABELS[item.category as Category] ?? item.category}</td>
+                          <td className="py-2 pr-2 text-gray-600 whitespace-nowrap">{item.city ?? '-'}</td>
+                          <td className="py-2 pl-2 text-right font-bold text-gray-800">{item.pv}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </Card>
+            )}
 
             {/* イベント別PVランキング */}
             <Card title="イベント別PVランキング">
