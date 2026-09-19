@@ -171,10 +171,8 @@ export async function GET(req: NextRequest) {
     }
   })
 
-  // 5. 下位ランキング（PVが少ない順）
-  const bottomRanking = [...stats]
-    .sort((a, b) => a.viewCount - b.viewCount || a.name.localeCompare(b.name, 'ja'))
-    .slice(0, 30)
+  // 5. イベント別PVランキング（並び順はクライアント側で決める）
+  const ranking = stats
 
   // 6. カテゴリ別集計
   const categoryGroups = new Map<Category, EventStat[]>()
@@ -264,7 +262,7 @@ export async function GET(req: NextRequest) {
       eventCount: stats.length,
       dateRangeLabel: periodLabel(period),
     },
-    bottomRanking,
+    ranking,
     byCategory,
     byImageCount,
     byDescriptionLength,

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 
 type Period = 'all' | '30d' | '7d'
 
@@ -41,7 +41,7 @@ type AreaStat = { city: string; eventCount: number; avgViews: number }
 
 type SummaryResponse = {
   overview: Overview
-  bottomRanking: RankingItem[]
+  ranking: RankingItem[]
   byCategory: CategoryStat[]
   byImageCount: BucketStat[]
   byDescriptionLength: BucketStat[]
@@ -96,12 +96,15 @@ function BarRow({ label, value, maxValue, sub }: { label: string; value: number;
   )
 }
 
+type SortDir = 'desc' | 'asc'
+
 export default function AnalyticsContent() {
   const [period, setPeriod] = useState<Period>('all')
   const [includeEnded, setIncludeEnded] = useState(true)
   const [data, setData] = useState<SummaryResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [sortDir, setSortDir] = useState<SortDir>('desc')
 
   const load = useCallback(async (p: Period, ie: boolean) => {
     setLoading(true)
@@ -121,6 +124,15 @@ export default function AnalyticsContent() {
   useEffect(() => {
     load(period, includeEnded)
   }, [period, includeEnded, load])
+
+  const sortedRanking = useMemo(() => {
+    if (!data) return []
+    return [...data.ranking].sort((a, b) => (
+      sortDir === 'desc'
+        ? b.viewCount - a.viewCount || a.name.localeCompare(b.name, 'ja')
+        : a.viewCount - b.viewCount || a.name.localeCompare(b.name, 'ja')
+    ))
+  }, [data, sortDir])
 
   const maxCategoryAvg = data ? Math.max(0, ...data.byCategory.map(c => c.avgViews)) : 0
   const maxImageAvg    = data ? Math.max(0, ...data.byImageCount.map(c => c.avgViews)) : 0
@@ -188,27 +200,36 @@ export default function AnalyticsContent() {
               </div>
             </div>
 
-            {/* 下位ランキング */}
-            <Card title="📉 PVが伸びていないイベント（登録コストを抑える判断材料）">
-              {data.bottomRanking.length === 0 ? (
+            {/* イベント別PVランキング */}
+            <Card title="イベント別PVランキング">
+              {sortedRanking.length === 0 ? (
                 <p className="text-xs text-gray-400">対象データがありません。</p>
               ) : (
-                <div className="overflow-x-auto -mx-6 px-6">
+                <div className="max-h-[70vh] overflow-y-auto overflow-x-auto -mx-6 px-6">
                   <table className="w-full text-xs border-collapse min-w-[720px]">
                     <thead>
                       <tr className="text-gray-500 border-b border-gray-100">
-                        <th className="text-left font-medium py-2 pr-2 w-10">順位</th>
-                        <th className="text-left font-medium py-2 pr-2">イベント名</th>
-                        <th className="text-left font-medium py-2 pr-2">カテゴリ</th>
-                        <th className="text-left font-medium py-2 pr-2">エリア</th>
-                        <th className="text-right font-medium py-2 pr-2">PV</th>
-                        <th className="text-right font-medium py-2 pr-2">画像</th>
-                        <th className="text-right font-medium py-2 pr-2">説明文字数</th>
-                        <th className="text-left font-medium py-2 pl-2">ステータス</th>
+                        <th className="sticky top-0 bg-white z-10 text-left font-medium py-2 pr-2 w-10">順位</th>
+                        <th className="sticky top-0 bg-white z-10 text-left font-medium py-2 pr-2">イベント名</th>
+                        <th className="sticky top-0 bg-white z-10 text-left font-medium py-2 pr-2">カテゴリ</th>
+                        <th className="sticky top-0 bg-white z-10 text-left font-medium py-2 pr-2">エリア</th>
+                        <th className="sticky top-0 bg-white z-10 text-right font-medium py-2 pr-2">
+                          <button
+                            type="button"
+                            onClick={() => setSortDir(d => d === 'desc' ? 'asc' : 'desc')}
+                            className="inline-flex items-center gap-0.5 cursor-pointer hover:text-gray-800"
+                          >
+                            PV
+                            <span aria-hidden="true">{sortDir === 'desc' ? '↓' : '↑'}</span>
+                          </button>
+                        </th>
+                        <th className="sticky top-0 bg-white z-10 text-right font-medium py-2 pr-2">画像</th>
+                        <th className="sticky top-0 bg-white z-10 text-right font-medium py-2 pr-2">説明文字数</th>
+                        <th className="sticky top-0 bg-white z-10 text-left font-medium py-2 pl-2">ステータス</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {data.bottomRanking.map((item, idx) => {
+                      {sortedRanking.map((item, idx) => {
                         const badge = item.status ? STATUS_BADGE[item.status] : { bg: '#f3f4f6', color: '#9ca3af' }
                         return (
                           <tr key={item.eventId} className="border-b border-gray-50 hover:bg-gray-50">
