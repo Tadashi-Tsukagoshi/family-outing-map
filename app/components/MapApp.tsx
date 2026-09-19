@@ -230,6 +230,13 @@ export default function MapApp() {
   const handleDetailOpen = useCallback((spot: Spot) => {
     setDetailSpot(spot)
     setSelectedSpot(spot)
+    // ビュー計測（fire-and-forget、エラーは無視）。GUNMAP_INFO_SPOT は events テーブルに存在しないため除外。
+    // event_plus は複数ピンに分裂して spot.id がピンごとの合成idになるため、実イベントの id は eventId を優先する
+    // （DetailPanel.tsx の eventId 解決と同じルール）
+    if (spot.id !== '__gunmap_info__') {
+      const eventId = spot.eventId ?? spot.id
+      fetch(`/api/events/${eventId}/view`, { method: 'POST' }).catch(() => {})
+    }
   }, [])
 
   // エリアチップ／その他リストでのエリア選択（「すべて」含む）はボトムシートをmidまで上げる

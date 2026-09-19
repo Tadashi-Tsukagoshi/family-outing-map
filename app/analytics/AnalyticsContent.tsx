@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react'
 
-type Period = '30d' | '7d'
+type Period = 'all' | '30d' | '7d'
 
 type Overview = {
   totalViews: number
@@ -50,6 +50,7 @@ type SummaryResponse = {
 }
 
 const PERIOD_OPTIONS: { value: Period; label: string }[] = [
+  { value: 'all', label: '全期間' },
   { value: '30d', label: '直近30日' },
   { value: '7d',  label: '直近7日' },
 ]
@@ -98,7 +99,7 @@ function BarRow({ label, value, maxValue, sub }: { label: string; value: number;
 type SortDir = 'desc' | 'asc'
 
 export default function AnalyticsContent() {
-  const [period, setPeriod] = useState<Period>('30d')
+  const [period, setPeriod] = useState<Period>('all')
   const [includeEnded, setIncludeEnded] = useState(true)
   const [data, setData] = useState<SummaryResponse | null>(null)
   const [loading, setLoading] = useState(true)
@@ -169,6 +170,12 @@ export default function AnalyticsContent() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+        <p className="text-xs text-gray-500 bg-yellow-50 border border-yellow-200 rounded p-3">
+          ※ 2026-09-19以前のPVはVercel Analyticsによる集計（SEO・外部リンク経由）、
+          以降は自前計測（アプリ内クリック含む全アクセス）です。
+          カットオーバー前後で計測範囲が異なるため、期間をまたぐ比較時はご留意ください。
+        </p>
+
         {loading && (
           <div className="text-center text-sm text-gray-400 py-12">読み込み中...</div>
         )}
