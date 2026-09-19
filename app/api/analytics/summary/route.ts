@@ -161,6 +161,17 @@ export async function GET(req: NextRequest) {
   const selfPvByEvent = new Map<string, number>()
   const vercelPvByDate = new Map<string, number>()
   const selfPvByDate = new Map<string, number>()
+  // 日別内訳（PV推移グラフの点クリック用）: date -> eventId -> 自前PV
+  const selfPvByDateEvent = new Map<string, Map<string, number>>()
+
+  function addSelfPvByDateEvent(date: string, eventId: string, pv: number) {
+    let byEvent = selfPvByDateEvent.get(date)
+    if (!byEvent) {
+      byEvent = new Map()
+      selfPvByDateEvent.set(date, byEvent)
+    }
+    byEvent.set(eventId, (byEvent.get(eventId) ?? 0) + pv)
+  }
 
   const { data: pvDailyRows, error: pvDailyError } = await supabase
     .from('event_pv_daily')
@@ -178,6 +189,7 @@ export async function GET(req: NextRequest) {
     if (row.date <= cutoverMinusOne) {
       selfPvByEvent.set(row.event_id, (selfPvByEvent.get(row.event_id) ?? 0) + row.pageviews)
       selfPvByDate.set(row.date, (selfPvByDate.get(row.date) ?? 0) + row.pageviews)
+      addSelfPvByDateEvent(row.date, row.event_id, row.pageviews)
     }
   }
 
@@ -196,6 +208,7 @@ export async function GET(req: NextRequest) {
       if (!eventIds.has(row.event_id)) continue
       selfPvByEvent.set(row.event_id, (selfPvByEvent.get(row.event_id) ?? 0) + 1)
       selfPvByDate.set(row.viewed_date_jst, (selfPvByDate.get(row.viewed_date_jst) ?? 0) + 1)
+      addSelfPvByDateEvent(row.viewed_date_jst, row.event_id, 1)
     }
   }
 
@@ -238,6 +251,20 @@ export async function GET(req: NextRequest) {
 
   const totalViews  = stats.reduce((sum, s) => sum + s.selfPv, 0)
   const vercelViews = stats.reduce((sum, s) => sum + s.vercelPv, 0)
+
+  // 5b. 日別のイベント内訳（PV推移グラフの点クリック時に表示。自前PV≥1のイベントのみ、PV降順）
+  const statsById = new Map(stats.map(s => [s.eventId, s]))
+  const dailyBreakdown: Record<string, { eventId: string; name: string; category: string; city: string | null; pv: number }[]> = {}
+  for (const [date, byEvent] of selfPvByDateEvent) {
+    const list = [...byEvent.entries()]
+      .filter(([eventId, pv]) => pv >= 1 && statsById.has(eventId))
+      .map(([eventId, pv]) => {
+        const meta = statsById.get(eventId)!
+        return { eventId, name: meta.name, category: meta.category, city: meta.city, pv }
+      })
+      .sort((a, b) => b.pv - a.pv)
+    if (list.length > 0) dailyBreakdown[date] = list
+  }
 
   // 6. イベント別PVランキング（並び順はクライアント側で決める）
   const ranking = stats
@@ -342,6 +369,7 @@ export async function GET(req: NextRequest) {
     },
     ranking,
     timeSeries,
+    dailyBreakdown,
     byCategory,
     byImageCount,
     byDescriptionLength,

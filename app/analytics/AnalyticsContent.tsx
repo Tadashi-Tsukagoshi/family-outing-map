@@ -2,7 +2,9 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine, ResponsiveContainer } from 'recharts'
+import type { DotItemDotProps } from 'recharts'
 import { ANALYTICS_CUTOVER_DATE } from '@/lib/analytics-cutover'
+import { CATEGORY_LABELS, type Category } from '@/lib/spots'
 
 type Period = 'all' | '30d' | '7d'
 
@@ -38,6 +40,14 @@ type TimeSeriesPoint = {
   selfPv: number
 }
 
+type DailyBreakdownItem = {
+  eventId: string
+  name: string
+  category: string
+  city: string | null
+  pv: number
+}
+
 type CategoryStat = {
   category: string
   label: string
@@ -55,6 +65,7 @@ type SummaryResponse = {
   overview: Overview
   ranking: RankingItem[]
   timeSeries: TimeSeriesPoint[]
+  dailyBreakdown: Record<string, DailyBreakdownItem[]>
   byCategory: CategoryStat[]
   byImageCount: BucketStat[]
   byDescriptionLength: BucketStat[]
@@ -82,6 +93,15 @@ const STATUS_BADGE: Record<string, { bg: string; color: string }> = {
 
 function fmt1(n: number): string {
   return n.toFixed(1)
+}
+
+/** 選択中の日付の点だけを丸で強調表示するカスタムドット */
+function makeSelectedDot(color: string, selectedDate: string | null) {
+  return (props: DotItemDotProps) => {
+    const { cx, cy, payload } = props
+    if (cx == null || cy == null || payload?.date !== selectedDate) return null
+    return <circle cx={cx} cy={cy} r={5} fill={color} stroke="#fff" strokeWidth={2} />
+  }
 }
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
@@ -120,6 +140,7 @@ export default function AnalyticsContent() {
   const [error, setError] = useState<string | null>(null)
   const [sortKey, setSortKey] = useState<SortKey>('selfPv')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
+  const [selectedDate, setSelectedDate] = useState<string | null>(null)
 
   const load = useCallback(async (p: Period, ie: boolean) => {
     setLoading(true)
@@ -129,6 +150,8 @@ export default function AnalyticsContent() {
       if (!res.ok) throw new Error('取得に失敗しました')
       const json = await res.json() as SummaryResponse
       setData(json)
+      // 期間切替のたびに timeSeries の最新日を選択日にリセットする
+      setSelectedDate(json.timeSeries.length > 0 ? json.timeSeries[json.timeSeries.length - 1].date : null)
     } catch {
       setError('データの取得に失敗しました。時間を置いて再度お試しください。')
     } finally {
@@ -159,6 +182,11 @@ export default function AnalyticsContent() {
       return key
     })
   }, [])
+
+  const dailyBreakdownItems = useMemo(() => {
+    if (!data || !selectedDate) return []
+    return data.dailyBreakdown[selectedDate] ?? []
+  }, [data, selectedDate])
 
   const maxCategoryAvg = data ? Math.max(0, ...data.byCategory.map(c => c.avgViews)) : 0
   const maxImageAvg    = data ? Math.max(0, ...data.byImageCount.map(c => c.avgViews)) : 0
@@ -234,11 +262,20 @@ export default function AnalyticsContent() {
 
             {/* PV推移グラフ */}
             <Card title="PV推移">
+              <p className="text-[11px] text-gray-400 mb-2">※ 点をクリックすると下に日別内訳が表示されます</p>
               {data.timeSeries.length === 0 ? (
                 <p className="text-xs text-gray-400">対象データがありません。</p>
               ) : (
                 <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={data.timeSeries} margin={{ top: 4, right: 12, left: 0, bottom: 4 }}>
+                  <LineChart
+                    data={data.timeSeries}
+                    margin={{ top: 4, right: 12, left: 0, bottom: 4 }}
+                    style={{ cursor: 'pointer' }}
+                    onClick={state => {
+                      const label = state?.activeLabel
+                      if (typeof label === 'string') setSelectedDate(label)
+                    }}
+                  >
                     <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
                     <XAxis
                       dataKey="date"
@@ -251,10 +288,44 @@ export default function AnalyticsContent() {
                     {data.timeSeries.some(p => p.date === ANALYTICS_CUTOVER_DATE) && (
                       <ReferenceLine x={ANALYTICS_CUTOVER_DATE} stroke="#9ca3af" strokeDasharray="4 4" label={{ value: 'カットオーバー', fontSize: 10, fill: '#9ca3af', position: 'top' }} />
                     )}
-                    <Line type="linear" dataKey="vercelPv" name="Vercel計測" stroke="#3b82f6" strokeWidth={2} dot={false} />
-                    <Line type="linear" dataKey="selfPv" name="自前計測" stroke="#10b981" strokeWidth={2} dot={false} />
+                    <Line type="linear" dataKey="vercelPv" name="Vercel計測" stroke="#3b82f6" strokeWidth={2} dot={makeSelectedDot('#3b82f6', selectedDate)} activeDot={{ r: 5 }} />
+                    <Line type="linear" dataKey="selfPv" name="自前計測" stroke="#10b981" strokeWidth={2} dot={makeSelectedDot('#10b981', selectedDate)} activeDot={{ r: 5 }} />
                   </LineChart>
                 </ResponsiveContainer>
+              )}
+            </Card>
+
+            {/* 選択日のイベント別内訳 */}
+            <Card title={selectedDate ? `${selectedDate}のイベント別内訳（自前計測PV）` : '日別イベント内訳（自前計測PV）'}>
+              {dailyBreakdownItems.length === 0 ? (
+                <p className="text-xs text-gray-400">グラフの点をクリックすると内訳が表示されます。</p>
+              ) : (
+                <table className="w-full text-xs border-collapse">
+                  <thead>
+                    <tr className="text-gray-500 border-b border-gray-100">
+                      <th className="text-left font-medium py-2 pr-2 w-10">順位</th>
+                      <th className="text-left font-medium py-2 pr-2">イベント名</th>
+                      <th className="text-left font-medium py-2 pr-2">カテゴリ</th>
+                      <th className="text-left font-medium py-2 pr-2">エリア</th>
+                      <th className="text-right font-medium py-2 pl-2">PV</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dailyBreakdownItems.map((item, idx) => (
+                      <tr key={item.eventId} className="border-b border-gray-50 hover:bg-gray-50">
+                        <td className="py-2 pr-2 text-gray-400">{idx + 1}</td>
+                        <td className="py-2 pr-2 max-w-[220px]">
+                          <a href={`/events/${item.eventId}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate block">
+                            {item.name}
+                          </a>
+                        </td>
+                        <td className="py-2 pr-2 text-gray-600 whitespace-nowrap">{CATEGORY_LABELS[item.category as Category] ?? item.category}</td>
+                        <td className="py-2 pr-2 text-gray-600 whitespace-nowrap">{item.city ?? '-'}</td>
+                        <td className="py-2 pl-2 text-right font-bold text-gray-800">{item.pv}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               )}
             </Card>
 
