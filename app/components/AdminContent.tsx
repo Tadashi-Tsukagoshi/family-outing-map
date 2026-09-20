@@ -454,7 +454,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-3">
+      <header className="bg-white border-b border-gray-200 px-6 py-4 min-h-[66px] flex items-center gap-3">
         <a href="/" className="text-gray-400 hover:text-gray-600 text-sm">← 地図に戻る</a>
         <span className="text-gray-300">|</span>
         <h1 className="text-base font-bold text-gray-800">スポット管理</h1>
@@ -464,7 +464,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
               href="/analytics"
               className="ml-auto text-xs text-blue-600 hover:text-blue-800 underline"
             >
-              アクセス分析
+              イベントアクセス分析
             </a>
             <button
               type="button"

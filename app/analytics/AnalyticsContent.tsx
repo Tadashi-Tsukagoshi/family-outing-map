@@ -199,7 +199,7 @@ export default function AnalyticsContent() {
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-3 flex-wrap">
         <a href="/ota-admin" className="text-gray-400 hover:text-gray-600 text-sm">← 管理画面に戻る</a>
         <span className="text-gray-300">|</span>
-        <h1 className="text-base font-bold text-gray-800">アクセス分析</h1>
+        <h1 className="text-base font-bold text-gray-800">イベントアクセス分析</h1>
 
         <div className="ml-auto flex items-center gap-3 flex-wrap">
           <select
@@ -261,7 +261,7 @@ export default function AnalyticsContent() {
             </div>
 
             {/* PV推移グラフ */}
-            <Card title="PV推移">
+            <Card title="イベント総PV推移">
               <p className="text-[11px] text-gray-400 mb-2">※ 点をクリックすると下に日別内訳が表示されます</p>
               {data.timeSeries.length === 0 ? (
                 <p className="text-xs text-gray-400">対象データがありません。</p>
