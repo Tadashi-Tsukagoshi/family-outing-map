@@ -89,64 +89,49 @@ export default function Sidebar({
 }: Props) {
   const isSheet = mode === 'sheet'
 
-  // 現在地スライダー：つまみの中心位置（%）
-  const radiusPercent    = (locationRadius - 10) / 50
-  const radiusThumbWidth = 16
-  const radiusThumbLeft  = `calc(${radiusPercent * 100}% + ${radiusThumbWidth / 2 - radiusPercent * radiusThumbWidth}px)`
+  // プルダウンの value: 'off' or '10' | '20' | ... 。旧60km設定値は表示上50kmにclampする
+  const radiusSelectValue = hasLocation ? String(Math.min(locationRadius, 50)) : 'off'
+
+  const handleRadiusSelectChange = (value: string) => {
+    if (value === 'off') {
+      onLocateClear()
+      return
+    }
+    onRadiusChange(Number(value))
+    if (!hasLocation) onLocate()
+  }
 
   // フィルター（表示期間・現在地距離円・カテゴリ）：PC/モバイルで共通。配置位置のみモードで異なる
   const filterSection = (
     <div className={`pl-[22px] border-b border-gray-100 ${isSheet ? 'pt-4 pr-4 pb-2.5 space-y-5' : 'pt-4 pb-2.5 pr-4 space-y-2'}`}>
-      {/* 表示期間・現在地を表示：同じグリッドの列として並べることで、プルダウンとスライダーの幅・右端を揃える（PCのみ。モバイルは地図上のチップに移動） */}
+      {/* 表示期間・現在地を表示：同じグリッドの列として並べることで、プルダウンの幅・右端を揃える（PCのみ。モバイルは地図上のチップに移動） */}
       {!isSheet && (
         <div className="grid grid-cols-[auto_auto] items-center justify-between gap-y-2">
           <span className="text-sm" style={{ color: '#1F1F1F' }}>表示期間</span>
           <select
             value={periodFilter}
             onChange={(e) => onPeriodChange(e.target.value as PeriodFilter)}
-            className="justify-self-end text-sm border border-gray-300 rounded-md px-2 py-1 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-400"
+            className="justify-self-end min-w-[7rem] text-sm border border-gray-300 rounded-md px-2 py-1 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-400"
           >
             {periodOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>
 
-          <div className="self-start pt-5">
-            <span className="-mt-0.5 flex items-center text-sm h-5" style={{ color: '#1F1F1F' }}>
-              現在地・距離円
-            </span>
-          </div>
-          <div className="relative w-full self-start pt-5">
-            <div className="relative">
-              <div
-                className={`absolute -top-5 -translate-x-1/2 text-xs font-normal tabular-nums pointer-events-none whitespace-nowrap ${hasLocation ? 'text-blue-600' : 'text-gray-400'}`}
-                style={{ left: radiusThumbLeft }}
-              >
-                半径{locationRadius}km
-              </div>
-              <input
-                type="range"
-                min={10}
-                max={60}
-                step={10}
-                value={locationRadius}
-                onChange={(e) => onRadiusChange(Number(e.target.value))}
-                disabled={!hasLocation}
-                className={`w-full cursor-pointer disabled:cursor-not-allowed h-5 ${hasLocation ? 'accent-blue-500 text-blue-600' : 'accent-gray-400 text-gray-400'}`}
-              />
-              {/* つまみ位置に重ねた透明ボタン：クリックで現在地表示のON/OFFを切り替える（線上クリックでの距離変更とは独立） */}
-              <button
-                type="button"
-                role="switch"
-                aria-checked={hasLocation}
-                aria-label="現在地を表示"
-                onClick={hasLocation ? onLocateClear : onLocate}
-                disabled={locateStatus === 'loading'}
-                className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-transparent cursor-pointer disabled:cursor-wait"
-                style={{ left: radiusThumbLeft }}
-              />
-            </div>
-          </div>
+          <span className="text-sm" style={{ color: '#1F1F1F' }}>現在地・距離円</span>
+          <select
+            value={radiusSelectValue}
+            onChange={(e) => handleRadiusSelectChange(e.target.value)}
+            disabled={locateStatus === 'loading'}
+            className="justify-self-end min-w-[7rem] text-sm border border-gray-300 rounded-md px-2 py-1 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-400"
+          >
+            <option value="off">現在地オフ</option>
+            <option value="10">半径10km</option>
+            <option value="20">半径20km</option>
+            <option value="30">半径30km</option>
+            <option value="40">半径40km</option>
+            <option value="50">半径50km</option>
+          </select>
         </div>
       )}
 
