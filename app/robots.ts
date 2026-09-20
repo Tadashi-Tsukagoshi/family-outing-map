@@ -24,12 +24,12 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: ['Googlebot', 'bingbot'],
         allow: '/',
-        disallow: ['/admin', '/ota-admin'],
+        disallow: ['/admin', '/ota-admin', '/analytics'],
       },
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/admin', '/ota-admin'],
+        disallow: ['/admin', '/ota-admin', '/analytics'],
       },
     ],
     sitemap: 'https://gunma-odekakemap.jp/sitemap.xml',
