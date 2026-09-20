@@ -508,7 +508,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
           <form ref={formRef} onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 space-y-5">
 
             {editingId && (
-              <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-xl px-4 py-2.5">
+              <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg px-4 py-2.5">
                 <span className="text-xs text-blue-700 font-medium">編集モード</span>
                 <button
                   type="button"
@@ -536,7 +536,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
 
             {/* 送信結果 */}
             {submitMessage && (
-              <div className={`rounded-xl px-4 py-3 text-sm
+              <div className={`rounded-lg px-4 py-3 text-sm
                 ${submitStatus === 'ok'    ? 'bg-green-50 text-green-700 border border-green-200' : ''}
                 ${submitStatus === 'error' ? 'bg-red-50   text-red-600   border border-red-200'   : ''}`}>
                 {submitMessage}
