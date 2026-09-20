@@ -83,7 +83,7 @@ export default function OtaAdminPage() {
             onChange={e => setLoginPw(e.target.value)}
             required
             autoFocus
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
           />
         </div>
         {loginError && (
@@ -92,7 +92,7 @@ export default function OtaAdminPage() {
         <button
           type="submit"
           disabled={loginLoading || !loginPw}
-          className="w-full py-2.5 rounded-xl text-sm font-semibold text-white bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          className="w-full py-2.5 rounded-md text-sm font-semibold text-white bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors cursor-pointer"
         >
           {loginLoading ? 'ログイン中...' : 'ログイン'}
         </button>

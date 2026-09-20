@@ -205,7 +205,7 @@ export default function AnalyticsContent() {
           <select
             value={period}
             onChange={e => setPeriod(e.target.value as Period)}
-            className="text-xs rounded-lg border border-gray-300 px-2 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="text-xs rounded-md border border-gray-300 px-2 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
           >
             {PERIOD_OPTIONS.map(opt => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>

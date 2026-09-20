@@ -490,7 +490,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
                 type="button"
                 onClick={() => setShowDuplicateModal(true)}
                 disabled={duplicatingImage}
-                className="text-xs px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600
+                className="text-xs px-3 py-1.5 rounded-md border border-gray-300 text-gray-600
                   hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
               >
                 📋 既存イベントから複製
@@ -551,7 +551,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
                   form.category === 'event_plus'
                     ? (!form.venue || form.eventDates.length === 0)
                     : (!form.venue || (form.dateConfirmed ? (!form.startDate || !form.endDate) : !form.scheduleNote)))}
-              className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-colors cursor-pointer
+              className="w-full py-3 rounded-md text-sm font-semibold text-white transition-colors cursor-pointer
                 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
               {isSubmitting
@@ -599,7 +599,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="スポット名で検索"
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:border-blue-300 mb-2"
+            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md bg-white focus:outline-none focus:border-blue-300 mb-2"
           />
           {eventsLoading ? (
             <p className="text-sm text-gray-400">読み込み中...</p>
@@ -637,7 +637,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
                             <button
                               type="button"
                               onClick={() => handleEdit(ev)}
-                              className="px-2.5 py-1 text-xs rounded-lg border border-blue-200 text-blue-600
+                              className="px-2.5 py-1 text-xs rounded-md border border-blue-200 text-blue-600
                                 hover:bg-blue-100 transition-colors cursor-pointer"
                             >
                               編集
@@ -645,7 +645,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
                             <button
                               type="button"
                               onClick={() => handleDelete(ev)}
-                              className="px-2.5 py-1 text-xs rounded-lg border border-red-200 text-red-500
+                              className="px-2.5 py-1 text-xs rounded-md border border-red-200 text-red-500
                                 hover:bg-red-50 transition-colors cursor-pointer"
                             >
                               削除

@@ -144,7 +144,7 @@ function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
         if (e.key === 'Enter') e.preventDefault()
         props.onKeyDown?.(e)
       }}
-      className={`w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+      className={`w-full rounded-md border border-gray-300 px-3 py-2 text-sm
         placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400
         disabled:bg-gray-50 disabled:text-gray-500 ${props.className ?? ''}`}
     />
@@ -155,7 +155,7 @@ function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
     <textarea
       {...props}
-      className={`w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+      className={`w-full rounded-md border border-gray-300 px-3 py-2 text-sm
         placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400
         resize-y disabled:bg-gray-50 ${props.className ?? ''}`}
     />
@@ -349,7 +349,7 @@ function TimeSelect({ value, onChange, disabled }: { value: string; onChange: (v
 
   const commit = (h: string, m: string) => onChange(h && m ? `${h}:${m}` : '')
 
-  const selectClassName = `rounded-lg border border-gray-300 px-2 py-2 text-sm bg-white
+  const selectClassName = `rounded-md border border-gray-300 px-2 py-2 text-sm bg-white
     focus:outline-none focus:ring-2 focus:ring-green-400 disabled:bg-gray-50 disabled:text-gray-500`
 
   return (
@@ -845,7 +845,7 @@ export default function EventFormFields({
                   set('spotLabel', '')
                 }
               }}
-              className={`flex-1 py-2 rounded-xl border text-sm font-medium transition-colors cursor-pointer
+              className={`flex-1 py-2 rounded-md border text-sm font-medium transition-colors cursor-pointer
                 ${form.type === opt.value
                   ? 'border-green-400 bg-green-50 text-green-700'
                   : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
@@ -870,7 +870,7 @@ export default function EventFormFields({
                 disabled={categoryDisabled}
                 onClick={() => set('category', cat)}
                 style={categoryMismatch ? { opacity: 0.3, pointerEvents: 'none' } : undefined}
-                className={`w-full flex flex-col items-center gap-1 py-2.5 rounded-xl border text-xs font-medium transition-colors
+                className={`w-full flex flex-col items-center gap-1 py-2.5 rounded-md border text-xs font-medium transition-colors
                   ${categoryDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}
                   ${disabled && !categoryMismatch ? 'opacity-40' : ''}
                   ${form.category === cat
@@ -896,7 +896,7 @@ export default function EventFormFields({
               value={form.subCategory || 'event'}
               onChange={e => set('subCategory', e.target.value)}
               disabled={disabled}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm
                 focus:outline-none focus:ring-2 focus:ring-green-400
                 disabled:bg-gray-50 disabled:text-gray-500"
             >
@@ -1053,7 +1053,7 @@ export default function EventFormFields({
                           type="button"
                           onClick={() => geocodeDate(d.id, d.address)}
                           disabled={!d.address.trim() || dateGeoStatus[d.id] === 'loading' || disabled}
-                          className="flex-shrink-0 px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-600
+                          className="flex-shrink-0 px-3 py-2 rounded-md border border-gray-300 text-sm text-gray-600
                             hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
                         >
                           {dateGeoStatus[d.id] === 'loading' ? '…' : '取得'}
@@ -1248,7 +1248,7 @@ export default function EventFormFields({
                                 onClick={() => handleDateImageMove(d.id, imgIdx, imgIdx - 1)}
                                 disabled={disabled || dateImageStatus[d.id] === 'uploading' || imgIdx === 0}
                                 aria-label="上へ移動"
-                                className="w-5 h-5 rounded text-[10px] leading-none flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                                className="w-5 h-5 rounded-md text-[10px] leading-none flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                               >
                                 ▲
                               </button>
@@ -1257,7 +1257,7 @@ export default function EventFormFields({
                                 onClick={() => handleDateImageMove(d.id, imgIdx, imgIdx + 1)}
                                 disabled={disabled || dateImageStatus[d.id] === 'uploading' || imgIdx === d.imageUrls.length - 1}
                                 aria-label="下へ移動"
-                                className="w-5 h-5 rounded text-[10px] leading-none flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                                className="w-5 h-5 rounded-md text-[10px] leading-none flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                               >
                                 ▼
                               </button>
@@ -1269,7 +1269,7 @@ export default function EventFormFields({
                               onChange={e => handleDateCaptionChange(d.id, imgIdx, e.target.value)}
                               placeholder={imgIdx === 0 ? '例：画像は○○のものです' : '例：写真提供 ○○市'}
                               disabled={disabled}
-                              className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-green-400 focus:ring-1 focus:ring-green-200 outline-none resize-vertical"
+                              className="flex-1 rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-green-400 focus:ring-1 focus:ring-green-200 outline-none resize-vertical"
                               rows={2}
                             />
                           </div>
@@ -1285,7 +1285,7 @@ export default function EventFormFields({
             type="button"
             onClick={addEventDate}
             disabled={disabled}
-            className="mt-3 w-full py-2 rounded-xl border border-dashed border-gray-300 text-sm text-gray-500
+            className="mt-3 w-full py-2 rounded-md border border-dashed border-gray-300 text-sm text-gray-500
               hover:border-gray-400 hover:text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           >
             ＋ 日程を追加
@@ -1301,7 +1301,7 @@ export default function EventFormFields({
                 type="button"
                 disabled={disabled}
                 onClick={() => set('dateConfirmed', confirmed)}
-                className={`flex-1 py-2 rounded-xl border text-sm font-medium transition-colors cursor-pointer
+                className={`flex-1 py-2 rounded-md border text-sm font-medium transition-colors cursor-pointer
                   ${form.dateConfirmed === confirmed
                     ? 'border-green-400 bg-green-50 text-green-700'
                     : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
@@ -1323,7 +1323,7 @@ export default function EventFormFields({
                     type="button"
                     disabled={disabled}
                     onClick={() => selectDateMode(opt.value)}
-                    className={`flex-1 py-2 rounded-xl border text-sm font-medium transition-colors cursor-pointer
+                    className={`flex-1 py-2 rounded-md border text-sm font-medium transition-colors cursor-pointer
                       ${dateMode === opt.value
                         ? 'border-green-400 bg-green-50 text-green-700'
                         : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
@@ -1375,7 +1375,7 @@ export default function EventFormFields({
                       type="button"
                       onClick={addSpecificDate}
                       disabled={disabled || !newSpecificDate || specificDatesList.includes(newSpecificDate)}
-                      className="flex-shrink-0 px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-600
+                      className="flex-shrink-0 px-3 py-2 rounded-md border border-gray-300 text-sm text-gray-600
                         hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
                     >
                       追加
@@ -1394,7 +1394,7 @@ export default function EventFormFields({
                             onClick={() => removeSpecificDate(iso)}
                             disabled={disabled}
                             aria-label={`${formatSpecificDate(iso)}を削除`}
-                            className="w-4 h-4 flex items-center justify-center rounded-full text-gray-400
+                            className="w-4 h-4 flex items-center justify-center rounded-md text-gray-400
                               hover:text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                           >
                             ×
@@ -1530,7 +1530,7 @@ export default function EventFormFields({
             type="button"
             onClick={() => geocode(form.address)}
             disabled={!form.address.trim() || geoStatus === 'loading' || disabled}
-            className="flex-shrink-0 px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-600
+            className="flex-shrink-0 px-3 py-2 rounded-md border border-gray-300 text-sm text-gray-600
               hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
           >
             {geoStatus === 'loading' ? '…' : '取得'}
@@ -1786,7 +1786,7 @@ export default function EventFormFields({
                     onClick={() => handleImageMove(i, i - 1)}
                     disabled={disabled || imageStatus === 'uploading' || i === 0}
                     aria-label="上へ移動"
-                    className="w-5 h-5 rounded text-[10px] leading-none flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                    className="w-5 h-5 rounded-md text-[10px] leading-none flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                   >
                     ▲
                   </button>
@@ -1795,7 +1795,7 @@ export default function EventFormFields({
                     onClick={() => handleImageMove(i, i + 1)}
                     disabled={disabled || imageStatus === 'uploading' || i === form.imageUrls.length - 1}
                     aria-label="下へ移動"
-                    className="w-5 h-5 rounded text-[10px] leading-none flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                    className="w-5 h-5 rounded-md text-[10px] leading-none flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                   >
                     ▼
                   </button>
@@ -1861,7 +1861,7 @@ export default function EventFormFields({
             <button
               type="button"
               disabled
-              className="flex-1 py-2 rounded-xl border text-sm font-medium border-green-400 bg-green-50 text-green-700 cursor-default"
+              className="flex-1 py-2 rounded-md border text-sm font-medium border-green-400 bg-green-50 text-green-700 cursor-default"
             >
               {POSTER_TYPE_LABELS[fixedPosterType] ?? fixedPosterType}
             </button>
@@ -1872,7 +1872,7 @@ export default function EventFormFields({
                 type="button"
                 disabled={disabled}
                 onClick={() => set('posterType', opt.value)}
-                className={`flex-1 py-2 rounded-xl border text-sm font-medium transition-colors cursor-pointer
+                className={`flex-1 py-2 rounded-md border text-sm font-medium transition-colors cursor-pointer
                   ${form.posterType === opt.value
                     ? 'border-green-400 bg-green-50 text-green-700'
                     : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}

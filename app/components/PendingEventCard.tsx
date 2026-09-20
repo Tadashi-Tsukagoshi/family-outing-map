@@ -55,7 +55,7 @@ export default function PendingEventCard({ event, expanded, onToggle, busy, onAp
             <button
               type="submit"
               disabled={busy || uploading}
-              className="px-2.5 py-1 text-xs rounded-lg border border-green-200 text-green-600
+              className="px-2.5 py-1 text-xs rounded-md border border-green-200 text-green-600
                 hover:bg-green-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
               承認
@@ -64,7 +64,7 @@ export default function PendingEventCard({ event, expanded, onToggle, busy, onAp
               type="button"
               onClick={onReject}
               disabled={busy}
-              className="px-2.5 py-1 text-xs rounded-lg border border-red-200 text-red-500
+              className="px-2.5 py-1 text-xs rounded-md border border-red-200 text-red-500
                 hover:bg-red-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
               却下

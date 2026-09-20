@@ -32,7 +32,7 @@ export default function DuplicateEventModal({ events, onSelect, onClose }: Props
             onChange={e => setSearch(e.target.value)}
             placeholder="イベント名で検索"
             autoFocus
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm
               placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400"
           />
         </div>
