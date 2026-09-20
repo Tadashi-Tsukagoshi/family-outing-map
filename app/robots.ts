@@ -24,6 +24,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: ['Googlebot', 'bingbot'],
         allow: '/',
+        disallow: ['/admin', '/ota-admin'],
       },
       {
         userAgent: '*',

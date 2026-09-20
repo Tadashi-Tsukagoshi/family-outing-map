@@ -103,7 +103,7 @@ export default async function AreaPage({ params }: Props) {
             },
           },
           ...(spot.imageUrl ? { image: spot.imageUrl } : {}),
-          url: `https://gunma-odekakemap.jp/events/event-${spot.id}`,
+          url: `https://gunma-odekakemap.jp/events/${spot.id}`,
         },
       })),
     },

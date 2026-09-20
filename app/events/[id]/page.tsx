@@ -89,6 +89,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       ...(spot.imageUrl ? { images: [{ url: spot.imageUrl }] } : {}),
     },
+    alternates: { canonical: `https://gunma-odekakemap.jp/events/${spot.id}` },
   }
 }
 
@@ -120,7 +121,7 @@ export default async function EventDetailPage({ params }: Props) {
       },
     },
     ...(spot.imageUrl ? { image: spot.imageUrl } : {}),
-    url: `https://gunma-odekakemap.jp/events/event-${spot.id}`,
+    url: `https://gunma-odekakemap.jp/events/${spot.id}`,
     eventStatus: 'https://schema.org/EventScheduled',
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
     offers: {
@@ -128,7 +129,7 @@ export default async function EventDetailPage({ params }: Props) {
       price: '0',
       priceCurrency: 'JPY',
       availability: 'https://schema.org/InStock',
-      url: spot.url ?? `https://gunma-odekakemap.jp/events/event-${spot.id}`,
+      url: spot.url ?? `https://gunma-odekakemap.jp/events/${spot.id}`,
     },
   }
 
