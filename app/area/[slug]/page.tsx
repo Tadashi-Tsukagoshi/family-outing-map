@@ -134,7 +134,9 @@ export default async function AreaPage({ params }: Props) {
               const timeDisplay = fmtTimeRange(spot.startTime, spot.endTime)
               return (
                 <li key={spot.id} style={{ borderBottom: '1px solid #e5e7eb', padding: '16px 0' }}>
-                  <h2 style={{ fontSize: 16, fontWeight: 600, margin: '0 0 4px' }}>{spot.name}</h2>
+                  <h2 style={{ fontSize: 16, fontWeight: 600, margin: '0 0 4px' }}>
+                    <a href={`/events/${spot.id}`}>{spot.name}</a>
+                  </h2>
                   {dateDisplay && (
                     <p style={{ fontSize: 13, color: '#374151', margin: '0 0 2px' }}>
                       {dateDisplay}{timeDisplay ? ` ${timeDisplay}` : ''}
