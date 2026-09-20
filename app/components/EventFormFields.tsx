@@ -188,7 +188,7 @@ function ExistingSpotModal({ events, ensureLoaded, excludeId, onSelect, onClose 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
       <div
-        className="w-full max-w-sm max-h-[70vh] rounded-xl bg-white shadow-xl flex flex-col overflow-hidden"
+        className="w-full max-w-sm max-h-[70vh] rounded-lg bg-white shadow-xl flex flex-col overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         <div className="p-3 border-b border-gray-200 flex-shrink-0">
@@ -253,7 +253,7 @@ function GroupPickerModal({ events, ensureLoaded, excludeId, onSelect, onClose }
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
       <div
-        className="w-full max-w-sm max-h-[70vh] rounded-xl bg-white shadow-xl flex flex-col overflow-hidden"
+        className="w-full max-w-sm max-h-[70vh] rounded-lg bg-white shadow-xl flex flex-col overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         <div className="p-3 border-b border-gray-200 flex-shrink-0">
@@ -938,7 +938,7 @@ export default function EventFormFields({
           </p>
           <div className="space-y-3">
             {form.eventDates.map((d, i) => (
-              <div key={d.id} className="rounded-xl border border-gray-200 p-3 space-y-2">
+              <div key={d.id} className="rounded-lg border border-gray-200 p-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-gray-500">日程 {i + 1}</span>
                   <div className="flex items-center gap-2">

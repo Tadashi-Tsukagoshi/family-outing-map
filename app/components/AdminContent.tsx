@@ -505,7 +505,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
               ※ 投稿いただいた内容は、運営の確認後に地図に掲載されます
             </p>
           )}
-          <form ref={formRef} onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-5">
+          <form ref={formRef} onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 space-y-5">
 
             {editingId && (
               <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-xl px-4 py-2.5">
@@ -618,7 +618,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
                     {group.items.map(ev => (
                       <li
                         key={ev.id}
-                        className={`rounded-xl border px-4 py-3 flex items-start gap-3 transition-colors
+                        className={`rounded-lg border px-4 py-3 flex items-start gap-3 transition-colors
                           ${editingId === ev.id
                             ? 'border-blue-300 bg-blue-50'
                             : isEndedEvent(ev)

@@ -72,7 +72,7 @@ export default function OtaAdminPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <form
         onSubmit={handleLogin}
-        className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 w-full max-w-xs space-y-4"
+        className="bg-white rounded-lg shadow-sm border border-gray-100 p-8 w-full max-w-xs space-y-4"
       >
         <h1 className="text-base font-bold text-gray-800 text-center">管理画面ログイン</h1>
         <div>

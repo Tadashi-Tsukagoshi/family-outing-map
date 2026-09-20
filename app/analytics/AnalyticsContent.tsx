@@ -106,7 +106,7 @@ function makeSelectedDot(color: string, selectedDate: string | null) {
 
 function Card({ title, children }: { title: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+    <section className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
       <h2 className="text-sm font-semibold text-gray-700 mb-4">{title}</h2>
       {children}
     </section>
@@ -242,19 +242,19 @@ export default function AnalyticsContent() {
           <>
             {/* 概要カード */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
                 <div className="text-xs text-gray-500 mb-1">自前PV</div>
                 <div className="text-2xl font-bold text-gray-800">{data.overview.selfViews.toLocaleString()}</div>
               </div>
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
                 <div className="text-xs text-gray-500 mb-1">Vercel PV</div>
                 <div className="text-2xl font-bold text-gray-800">{data.overview.vercelViews.toLocaleString()}</div>
               </div>
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
                 <div className="text-xs text-gray-500 mb-1">対象イベント数</div>
                 <div className="text-2xl font-bold text-gray-800">{data.overview.eventCount.toLocaleString()}</div>
               </div>
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
                 <div className="text-xs text-gray-500 mb-1">集計期間</div>
                 <div className="text-2xl font-bold text-gray-800">{data.overview.dateRangeLabel}</div>
               </div>

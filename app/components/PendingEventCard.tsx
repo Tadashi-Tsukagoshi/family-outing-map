@@ -23,7 +23,7 @@ export default function PendingEventCard({ event, expanded, onToggle, busy, onAp
     setForm(f => ({ ...f, [key]: val }))
 
   return (
-    <li className="bg-white rounded-xl border border-amber-200 overflow-hidden">
+    <li className="bg-white rounded-lg border border-amber-200 overflow-hidden">
       <form onSubmit={e => { e.preventDefault(); onApprove(form) }}>
         <div
           onClick={onToggle}
