@@ -453,8 +453,8 @@ export default function AnalyticsContent() {
               </Card>
             </div>
 
-            {/* エリア別集計 */}
-            <Card title="エリア別集計（登録数上位20市）">
+            {/* エリア別PV集計 */}
+            <Card title="エリア別PV集計（登録数上位20市）">
               {data.byArea.length === 0 ? (
                 <p className="text-xs text-gray-400">対象データがありません。</p>
               ) : (
