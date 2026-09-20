@@ -1,9 +1,10 @@
 import { notFound } from 'next/navigation'
-import { CATEGORY_LABELS, DEFAULT_NOTICE, type Spot } from '@/lib/spots'
+import { BADGE_BG_COLOR, DEFAULT_NOTICE, type Spot } from '@/lib/spots'
 import { eventToSpot } from '@/lib/events'
 import { supabaseAdmin } from '@/lib/supabase'
 import type { Metadata } from 'next'
 import { getDateDisplay, fmtTimeRange } from '@/lib/date-utils'
+import EventLocationMap from './EventLocationMap'
 
 const CONTACT_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfjd2ErqEMLI7gDMk4O5iutIRSUMI6AD0hkJSnN3tAT5UjIXA/viewform'
 const INQUIRY_TYPE_ENTRY_ID   = 'entry.811558340'
@@ -158,8 +159,21 @@ export default async function EventDetailPage({ params }: Props) {
   const dateDisplay = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate, spot.specificDates)
   const timeDisplay = fmtTimeRange(spot.startTime, spot.endTime)
   const dateTimeText = dateDisplay ? `${dateDisplay}${timeDisplay ? ` ${timeDisplay}` : ''}` : null
-  const categoryLabel = CATEGORY_LABELS[spot.category]
   const noticeText = spot.notice || DEFAULT_NOTICE
+
+  const badgeLabelStyle: React.CSSProperties = {
+    display: 'inline-block', flexShrink: 0, padding: '1px 4px', borderRadius: 4,
+    background: BADGE_BG_COLOR, color: '#111', fontSize: 14, fontWeight: 500,
+  }
+  const infoRowStyle: React.CSSProperties = {
+    display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 14, fontWeight: 500, color: '#111', margin: '0 0 8px',
+  }
+  const ctaLinkStyle: React.CSSProperties = {
+    fontSize: 12, fontWeight: 600, color: '#374151', textDecoration: 'none',
+  }
+  const footerLinkStyle: React.CSSProperties = {
+    display: 'block', fontSize: 12, color: '#3b82f6', textDecoration: 'none',
+  }
 
   return (
     <>
@@ -167,101 +181,85 @@ export default async function EventDetailPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
       />
-      <main className="min-h-screen bg-white">
-        <header className="border-b border-gray-100 bg-white">
-          <div className="max-w-[720px] mx-auto px-4 py-3 flex items-center justify-between">
-            <a href="/" className="flex items-center gap-2 shrink-0">
-              <span className="block rounded-full overflow-hidden" style={{ width: 40, height: 40 }}>
-                <img src="/gunmap_icon_02.png" alt="グンマップ" width={40} height={40} className="h-full w-full object-cover" />
+      <main style={{ minHeight: '100vh', background: '#fff' }}>
+        <header style={{ background: '#fff', borderBottom: '1px solid #f3f4f6' }}>
+          <div style={{ maxWidth: 720, margin: '0 auto', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+              <span style={{ display: 'block', width: 40, height: 40, borderRadius: '50%', overflow: 'hidden', flexShrink: 0 }}>
+                <img src="/gunmap_icon_02.png" alt="グンマップ" width={40} height={40} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </span>
-              <span className="font-semibold text-gray-800 text-sm">グンマップ｜GUNMAp</span>
+              <span style={{ fontWeight: 600, color: '#1f2937', fontSize: 14 }}>グンマップ｜GUNMAp</span>
             </a>
-            <a href="/" className="text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">
+            <a href="/" style={{ fontSize: 14, color: '#6b7280', textDecoration: 'none', whiteSpace: 'nowrap' }}>
               ← 地図に戻る
             </a>
           </div>
         </header>
 
-        <article className="pb-12">
+        <div style={{ padding: '10px 0 0' }}>
+          <EventLocationMap eventId={spot.id} latitude={spot.lat} longitude={spot.lng} eventName={spot.name} />
+        </div>
+
+        <div style={{ maxWidth: 720, margin: '0 auto' }}>
+          <div style={{ padding: '10px 16px 8px' }}>
+            <h1 style={{ fontSize: 18, fontWeight: 600, color: '#111', lineHeight: 1.4, margin: 0 }}>
+              {spot.name}
+            </h1>
+            {dateTimeText && (
+              <p style={{ fontSize: 14, fontWeight: 600, color: '#111', margin: '2px 0 0' }}>
+                {dateTimeText}
+              </p>
+            )}
+            <p style={{ fontSize: 12, fontWeight: 500, color: '#111', margin: '2px 0 0', whiteSpace: 'pre-line' }}>
+              {noticeText}
+            </p>
+          </div>
+
           {spot.imageUrl && (
             <img
               src={spot.imageUrl}
               alt={spot.name}
-              className="w-full object-cover bg-gray-100"
-              style={{ maxHeight: 420 }}
+              style={{ display: 'block', width: '100%', maxHeight: 500, objectFit: 'contain', backgroundColor: '#f3f4f6' }}
             />
           )}
 
-          <div className="max-w-[720px] mx-auto px-4">
-            <h1 className="text-xl md:text-2xl font-bold text-gray-900 mt-6 mb-4 leading-snug">
-              {spot.name}
-            </h1>
-
-            <dl className="mb-4 text-sm text-gray-800">
-              {dateTimeText && (
-                <div className="flex items-baseline gap-3 py-1.5 border-b border-gray-100">
-                  <dt className="shrink-0 w-16 px-1.5 py-0.5 rounded text-xs font-medium text-center" style={{ background: '#dbeafe' }}>
-                    日時
-                  </dt>
-                  <dd>{dateTimeText}</dd>
-                </div>
-              )}
-              {spot.venue && (
-                <div className="flex items-baseline gap-3 py-1.5 border-b border-gray-100">
-                  <dt className="shrink-0 w-16 px-1.5 py-0.5 rounded text-xs font-medium text-center" style={{ background: '#dbeafe' }}>
-                    会場
-                  </dt>
-                  <dd className="whitespace-pre-line">{spot.venue}</dd>
-                </div>
-              )}
-              {spot.address && (
-                <div className="flex items-baseline gap-3 py-1.5 border-b border-gray-100">
-                  <dt className="shrink-0 w-16 px-1.5 py-0.5 rounded text-xs font-medium text-center" style={{ background: '#dbeafe' }}>
-                    住所
-                  </dt>
-                  <dd>{spot.address}</dd>
-                </div>
-              )}
-              <div className="flex items-baseline gap-3 py-1.5 border-b border-gray-100">
-                <dt className="shrink-0 w-16 px-1.5 py-0.5 rounded text-xs font-medium text-center" style={{ background: '#dbeafe' }}>
-                  カテゴリ
-                </dt>
-                <dd>{categoryLabel}</dd>
-              </div>
-              {spot.fee && (
-                <div className="flex items-baseline gap-3 py-1.5 border-b border-gray-100">
-                  <dt className="shrink-0 w-16 px-1.5 py-0.5 rounded text-xs font-medium text-center" style={{ background: '#dbeafe' }}>
-                    料金
-                  </dt>
-                  <dd className="whitespace-pre-line">{spot.fee}</dd>
-                </div>
-              )}
-            </dl>
-
-            <p className="text-xs text-gray-500 whitespace-pre-line mb-6">{noticeText}</p>
-
-            {spot.description && (
-              <section className="mb-8">
-                <h2 className="text-base font-semibold text-gray-900 mb-2">イベント詳細</h2>
-                <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{spot.description}</p>
-              </section>
+          <div style={{ padding: '12px 16px 20px' }}>
+            {spot.venue && (
+              <p style={infoRowStyle}>
+                <span style={badgeLabelStyle}>会場</span>
+                <span style={{ whiteSpace: 'pre-line' }}>{spot.venue}</span>
+              </p>
             )}
 
-            <div className="flex flex-col gap-3 mb-8">
-              <a
-                href={`/?event=${spot.id}`}
-                className="block text-center text-white font-semibold rounded-full px-6 py-3"
-                style={{ background: 'linear-gradient(to right, #2f50c7, #5fb48c)' }}
-              >
-                🗺 地図で見る
-              </a>
+            {spot.address && (
+              <p style={infoRowStyle}>
+                <span style={badgeLabelStyle}>住所</span>
+                <span>{spot.address}</span>
+              </p>
+            )}
+
+            {spot.fee && (
+              <p style={infoRowStyle}>
+                <span style={badgeLabelStyle}>料金</span>
+                <span style={{ whiteSpace: 'pre-line' }}>{spot.fee}</span>
+              </p>
+            )}
+
+            {spot.description && (
+              <p style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 14, fontWeight: 500, color: '#111', lineHeight: 1.65, margin: '0 0 14px' }}>
+                <span style={badgeLabelStyle}>説明</span>
+                <span>{spot.description}</span>
+              </p>
+            )}
+
+            <p style={{ display: 'flex', alignItems: 'baseline', fontSize: 11, color: '#111', margin: '0 0 24px' }}>
+              <span style={badgeLabelStyle}>投稿</span>
+              <span style={{ marginLeft: 6, fontSize: 14, fontWeight: 500, color: '#374151' }}>{spot.postedBy || 'グンマップ'}</span>
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {spot.url && (
-                <a
-                  href={spot.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-center text-sm text-gray-600 underline underline-offset-2"
-                >
+                <a href={spot.url} target="_blank" rel="noopener noreferrer" style={ctaLinkStyle}>
                   公式サイトを開く
                 </a>
               )}
@@ -269,34 +267,22 @@ export default async function EventDetailPage({ params }: Props) {
                 href={`https://maps.google.com/?q=${spot.lat},${spot.lng}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-center text-sm text-gray-600 underline underline-offset-2"
+                style={ctaLinkStyle}
               >
                 Googleマップで開く
               </a>
             </div>
 
-            <p className="text-xs text-gray-400 mb-6">投稿: {spot.postedBy || 'グンマップ'}</p>
-
-            <footer className="pt-4 border-t border-gray-100 flex flex-col gap-2">
-              <a
-                href={buildCorrectionFormUrl(spot.name)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-blue-500"
-              >
+            <div style={{ marginTop: 16, paddingTop: 10, borderTop: '1px solid #f3f4f6', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <a href={buildCorrectionFormUrl(spot.name)} target="_blank" rel="noopener noreferrer" style={footerLinkStyle}>
                 情報の修正を依頼する
               </a>
-              <a
-                href={buildPhotoFormUrl(spot.name)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-blue-500"
-              >
+              <a href={buildPhotoFormUrl(spot.name)} target="_blank" rel="noopener noreferrer" style={footerLinkStyle}>
                 掲載用のチラシや写真を提供する
               </a>
-            </footer>
+            </div>
           </div>
-        </article>
+        </div>
       </main>
     </>
   )
