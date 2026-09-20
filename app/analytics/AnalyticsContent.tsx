@@ -150,8 +150,8 @@ export default function AnalyticsContent() {
       if (!res.ok) throw new Error('取得に失敗しました')
       const json = await res.json() as SummaryResponse
       setData(json)
-      // 期間切替のたびに timeSeries の最新日を選択日にリセットする
-      setSelectedDate(json.timeSeries.length > 0 ? json.timeSeries[json.timeSeries.length - 1].date : null)
+      // 期間切替のたびに選択日をリセットする（内訳セクションは非表示に戻す）
+      setSelectedDate(null)
     } catch {
       setError('データの取得に失敗しました。時間を置いて再度お試しください。')
     } finally {
