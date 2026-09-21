@@ -9,9 +9,11 @@ import BottomSheet, { buildSheetPositionStyle, useBottomOffset, type SheetState 
 import AreaChips, { type AreaCount } from './AreaChips'
 import AreaOtherModal from './AreaOtherModal'
 import AreaOtherPopover from './AreaOtherPopover'
+import DiscoverMode from './DiscoverMode'
 import PeriodChip from './PeriodChip'
 import LocationRadiusChip from './LocationRadiusChip'
 import { getAreaBySlug } from '@/lib/areas'
+import { buildDiscoverOrder } from '@/lib/discover-sort'
 import { CATEGORY_LABELS, buildPeriodOptions, extractMunicipality, getVisualCategory, matchesCityArea, type Category, type PeriodFilter, type PeriodOption, type Spot } from '@/lib/spots'
 import { eventToSpot, type EventsDatabase } from '@/lib/events'
 import { getEventStatus, parseLocalDate } from '@/lib/date-utils'
@@ -169,6 +171,7 @@ export default function MapApp() {
   const [areaClickTick, setAreaClickTick]   = useState(0)
   const [areaOtherModalOpen, setAreaOtherModalOpen] = useState(false)
   const otherButtonRef = useRef<HTMLButtonElement>(null)
+  const [discoverModeOpen, setDiscoverModeOpen] = useState(false)
   const [collectedSpots, setCollectedSpots] = useState<Spot[]>([])
   const [periodOptions, setPeriodOptions] = useState<PeriodOption[]>(buildPeriodOptions([2026]))
   const [userLocation,  setUserLocation]    = useState<[number, number] | null>(null)
@@ -241,6 +244,12 @@ export default function MapApp() {
       fetch(`/api/events/${eventId}/view`, { method: 'POST' }).catch(() => {})
     }
   }, [])
+
+  // 発見モード（β）のカードから「詳細を見る」を押したとき：発見モードを閉じてから既存の詳細パネル動線に合流する
+  const handleDiscoverOpenDetail = useCallback((spot: Spot) => {
+    setDiscoverModeOpen(false)
+    handleDetailOpen(spot)
+  }, [handleDetailOpen])
 
   // エリアチップ／その他リストでのエリア選択（「すべて」含む）はボトムシートをmidまで上げる
   // （現在地ONにする際の挙動と同様、closed/fullどちらの状態からでもmidに揃える）
@@ -434,6 +443,12 @@ export default function MapApp() {
     if (!activeArea) return filteredSpots
     return filteredSpots.filter((spot) => matchesCityArea(spot.address, activeArea))
   }, [filteredSpots, activeArea])
+
+  // 発見モード（β）：現在適用中のフィルタ結果（areaFilteredSpots）を、現在地ONなら距離順、OFFなら開催日順に並べ替える
+  const discoverSpots = useMemo(
+    () => buildDiscoverOrder(areaFilteredSpots, userLocation),
+    [areaFilteredSpots, userLocation],
+  )
 
   // 終了イベントの ?event= リンクから来た場合、フィルターは変えずにピン表示にだけ一時追加する
   const displaySpots = useMemo(() => {
@@ -696,8 +711,17 @@ export default function MapApp() {
               onCollapse={() => setDetailSheetHeight('50dvh')}
               expanded={detailSheetHeight === '100dvh'}
               mobile
+              onOpenDiscoverMode={() => setDiscoverModeOpen(true)}
             />
           </div>
+        )}
+        {discoverModeOpen && (
+          <DiscoverMode
+            spots={discoverSpots}
+            userLocation={userLocation}
+            onClose={() => setDiscoverModeOpen(false)}
+            onOpenDetail={handleDiscoverOpenDetail}
+          />
         )}
       </div>
     )
