@@ -8,6 +8,7 @@ import DetailPanel from './DetailPanel'
 import BottomSheet, { buildSheetPositionStyle, useBottomOffset, type SheetState } from './BottomSheet'
 import AreaChips, { type AreaCount } from './AreaChips'
 import AreaOtherModal from './AreaOtherModal'
+import AreaOtherPopover from './AreaOtherPopover'
 import PeriodChip from './PeriodChip'
 import LocationRadiusChip from './LocationRadiusChip'
 import { getAreaBySlug } from '@/lib/areas'
@@ -166,6 +167,7 @@ export default function MapApp() {
   const [sheetHeight, setSheetHeight] = useState('72px')
   const [activeArea,    setActiveArea]      = useState<string | null>(null)
   const [areaOtherModalOpen, setAreaOtherModalOpen] = useState(false)
+  const otherButtonRef = useRef<HTMLButtonElement>(null)
   const [collectedSpots, setCollectedSpots] = useState<Spot[]>([])
   const [periodOptions, setPeriodOptions] = useState<PeriodOption[]>(buildPeriodOptions([2026]))
   const [userLocation,  setUserLocation]    = useState<[number, number] | null>(null)
@@ -721,18 +723,20 @@ export default function MapApp() {
         {!detailSpot && (
           <AreaChips
             mode="pc"
+            otherButtonRef={otherButtonRef}
             areas={topAreas}
             activeArea={activeArea}
             onAreaChange={handleAreaChange}
             hasOther={otherAreas.length > 0}
             otherActive={otherAreaActive}
-            onOtherClick={() => setAreaOtherModalOpen(true)}
+            onOtherClick={() => setAreaOtherModalOpen(prev => !prev)}
             positionStyle={{ top: 16, left: 79, right: 16, height: 55 }}
           />
         )}
-        {areaOtherModalOpen && (
-          <AreaOtherModal
+        {!detailSpot && areaOtherModalOpen && (
+          <AreaOtherPopover
             areas={otherAreas}
+            anchorEl={otherButtonRef.current}
             onSelect={(name) => { handleAreaChange(name); setAreaOtherModalOpen(false) }}
             onClose={() => setAreaOtherModalOpen(false)}
           />

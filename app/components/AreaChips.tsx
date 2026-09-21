@@ -20,6 +20,8 @@ type Props = {
   positionStyle: React.CSSProperties
   /** 表示モード（'mobile'：画面固定のボトムシート直上帯、'pc'：地図左上ロゴ右横の帯） */
   mode?: 'mobile' | 'pc'
+  /** 「その他」ボタンの参照（PC版のプルダウン位置計算に使用） */
+  otherButtonRef?: React.Ref<HTMLButtonElement>
 }
 
 function chipStyle(active: boolean): React.CSSProperties {
@@ -36,7 +38,7 @@ function chipStyle(active: boolean): React.CSSProperties {
     : { background: 'rgba(255,255,255,0.92)', borderColor: '#e5e7eb', color: '#4b5563' }
 }
 
-export default function AreaChips({ areas, activeArea, onAreaChange, hasOther, otherActive, onOtherClick, positionStyle, mode = 'mobile' }: Props) {
+export default function AreaChips({ areas, activeArea, onAreaChange, hasOther, otherActive, onOtherClick, positionStyle, mode = 'mobile', otherButtonRef }: Props) {
   const className =
     mode === 'pc'
       ? 'no-scrollbar absolute flex items-center gap-2 overflow-x-auto'
@@ -68,6 +70,7 @@ export default function AreaChips({ areas, activeArea, onAreaChange, hasOther, o
 
       {hasOther && (
         <button
+          ref={otherButtonRef}
           type="button"
           onClick={onOtherClick}
           className="appearance-none shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer"
