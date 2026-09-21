@@ -677,8 +677,11 @@ export default function MapApp() {
               zIndex: 1000,
             }}
           >
-            {/* 文字色はグラデーション青側（#2f50c7）と同一 */}
-            <span className="block whitespace-nowrap rounded-full bg-white px-[9px] py-[3px] text-sm font-medium text-[#2f50c7]">
+            {/* 内側は外側と同じカラーストップを左右反転（緑→青）、文字は白抜き */}
+            <span
+              className="block whitespace-nowrap rounded-full px-[9px] py-[3px] text-sm font-medium text-white"
+              style={{ background: 'linear-gradient(to right, #5fb48c, #2f50c7)' }}
+            >
               リール
             </span>
           </button>
