@@ -677,10 +677,12 @@ export default function MapApp() {
               zIndex: 1000,
             }}
           >
-            {/* 内側は外側と同じカラーストップを左右反転（緑→青）、文字は白抜き */}
+            {/* 内側は外側と同じカラーストップを左右反転（緑→青）、文字は白抜き。
+                緑側は同色相のまま明度を落とし（#5fb48c→#3c8060）、白文字とのコントラスト比を
+                WCAG AA基準（4.5:1）以上に確保（#3c8060で4.72:1、青側は6.79:1） */}
             <span
               className="block whitespace-nowrap rounded-full px-[9px] py-[3px] text-sm font-medium text-white"
-              style={{ background: 'linear-gradient(to right, #5fb48c, #2f50c7)' }}
+              style={{ background: 'linear-gradient(to right, #3c8060, #2f50c7)' }}
             >
               リール
             </span>
