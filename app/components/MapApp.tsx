@@ -701,7 +701,7 @@ export default function MapApp() {
   /* ── デスクトップレイアウト ── */
   return (
     <div className="flex h-full">
-      <Sidebar {...sidebarProps} mode="sidebar" />
+      <Sidebar {...sidebarProps} spots={areaFilteredSpots} mode="sidebar" />
       <main className="flex-1 relative">
         {detailSpot && (
           <div className="absolute inset-y-0 left-0 z-[1001]">
@@ -748,6 +748,7 @@ export default function MapApp() {
           userLocation={userLocation}
           locationRadius={locationRadius}
           recenterSignal={recenterSignal}
+          activeArea={activeArea}
           onZoomChange={handleZoomChange}
           onFlyStart={handleFlyStart}
           onFlyEnd={handleFlyEnd}
