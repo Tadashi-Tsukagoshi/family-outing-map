@@ -137,11 +137,9 @@ type Props = {
   onCollapse?: () => void
   expanded?: boolean
   mobile?: boolean
-  /** 発見モード（β）起動ボタンのハンドラ。モバイル版のグンマップ情報パネルにのみ表示 */
-  onOpenDiscoverMode?: () => void
 }
 
-export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expanded = false, mobile = false, onOpenDiscoverMode }: Props) {
+export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expanded = false, mobile = false }: Props) {
   // event_plus は複数ピンに分裂して spot.id がピンごとの合成idになるため、
   // 画像・いいねなど実イベントに紐づくAPI呼び出しは常に eventId（実イベントのid）を使う
   const eventId = spot.eventId ?? spot.id
@@ -623,19 +621,6 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                 >
                   Instagram（@gunmap_jp）
                 </a>
-                {onOpenDiscoverMode && (
-                  <button
-                    type="button"
-                    onClick={onOpenDiscoverMode}
-                    style={{
-                      display: 'inline-flex', alignItems: 'center', marginTop: 14,
-                      padding: '4px 10px', borderRadius: 999, border: '1px solid #e5e7eb',
-                      background: 'none', fontSize: 12, color: '#9ca3af', cursor: 'pointer',
-                    }}
-                  >
-                    スワイプで探す（β）
-                  </button>
-                )}
               </>
             ) : (
               <>

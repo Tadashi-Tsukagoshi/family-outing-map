@@ -664,6 +664,24 @@ export default function MapApp() {
         </div>
 
         {!detailSpot && (
+          <button
+            type="button"
+            onClick={() => setDiscoverModeOpen(true)}
+            className="appearance-none fixed left-4 shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer"
+            style={{
+              bottom: `calc(${sheetHeight} + ${bottomOffset > 0 ? bottomOffset + 10 : 0}px + 8px + 58px)`,
+              transition: 'bottom 0.3s cubic-bezier(0.32,0.72,0,1)',
+              background: '#fff',
+              borderColor: '#e5e7eb',
+              color: '#4b5563',
+              zIndex: 1000,
+            }}
+          >
+            リール
+          </button>
+        )}
+
+        {!detailSpot && (
           <AreaChips
             areas={topAreas}
             activeArea={activeArea}
@@ -711,7 +729,6 @@ export default function MapApp() {
               onCollapse={() => setDetailSheetHeight('50dvh')}
               expanded={detailSheetHeight === '100dvh'}
               mobile
-              onOpenDiscoverMode={() => setDiscoverModeOpen(true)}
             />
           </div>
         )}
