@@ -1185,13 +1185,18 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
     // （同じチップ再押しは areaClickTick が増えるので flyTo を再実行できる）
     if (prevActiveArea === activeArea && prevTick === areaClickTick) return
 
-    // モバイルはボトムシートがmidまで上がるため、見える地図領域は画面の上半分になる。
-    // イベント選択時（SelectedSpotTracker相当）と同じく bottom padding で上半分の中央に合わせる。
+    // モバイルはボトムシートの高さ分だけ見える地図領域が狭まるため、実際のシート状態
+    // （closed/mid/full）に応じた bottom padding で可視領域の中央に合わせる
+    // （位置情報フィット・SelectedSpotTrackerと同じ計算式）。
     let padding: mapboxgl.PaddingOptions | undefined
     if (isMobile) {
       map.resize()
-      const containerH = map.getContainer().clientHeight
-      padding = { top: 0, left: 0, bottom: containerH / 2, right: 0 }
+      const s = sheetStateRef.current
+      const bottomPad =
+        s === 'mid'  ? map.getContainer().clientHeight / 2 :
+        s === 'full' ? map.getContainer().clientHeight * 0.85 :
+        PEEK_HEIGHT
+      padding = { top: 0, left: 0, bottom: bottomPad, right: 0 }
     }
 
     if (!activeArea) {
