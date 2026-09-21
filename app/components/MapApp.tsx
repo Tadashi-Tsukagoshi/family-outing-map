@@ -667,12 +667,12 @@ export default function MapApp() {
           <button
             type="button"
             onClick={() => setDiscoverModeOpen(true)}
-            className="appearance-none fixed left-4 shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer"
+            className="appearance-none fixed left-4 shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer"
             style={{
               bottom: `calc(${sheetHeight} + ${bottomOffset > 0 ? bottomOffset + 10 : 0}px + 8px + 58px)`,
               transition: 'bottom 0.3s cubic-bezier(0.32,0.72,0,1)',
               background: '#fff',
-              borderColor: '#e5e7eb',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.15)',
               color: '#4b5563',
               zIndex: 1000,
             }}
