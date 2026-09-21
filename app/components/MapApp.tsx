@@ -666,26 +666,19 @@ export default function MapApp() {
           <button
             type="button"
             onClick={() => setDiscoverModeOpen(true)}
-            className="appearance-none fixed left-4 shrink-0 rounded-full p-[4px] transition-colors cursor-pointer"
+            className="appearance-none fixed left-4 shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer"
             style={{
               bottom: `calc(${sheetHeight} + ${bottomOffset > 0 ? bottomOffset + 10 : 0}px + 8px + 58px)`,
               transition: 'bottom 0.3s cubic-bezier(0.32,0.72,0,1)',
-              // 市町村エリアチップの選択中グラデーション（AreaChips.tsx の ACTIVE_GRADIENT）と同一指定。
-              // 4px paddingで縁取りとして見せる（内側の白ピルは px-[9px] py-[3px] で text-sm を維持）
+              // 背景：市町村エリアチップの選択中グラデーション（AreaChips.tsx の ACTIVE_GRADIENT）と同一
               background: 'linear-gradient(to right, #2f50c7, #5fb48c)',
+              color: '#fff',
+              // 輪郭・影：グンマップロゴピン（タイトルボタン、border無し＋二重ドロップシャドウ）と同一
               boxShadow: '0 2px 6px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.15)',
               zIndex: 1000,
             }}
           >
-            {/* 内側は外側と同じカラーストップを左右反転（緑→青）、文字は白抜き。
-                緑側は同色相のまま明度を落とし（#5fb48c→#3c8060）、白文字とのコントラスト比を
-                WCAG AA基準（4.5:1）以上に確保（#3c8060で4.72:1、青側は6.79:1） */}
-            <span
-              className="block whitespace-nowrap rounded-full px-[9px] py-[3px] text-sm font-medium text-white"
-              style={{ background: 'linear-gradient(to right, #3c8060, #2f50c7)' }}
-            >
-              リール
-            </span>
+            リール
           </button>
         )}
 
