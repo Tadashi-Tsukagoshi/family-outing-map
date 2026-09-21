@@ -670,9 +670,10 @@ export default function MapApp() {
             style={{
               bottom: `calc(${sheetHeight} + ${bottomOffset > 0 ? bottomOffset + 10 : 0}px + 8px + 58px)`,
               transition: 'bottom 0.3s cubic-bezier(0.32,0.72,0,1)',
-              background: '#fff',
+              // グンマップロゴ内のピンマーク色（gunmap_icon_02.png からサンプリング）
+              background: '#d3431b',
               boxShadow: '0 2px 6px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.15)',
-              color: '#4b5563',
+              color: '#fff',
               zIndex: 1000,
             }}
           >
