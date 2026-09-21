@@ -251,12 +251,11 @@ export default function MapApp() {
     handleDetailOpen(spot)
   }, [handleDetailOpen])
 
-  // エリアチップ／その他リストでのエリア選択（「すべて」含む）はボトムシートをmidまで上げる
-  // （現在地ONにする際の挙動と同様、closed/fullどちらの状態からでもmidに揃える）
+  // エリアチップ／その他リストでのエリア選択（「すべて」含む）はfitBounds用の状態のみ更新し、
+  // ボトムシートの高さはユーザーが手動で決めた状態のまま変更しない
   const handleAreaChange = useCallback((area: string | null) => {
     setActiveArea(area)
     setAreaClickTick((t) => t + 1)
-    setSheetState('mid')
   }, [])
 
   const handleFlyStart = useCallback(() => {
