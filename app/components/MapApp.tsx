@@ -730,7 +730,7 @@ export default function MapApp() {
             hasOther={otherAreas.length > 0}
             otherActive={otherAreaActive}
             onOtherClick={() => setAreaOtherModalOpen(prev => !prev)}
-            positionStyle={{ top: 16, left: 79, right: 16, height: 55 }}
+            positionStyle={{ top: 16, left: 87, right: 16, height: 55 }}
           />
         )}
         {!detailSpot && areaOtherModalOpen && (
