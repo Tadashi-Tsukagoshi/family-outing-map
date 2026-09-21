@@ -666,18 +666,20 @@ export default function MapApp() {
           <button
             type="button"
             onClick={() => setDiscoverModeOpen(true)}
-            className="appearance-none fixed left-4 shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer"
+            className="appearance-none fixed left-4 shrink-0 rounded-full p-[3px] transition-colors cursor-pointer"
             style={{
               bottom: `calc(${sheetHeight} + ${bottomOffset > 0 ? bottomOffset + 10 : 0}px + 8px + 58px)`,
               transition: 'bottom 0.3s cubic-bezier(0.32,0.72,0,1)',
-              // 市町村エリアチップの選択中グラデーション（AreaChips.tsx の ACTIVE_GRADIENT）と同一指定
+              // 市町村エリアチップの選択中グラデーション（AreaChips.tsx の ACTIVE_GRADIENT）と同一指定。
+              // 3px paddingで縁取りとして見せ、内側の白ピルとチップ全体のサイズを従来のpx-3 py-1.5と揃える
               background: 'linear-gradient(to right, #2f50c7, #5fb48c)',
               boxShadow: '0 2px 6px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.15)',
-              color: '#fff',
               zIndex: 1000,
             }}
           >
-            リール
+            <span className="block whitespace-nowrap rounded-full bg-white px-[9px] py-[3px] text-sm font-medium text-black">
+              リール
+            </span>
           </button>
         )}
 
