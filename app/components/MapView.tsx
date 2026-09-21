@@ -1088,6 +1088,10 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
   const prevLocationRef  = useRef<[number, number] | null>(null)
   const sheetStateRef    = useRef<SheetState>(sheetState)
   useEffect(() => { sheetStateRef.current = sheetState }, [sheetState])
+  const userLocationRef = useRef<[number, number] | null>(userLocation)
+  useEffect(() => { userLocationRef.current = userLocation }, [userLocation])
+  const locationRadiusRef = useRef<number>(locationRadius)
+  useEffect(() => { locationRadiusRef.current = locationRadius }, [locationRadius])
 
   // ─── モバイル: 地図タップでボトムシート(mid)を閉じる ───────────
   useEffect(() => {
@@ -1191,7 +1195,25 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
     }
 
     if (!activeArea) {
-      map.flyTo({ center: toLngLat(OTA_CENTER[0], OTA_CENTER[1]), zoom: map.getZoom(), padding, duration: 500 })
+      const loc = userLocationRef.current
+      if (loc) {
+        // 現在地・距離円ONのときは、初回フィットと同じ挙動で現在地＋距離円が中央に来るように戻す
+        const bounds = boundsFromCenterRadius(loc[0], loc[1], locationRadiusRef.current * 1000 * 2)
+        let fitPadding: mapboxgl.PaddingOptions
+        if (isMobile) {
+          const s = sheetStateRef.current
+          const bottomPad =
+            s === 'mid'  ? map.getContainer().clientHeight / 2 :
+            s === 'full' ? map.getContainer().clientHeight * 0.85 :
+            PEEK_HEIGHT
+          fitPadding = { top: 12, left: 12, bottom: bottomPad, right: 12 }
+        } else {
+          fitPadding = { top: 12, left: 12, bottom: 12, right: 12 }
+        }
+        map.fitBounds(bounds, { padding: fitPadding, animate: true, duration: 500 })
+      } else {
+        map.flyTo({ center: toLngLat(OTA_CENTER[0], OTA_CENTER[1]), zoom: map.getZoom(), padding, duration: 500 })
+      }
       return
     }
 
