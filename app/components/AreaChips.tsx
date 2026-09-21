@@ -18,6 +18,8 @@ type Props = {
   onOtherClick: () => void
   /** ボトムシートの直上に密着させるための位置スタイル（bottom/transitionを含む） */
   positionStyle: React.CSSProperties
+  /** 表示モード（'mobile'：画面固定のボトムシート直上帯、'pc'：地図左上ロゴ右横の帯） */
+  mode?: 'mobile' | 'pc'
 }
 
 function chipStyle(active: boolean): React.CSSProperties {
@@ -34,12 +36,15 @@ function chipStyle(active: boolean): React.CSSProperties {
     : { background: 'rgba(255,255,255,0.92)', borderColor: '#e5e7eb', color: '#4b5563' }
 }
 
-export default function AreaChips({ areas, activeArea, onAreaChange, hasOther, otherActive, onOtherClick, positionStyle }: Props) {
+export default function AreaChips({ areas, activeArea, onAreaChange, hasOther, otherActive, onOtherClick, positionStyle, mode = 'mobile' }: Props) {
+  const className =
+    mode === 'pc'
+      ? 'no-scrollbar absolute flex items-center gap-2 overflow-x-auto'
+      : 'no-scrollbar fixed left-0 right-0 flex gap-2 overflow-x-auto px-4 py-2'
+  const zIndex = mode === 'pc' ? 999 : 1000
+
   return (
-    <div
-      className="no-scrollbar fixed left-0 right-0 flex gap-2 overflow-x-auto px-4 py-2"
-      style={{ ...positionStyle, zIndex: 1000 }}
-    >
+    <div className={className} style={{ ...positionStyle, zIndex }}>
       <button
         type="button"
         onClick={() => onAreaChange(null)}

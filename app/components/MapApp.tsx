@@ -718,6 +718,25 @@ export default function MapApp() {
             <img src="/gunmap_icon_02.png" alt="グンマップ" width={55} height={55} className="h-full w-full object-cover" />
           </button>
         </div>
+        {!detailSpot && (
+          <AreaChips
+            mode="pc"
+            areas={topAreas}
+            activeArea={activeArea}
+            onAreaChange={handleAreaChange}
+            hasOther={otherAreas.length > 0}
+            otherActive={otherAreaActive}
+            onOtherClick={() => setAreaOtherModalOpen(true)}
+            positionStyle={{ top: 16, left: 79, right: 16, height: 55 }}
+          />
+        )}
+        {areaOtherModalOpen && (
+          <AreaOtherModal
+            areas={otherAreas}
+            onSelect={(name) => { handleAreaChange(name); setAreaOtherModalOpen(false) }}
+            onClose={() => setAreaOtherModalOpen(false)}
+          />
+        )}
         <MapView
           spots={mapSpots}
           pinGroups={pinGroups}
