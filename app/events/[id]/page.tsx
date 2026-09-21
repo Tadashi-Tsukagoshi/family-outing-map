@@ -196,11 +196,11 @@ export default async function EventDetailPage({ params }: Props) {
           </div>
         </header>
 
-        <div style={{ maxWidth: 720, margin: '0 auto' }}>
-          <div style={{ padding: '10px 0 0' }}>
-            <EventLocationMap eventId={spot.id} latitude={spot.lat} longitude={spot.lng} eventName={spot.name} category={spot.category} />
-          </div>
+        <div style={{ padding: '10px 0 0' }}>
+          <EventLocationMap eventId={spot.id} latitude={spot.lat} longitude={spot.lng} eventName={spot.name} />
+        </div>
 
+        <div style={{ maxWidth: 720, margin: '0 auto' }}>
           <div style={{ padding: '10px 16px 8px' }}>
             <h1 style={{ fontSize: 18, fontWeight: 600, color: '#111', lineHeight: 1.4, margin: 0 }}>
               {spot.name}
