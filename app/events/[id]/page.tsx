@@ -5,6 +5,9 @@ import { supabaseAdmin } from '@/lib/supabase'
 import type { Metadata } from 'next'
 import EventRedirect from './EventRedirect'
 
+// イベント登録内容はSupabase更新のたびに変わりうるため、一定間隔でSSRを再生成する（/area/[slug]と同じ値）
+export const revalidate = 1800
+
 async function getSpot(id: string): Promise<Spot | null> {
   const supabase = supabaseAdmin()
   const { data, error } = await supabase

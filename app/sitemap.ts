@@ -6,9 +6,12 @@ const BASE_URL = 'https://gunma-odekakemap.jp'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = supabaseAdmin()
+  // fetchApprovedEvents（lib/events-server.ts）と同じ承認済みフィルタ（status='approved'）を適用。
+  // sitemapはid・created_atのみ必要なため、event_dates結合を含む同関数は使わず軽量クエリを別途構成する。
   const { data } = await supabase
     .from('events')
     .select('id, created_at')
+    .eq('status', 'approved')
     .order('created_at', { ascending: false })
 
   const eventUrls: MetadataRoute.Sitemap = (data ?? []).map((e) => ({
