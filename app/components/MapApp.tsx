@@ -166,6 +166,7 @@ export default function MapApp() {
   // イベント一覧ボトムシートの現在の高さ（CSS height文字列）。エリアチップ行を直上に追従させるために使う
   const [sheetHeight, setSheetHeight] = useState('72px')
   const [activeArea,    setActiveArea]      = useState<string | null>(null)
+  const [areaClickTick, setAreaClickTick]   = useState(0)
   const [areaOtherModalOpen, setAreaOtherModalOpen] = useState(false)
   const otherButtonRef = useRef<HTMLButtonElement>(null)
   const [collectedSpots, setCollectedSpots] = useState<Spot[]>([])
@@ -245,6 +246,7 @@ export default function MapApp() {
   // （現在地ONにする際の挙動と同様、closed/fullどちらの状態からでもmidに揃える）
   const handleAreaChange = useCallback((area: string | null) => {
     setActiveArea(area)
+    setAreaClickTick((t) => t + 1)
     setSheetState('mid')
   }, [])
 
@@ -608,6 +610,7 @@ export default function MapApp() {
           isMobile
           sheetState={sheetState}
           activeArea={activeArea}
+          areaClickTick={areaClickTick}
           onMapTapClose={() => setSheetState('closed')}
           onZoomChange={handleZoomChange}
           onFlyStart={handleFlyStart}
@@ -753,6 +756,7 @@ export default function MapApp() {
           locationRadius={locationRadius}
           recenterSignal={recenterSignal}
           activeArea={activeArea}
+          areaClickTick={areaClickTick}
           onZoomChange={handleZoomChange}
           onFlyStart={handleFlyStart}
           onFlyEnd={handleFlyEnd}

@@ -26,6 +26,8 @@ type Props = {
   sheetState?: SheetState
   /** エリアチップで選択中のエリア（市区町村名）。null＝「すべて」（絞り込みなし） */
   activeArea?: string | null
+  /** エリアチップのクリック回数（同一エリア再押下でもflyToを再実行するためのトリガー） */
+  areaClickTick?: number
   onMapTapClose?: () => void
   onZoomChange?: (zoom: number) => void
   onFlyStart?: () => void
@@ -740,7 +742,7 @@ const TAP_MAX_DISTANCE = 10
 const TAP_MAX_DURATION = 300
 
 // ─── MapView（メインコンポーネント） ─────────────────────────────
-export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, userLocation = null, locationRadius = 60, recenterSignal = 0, onDetailOpen, onDetailClose, detailPanelOpen, isMobile = false, sheetState = 'closed', activeArea = null, onMapTapClose, onZoomChange, onFlyStart, onFlyEnd }: Props) {
+export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, userLocation = null, locationRadius = 60, recenterSignal = 0, onDetailOpen, onDetailClose, detailPanelOpen, isMobile = false, sheetState = 'closed', activeArea = null, areaClickTick = 0, onMapTapClose, onZoomChange, onFlyStart, onFlyEnd }: Props) {
   const wrapperRef       = useRef<HTMLDivElement>(null)
   const containerRef     = useRef<HTMLDivElement>(null)
   const mapRef           = useRef<mapboxgl.Map | null>(null)
@@ -1162,18 +1164,22 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
   // そこで prevActiveArea を使い、「mapReady が初めて true になった時点で activeArea が
   // まだ null だった場合のみ」スキップする。
   const prevActiveAreaRef = useRef<string | null | undefined>(undefined)
+  const prevAreaClickTickRef = useRef<number | undefined>(undefined)
   useEffect(() => {
     const map = mapRef.current
     if (!map || !mapReady) return
 
     const prevActiveArea = prevActiveAreaRef.current
+    const prevTick = prevAreaClickTickRef.current
     prevActiveAreaRef.current = activeArea
+    prevAreaClickTickRef.current = areaClickTick
 
     // mapReady 確定時点で初めてこの効果が走り、かつ activeArea がまだ null（デフォルト表示のまま）
     // → ページ読み込み直後の無意味なデフォルト位置への flyTo を防ぐため何もしない
     if (prevActiveArea === undefined && !activeArea) return
-    // 実質的に変化していなければ何もしない
-    if (prevActiveArea === activeArea) return
+    // activeArea も areaClickTick も変化していなければ何もしない
+    // （同じチップ再押しは areaClickTick が増えるので flyTo を再実行できる）
+    if (prevActiveArea === activeArea && prevTick === areaClickTick) return
 
     // モバイルはボトムシートがmidまで上がるため、見える地図領域は画面の上半分になる。
     // イベント選択時（SelectedSpotTracker相当）と同じく bottom padding で上半分の中央に合わせる。
@@ -1196,7 +1202,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
     const centerLng = matched.reduce((sum, g) => sum + g.lng, 0) / matched.length
     map.flyTo({ center: toLngLat(centerLat, centerLng), zoom: map.getZoom(), padding, duration: 500 })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeArea, mapReady])
+  }, [activeArea, areaClickTick, mapReady])
 
   // ─── RecenterToOta相当 ───────────────────────────────────────
   const isFirstRecenter = useRef(true)
