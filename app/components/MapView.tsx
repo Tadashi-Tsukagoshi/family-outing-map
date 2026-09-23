@@ -509,39 +509,58 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
     const heightCap = isSingle
       ? Infinity
       : isMobile ? window.innerHeight * HEIGHT_CAP_RATIO : cH * PC_HEIGHT_CAP_RATIO
-    const maxAvailableH = Math.min(bottomLimit - topLimit, heightCap)
-    const cardH = Math.min(naturalH, Math.max(MIN_BUBBLE_HEIGHT, maxAvailableH))
 
-    // 配置方向の決定：ピン上に収まるなら上向き、そうでなければ下向き
-    // 「収まる」= ピン上に cardH + BUBBLE_GAP を確保しつつ、その上端が topLimit 以上
-    const aboveFits = (y - BUBBLE_GAP - cardH) >= topLimit
-    // ピンは画面上部にあることが多いため、上向きに収まらない場合は下向きに
-    // フォールバックする（従来は上向きフォールバックだった）
-    const above = aboveFits
-
-    // 実描画top（外側divのtop値）をピン基準で決めるが、
-    // 実際に描画される吹き出しの上端/下端が許容領域を超える場合はtop値を補正する
+    // 外側divのtop値は常にピン中心y。上向きは transform:translateY(-100%) + paddingBottom、
+    // 下向きは paddingTop で BUBBLE_GAP 分の隙間を空けて描画される
     let top = y
-    if (above) {
-      // 上向き：外側divのtop=y、transform:translateY(-100%)で上に伸びる
-      // 実際の吹き出し上端 = y - BUBBLE_GAP - cardH、下端 = y - BUBBLE_GAP
-      const bubbleTop = y - BUBBLE_GAP - cardH
-      if (bubbleTop < topLimit) {
-        // 上に収まらない分だけtopを下にずらす（＝吹き出し全体が下にスライド）
-        top = topLimit + cardH + BUBBLE_GAP
-      }
+    let above: boolean
+    let cardH: number
+
+    if (!isSingle) {
+      // グループ吹き出し：上下のうち空きが大きい方に出し、その空きに収まる高さに縮める
+      // （はみ出し分は吹き出し内スクロールで見せる）。吹き出しをずらさないのでピンを覆わない。
+      // 空きが MIN_BUBBLE_HEIGHT 未満（ピンが許容領域の端すれすれ）の場合のみ一部重なりうる
+      const spaceAbove = y - BUBBLE_GAP - topLimit
+      const spaceBelow = bottomLimit - y - BUBBLE_GAP
+      above = spaceAbove >= spaceBelow
+      const availableH = above ? spaceAbove : spaceBelow
+      cardH = Math.max(MIN_BUBBLE_HEIGHT, Math.min(naturalH, heightCap, availableH))
     } else {
-      // 下向き：外側divのtop=y、transform:translateY(0)で下に伸びる
-      // 実際の吹き出し上端 = y + BUBBLE_GAP、下端 = y + BUBBLE_GAP + cardH
-      const bubbleBottom = y + BUBBLE_GAP + cardH
-      if (bubbleBottom > bottomLimit) {
-        // 下に収まらない分だけtopを上にずらす（＝吹き出し全体が上にスライド）
-        top = bottomLimit - cardH - BUBBLE_GAP
-      }
-      // ずらした結果、上端が topLimit より上に行ってしまう場合（＝許容領域より
-      // カードが大きい）は topLimit に張り付ける
-      if (top + BUBBLE_GAP < topLimit) {
-        top = topLimit - BUBBLE_GAP
+      // 1件のホバーカード：従来どおり、上に収まれば上向き・収まらなければ下向きに出し、
+      // 許容領域からはみ出す分はtop値をずらして補正する
+      const maxAvailableH = Math.min(bottomLimit - topLimit, heightCap)
+      cardH = Math.min(naturalH, Math.max(MIN_BUBBLE_HEIGHT, maxAvailableH))
+
+      // 配置方向の決定：ピン上に収まるなら上向き、そうでなければ下向き
+      // 「収まる」= ピン上に cardH + BUBBLE_GAP を確保しつつ、その上端が topLimit 以上
+      const aboveFits = (y - BUBBLE_GAP - cardH) >= topLimit
+      // ピンは画面上部にあることが多いため、上向きに収まらない場合は下向きに
+      // フォールバックする（従来は上向きフォールバックだった）
+      above = aboveFits
+
+      // 実描画top（外側divのtop値）をピン基準で決めるが、
+      // 実際に描画される吹き出しの上端/下端が許容領域を超える場合はtop値を補正する
+      if (above) {
+        // 上向き：外側divのtop=y、transform:translateY(-100%)で上に伸びる
+        // 実際の吹き出し上端 = y - BUBBLE_GAP - cardH、下端 = y - BUBBLE_GAP
+        const bubbleTop = y - BUBBLE_GAP - cardH
+        if (bubbleTop < topLimit) {
+          // 上に収まらない分だけtopを下にずらす（＝吹き出し全体が下にスライド）
+          top = topLimit + cardH + BUBBLE_GAP
+        }
+      } else {
+        // 下向き：外側divのtop=y、transform:translateY(0)で下に伸びる
+        // 実際の吹き出し上端 = y + BUBBLE_GAP、下端 = y + BUBBLE_GAP + cardH
+        const bubbleBottom = y + BUBBLE_GAP + cardH
+        if (bubbleBottom > bottomLimit) {
+          // 下に収まらない分だけtopを上にずらす（＝吹き出し全体が上にスライド）
+          top = bottomLimit - cardH - BUBBLE_GAP
+        }
+        // ずらした結果、上端が topLimit より上に行ってしまう場合（＝許容領域より
+        // カードが大きい）は topLimit に張り付ける
+        if (top + BUBBLE_GAP < topLimit) {
+          top = topLimit - BUBBLE_GAP
+        }
       }
     }
 
