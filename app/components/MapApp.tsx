@@ -32,7 +32,7 @@ const GUNMAP_INFO_SPOT: Spot = {
 
 // ─── 地図ピンのグループ化（同じ groupId のイベントをまとめる） ──────────
 /** グループ内メンバー間の画面ピクセル距離がこれを超えるとズームインでグループ解除する */
-const DISSOLVE_PX = 15
+const DISSOLVE_PX = 40
 
 /** エリアチップに常時表示する上位エリア数。これを超える分は「その他」チップにまとめる */
 const TOP_AREA_CHIP_COUNT = 6
@@ -544,7 +544,11 @@ export default function MapApp() {
       let maxDistPx = 0
       for (let i = 0; i < members.length; i++) {
         for (let j = i + 1; j < members.length; j++) {
-          const distPx = Math.hypot(members[i].lat - members[j].lat, members[i].lng - members[j].lng) * pixelsPerDeg
+          // Web メルカトルでは緯度1度の画面長が経度1度の 1/cos(緯度) 倍になるため、緯度差を補正する
+          const avgLat = (members[i].lat + members[j].lat) / 2
+          const latDiff = (members[i].lat - members[j].lat) / Math.cos(avgLat * Math.PI / 180)
+          const lngDiff = members[i].lng - members[j].lng
+          const distPx = Math.hypot(latDiff, lngDiff) * pixelsPerDeg
           if (distPx > maxDistPx) maxDistPx = distPx
         }
       }
