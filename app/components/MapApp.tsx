@@ -16,7 +16,7 @@ import { getAreaBySlug } from '@/lib/areas'
 import { buildDiscoverOrder } from '@/lib/discover-sort'
 import { CATEGORY_LABELS, buildPeriodOptions, extractMunicipality, getVisualCategory, matchesCityArea, type Category, type PeriodFilter, type PeriodOption, type Spot } from '@/lib/spots'
 import { eventToSpot, type EventsDatabase } from '@/lib/events'
-import { getEventStatus, parseLocalDate } from '@/lib/date-utils'
+import { getEventStatus, getTodayJst, isDateRangeIncludingToday, parseLocalDate } from '@/lib/date-utils'
 
 const GUNMAP_INFO_SPOT: Spot = {
   id: '__gunmap_info__',
@@ -64,6 +64,8 @@ function eventPlusOccurrencePassesPeriod(
   }
 
   if (getEventStatus(startDate, endDate, endTime) === 'ended') return false
+  // 今日：開催回の開始日〜終了日に今日（JST）が含まれるか
+  if (periodFilter === 'today') return isDateRangeIncludingToday(startDate, endDate, getTodayJst())
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const cutoff = new Date(today)
@@ -378,6 +380,14 @@ export default function MapApp() {
       // 常設施設は期限切れ判定・期間フィルタの対象外で常に表示する
       if (spot.type === 'permanent') return true
       if (getEventStatus(spot.startDate, spot.endDate, spot.endTime) === 'ended') return false
+      // 今日：開始日〜終了日に今日（JST）が含まれるか。event_plus は event_dates のいずれかの日程で判定。日程未定は除外
+      if (periodFilter === 'today') {
+        const todayStr = getTodayJst()
+        if (spot.category === 'event_plus' && spot.eventDates?.length) {
+          return spot.eventDates.some((d) => isDateRangeIncludingToday(d.startDate, d.endDate, todayStr))
+        }
+        return isDateRangeIncludingToday(spot.startDate, spot.endDate, todayStr)
+      }
       // 期間の終了日を計算
       const today = new Date()
       today.setHours(0, 0, 0, 0)

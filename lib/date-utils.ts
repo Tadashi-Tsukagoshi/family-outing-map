@@ -6,6 +6,22 @@ export function parseLocalDate(iso: string): Date {
   return new Date(y, m - 1, d)
 }
 
+/** JST基準の今日の日付を "YYYY-MM-DD" 形式で返す（端末のタイムゾーンに依存しない） */
+export function getTodayJst(): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo' }).format(new Date())
+}
+
+/**
+ * 開始日〜終了日の範囲に todayStr（"YYYY-MM-DD"）が含まれるかを判定する。
+ * 片方のみ指定の場合は単日イベントとして扱う。両方未指定（日程未定）は false
+ */
+export function isDateRangeIncludingToday(startDate: string | undefined, endDate: string | undefined, todayStr: string): boolean {
+  if (!startDate && !endDate) return false
+  const start = startDate ?? endDate!
+  const end = endDate ?? startDate!
+  return start <= todayStr && todayStr <= end
+}
+
 /**
  * 日付範囲を "M/D(曜)〜M/D(曜)" 形式にフォーマット
  * 同日の場合は単一表示

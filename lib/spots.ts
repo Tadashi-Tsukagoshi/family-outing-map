@@ -162,12 +162,13 @@ export function extractMunicipality(address: string | undefined | null): string 
 /** 注意書きの初期値・フォールバック表示（spot.notice が未設定の場合に使用） */
 export const DEFAULT_NOTICE = '※当日の開催状況は公式情報をご確認ください。'
 
-export type PeriodFilter = '1w' | '2w' | '1m' | '3m' | '6m' | `ended_${number}`
+export type PeriodFilter = 'today' | '1w' | '2w' | '1m' | '3m' | '6m' | `ended_${number}`
 
 export type PeriodOption = { value: PeriodFilter; label: string }
 
 export function buildPeriodOptions(endedYears: number[]): PeriodOption[] {
   const base: PeriodOption[] = [
+    { value: 'today', label: '今日' },
     { value: '1w', label: '1週間' },
     { value: '2w', label: '2週間' },
     { value: '1m', label: '1ヶ月' },
