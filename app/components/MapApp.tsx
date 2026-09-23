@@ -14,7 +14,6 @@ import PeriodChip from './PeriodChip'
 import LocationRadiusChip from './LocationRadiusChip'
 import { getAreaBySlug } from '@/lib/areas'
 import { buildDiscoverOrder } from '@/lib/discover-sort'
-import { distanceKm } from '@/lib/geo'
 import { CATEGORY_LABELS, buildPeriodOptions, extractMunicipality, getVisualCategory, matchesCityArea, type Category, type PeriodFilter, type PeriodOption, type Spot } from '@/lib/spots'
 import { eventToSpot, type EventsDatabase } from '@/lib/events'
 import { getEventStatus, getTodayJst, isDateRangeIncludingToday, parseLocalDate } from '@/lib/date-utils'
@@ -37,9 +36,6 @@ const DISSOLVE_PX = 40
 
 /** エリアチップに常時表示する上位エリア数。これを超える分は「その他」チップにまとめる */
 const TOP_AREA_CHIP_COUNT = 6
-
-/** エリアチップの集計結果。lat/lng はその市町村に属するイベントの平均座標（現在地からの距離順ソートに使う） */
-type AreaAggregate = AreaCount & { lat: number; lng: number }
 
 export type PinGroup = {
   /** 最前面（吹き出しの先頭）に表示する spot の id */
@@ -432,42 +428,23 @@ export default function MapApp() {
     })
   }, [allSpots, periodFilter, activeCategories])
 
-  // エリアチップの集計（件数・平均座標）。表示期間・カテゴリフィルタ適用後の filteredSpots から集計するため、
-  // 期間フィルタ「終了イベント(年別)」選択時は終了イベント、それ以外は期間内イベントが集計対象になる。
+  // エリアチップの集計（登録数の多い順）。表示期間・カテゴリフィルタ適用後の filteredSpots から集計するため、
+  // 期間フィルタ「終了イベント(年別)」選択時は終了イベントの件数順、それ以外は期間内イベントの件数順になる。
   // 常設施設・非対象カテゴリ・終了イベントの除外は filteredSpots 側の絞り込みで既に反映済み。
-  const areaAggregates = useMemo<AreaAggregate[]>(() => {
-    const sums = new Map<string, { count: number; latSum: number; lngSum: number }>()
+  const areaCounts = useMemo<AreaCount[]>(() => {
+    const counts = new Map<string, number>()
     for (const spot of filteredSpots) {
       const municipality = extractMunicipality(spot.address)
       if (!municipality) continue
-      const sum = sums.get(municipality)
-      if (sum) {
-        sum.count += 1
-        sum.latSum += spot.lat
-        sum.lngSum += spot.lng
-      } else {
-        sums.set(municipality, { count: 1, latSum: spot.lat, lngSum: spot.lng })
-      }
+      counts.set(municipality, (counts.get(municipality) ?? 0) + 1)
     }
-    return [...sums.entries()].map(([name, { count, latSum, lngSum }]) => ({
-      name,
-      count,
-      lat: latSum / count,
-      lng: lngSum / count,
-    }))
+    return [...counts.entries()]
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'ja'))
   }, [filteredSpots])
 
-  // エリアチップの表示順。現在地ONなら現在地から近い順、OFF（未取得・許可拒否を含む）なら登録数の多い順。
-  // 同順位は登録数の多い順 → 名前順
-  const sortedAreas = useMemo<AreaAggregate[]>(() => {
-    const byCount = (a: AreaAggregate, b: AreaAggregate) => b.count - a.count || a.name.localeCompare(b.name, 'ja')
-    if (userLocation === null) return [...areaAggregates].sort(byCount)
-    const distanceByName = new Map(areaAggregates.map((a) => [a.name, distanceKm(userLocation, [a.lat, a.lng])]))
-    return [...areaAggregates].sort((a, b) => distanceByName.get(a.name)! - distanceByName.get(b.name)! || byCount(a, b))
-  }, [areaAggregates, userLocation])
-
-  const topAreas         = useMemo(() => sortedAreas.slice(0, TOP_AREA_CHIP_COUNT), [sortedAreas])
-  const otherAreas       = useMemo(() => sortedAreas.slice(TOP_AREA_CHIP_COUNT), [sortedAreas])
+  const topAreas         = useMemo(() => areaCounts.slice(0, TOP_AREA_CHIP_COUNT), [areaCounts])
+  const otherAreas       = useMemo(() => areaCounts.slice(TOP_AREA_CHIP_COUNT), [areaCounts])
   const otherAreaActive  = activeArea !== null && otherAreas.some((a) => a.name === activeArea)
 
   // エリアチップ選択時、ボトムシートの一覧のみを該当エリアに絞り込む（地図ピンは絞り込んで非該当を非表示にする）
