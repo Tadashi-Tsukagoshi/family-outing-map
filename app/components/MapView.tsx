@@ -502,10 +502,13 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
       bottomLimit = Math.max(topLimit + MIN_BUBBLE_HEIGHT, window.innerHeight - sheetHeightPx - BOTTOM_LIMIT_OFFSET)
     }
     // 許容領域を最大限使うと、ピンが画面上部にある場合に下向きの吹き出しがピンを
-    // 覆ってしまう。画面高さの45%を上限としてさらにキャップし、どちらの向きでも
-    // リストがピンを覆いにくくする
+    // 覆ってしまう。モバイルは画面高さの45%、PCは地図高さの60%を上限としてさらにキャップし、
+    // どちらの向きでもリストがピンを覆いにくくする
     const HEIGHT_CAP_RATIO = 0.45
-    const heightCap = isMobile && !isSingle ? window.innerHeight * HEIGHT_CAP_RATIO : Infinity
+    const PC_HEIGHT_CAP_RATIO = 0.6
+    const heightCap = isSingle
+      ? Infinity
+      : isMobile ? window.innerHeight * HEIGHT_CAP_RATIO : cH * PC_HEIGHT_CAP_RATIO
     const maxAvailableH = Math.min(bottomLimit - topLimit, heightCap)
     const cardH = Math.min(naturalH, Math.max(MIN_BUBBLE_HEIGHT, maxAvailableH))
 
@@ -613,8 +616,8 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
           background:   'white',
           boxShadow:    '0 2px 8px rgba(0,0,0,0.15)',
           pointerEvents: 'all',
-          maxHeight:    isMobile && !isSingle ? pos.cardH : undefined,
-          overflowY:    isMobile && !isSingle ? 'auto' : undefined,
+          maxHeight:    !isSingle ? pos.cardH : undefined,
+          overflowY:    !isSingle ? 'auto' : undefined,
           WebkitOverflowScrolling: 'touch',
         }}
       >
