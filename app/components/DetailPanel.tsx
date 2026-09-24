@@ -65,10 +65,6 @@ function forgetLiked(id: string) {
 }
 
 const WEEK_JA = ['日', '月', '火', '水', '木', '金', '土']
-function fmtDateLabel(iso: string): string {
-  const d = new Date(iso)
-  return `${d.getMonth() + 1}/${d.getDate()}(${WEEK_JA[d.getDay()]})`
-}
 
 function generateIcs(params: {
   title: string
