@@ -1090,7 +1090,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
       // selectedSpot がある場合は選択グループ以外を薄く、openGroupId がある場合は
       // 吹き出し表示中グループ以外を薄くする
       const shouldDim = (selectedSpot && !isGroupSelected) || (openGroupId && !isGroupBubbleOpen)
-      const opacity = shouldDim ? '0.6' : '1'
+      const opacity = shouldDim ? '0.4' : '1'
       const pinEl = el.firstElementChild as HTMLElement | null
       if (pinEl && pinEl.style.opacity !== opacity) pinEl.style.opacity = opacity
     }
