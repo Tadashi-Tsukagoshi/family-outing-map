@@ -288,42 +288,26 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
     background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left',
   }
 
-  const calendarButtons = spot.category === 'event_plus'
-    ? (spot.eventDates ?? []).map((entry) => (
-        <button
-          key={entry.id}
-          type="button"
-          onClick={() => generateIcs({
-            title: spot.name,
-            startDate: entry.startDate,
-            endDate: entry.endDate,
-            startTime: entry.startTime || undefined,
-            endTime: entry.endTime || undefined,
-            venue: entry.useCustomVenue ? entry.venue : spot.venue,
-            url: spot.url || undefined,
-          })}
-          style={calendarButtonStyle}
-        >
-          📅 {fmtDateLabel(entry.startDate)} カレンダーに追加
-        </button>
-      ))
-    : (!spot.scheduleNote && spot.startDate) ? (
-        <button
-          type="button"
-          onClick={() => generateIcs({
-            title: spot.name,
-            startDate: spot.startDate!,
-            endDate: spot.endDate || spot.startDate!,
-            startTime: spot.startTime || undefined,
-            endTime: spot.endTime || undefined,
-            venue: spot.venue,
-            url: spot.url || undefined,
-          })}
-          style={calendarButtonStyle}
-        >
-          📅 カレンダーに追加
-        </button>
-      ) : null
+  // event_plus では spot 本体の startDate/endDate/venue に「タップされたピンの情報」
+  // または「直近の次回開催回（primary）の情報」が入っているため、
+  // 非 event_plus と同じロジックで1ボタン描画すればよい。
+  const calendarButtons = (!spot.scheduleNote && spot.startDate) ? (
+    <button
+      type="button"
+      onClick={() => generateIcs({
+        title: spot.name,
+        startDate: spot.startDate!,
+        endDate: spot.endDate || spot.startDate!,
+        startTime: spot.startTime || undefined,
+        endTime: spot.endTime || undefined,
+        venue: spot.venue,
+        url: spot.url || undefined,
+      })}
+      style={calendarButtonStyle}
+    >
+      📅 カレンダーに追加
+    </button>
+  ) : null
 
   const showImagePlaceholder = !image || imageLoadFailed
 
