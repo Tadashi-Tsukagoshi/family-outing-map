@@ -686,19 +686,25 @@ export default function MapApp() {
           <button
             type="button"
             onClick={() => setDiscoverModeOpen(true)}
-            className="appearance-none fixed left-4 shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer"
+            aria-label="リール"
+            className="fixed left-4 rounded-full overflow-hidden"
             style={{
               bottom: `calc(${sheetHeight} + ${bottomOffset > 0 ? bottomOffset + 10 : 0}px + 8px + 58px)`,
               transition: 'bottom 0.3s cubic-bezier(0.32,0.72,0,1)',
-              // 背景：市町村エリアチップの選択中グラデーション（AreaChips.tsx の ACTIVE_GRADIENT）と同一
-              background: 'linear-gradient(to right, #2f50c7, #5fb48c)',
-              color: '#fff',
+              width: 55,
+              height: 55,
               // 輪郭・影：グンマップロゴピン（タイトルボタン、border無し＋二重ドロップシャドウ）と同一
               boxShadow: '0 2px 6px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.15)',
               zIndex: 1000,
             }}
           >
-            リール
+            <img
+              src="/icons/reel-swipe.png"
+              alt=""
+              width={55}
+              height={55}
+              className="h-full w-full object-cover"
+            />
           </button>
         )}
 
