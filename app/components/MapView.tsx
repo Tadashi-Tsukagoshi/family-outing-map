@@ -648,7 +648,7 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
       `}</style>
       <div
         ref={bubbleRef}
-        className={`group-bubble-scroll ${pos.above ? 'group-bubble-arrow-down' : 'group-bubble-arrow-up'}`}
+        className={`${needsScroll ? 'group-bubble-scroll ' : ''}${pos.above ? 'group-bubble-arrow-down' : 'group-bubble-arrow-up'}`}
         style={{
           position:     'relative',
           borderRadius: 8,
