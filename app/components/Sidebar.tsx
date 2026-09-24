@@ -1,7 +1,7 @@
 'use client'
 
 import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, getCategoryIconSrc, getVisualCategory, isDarkPin, type Category, type AllCategory, type PeriodFilter, type PeriodOption, type Spot } from '@/lib/spots'
-import { getDateDisplay, fmtTimeRange, computeSpotDateRange } from '@/lib/date-utils'
+import { getDateDisplay, fmtTimeRange } from '@/lib/date-utils'
 
 type Props = {
   periodFilter: PeriodFilter
@@ -169,8 +169,7 @@ export default function Sidebar({
   const spotList = (
     <div className="space-y-0">
       {spots.map((spot) => {
-        const { startDate: rangeStart, endDate: rangeEnd } = computeSpotDateRange(spot)
-        const dateDisplay = getDateDisplay(spot.scheduleNote, rangeStart, rangeEnd)
+        const dateDisplay = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
         const timeDisplay = fmtTimeRange(spot.startTime, spot.endTime)
         return (
           <button

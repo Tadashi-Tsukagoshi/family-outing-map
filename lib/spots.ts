@@ -149,8 +149,8 @@ export function matchesCityArea(address: string | undefined, area: string | null
 export function matchesAreaForSpot(spot: Spot, area: string | null): boolean {
   if (!area) return true
   if (matchesCityArea(spot.address, area)) return true
-  if (spot.category === 'event_plus' && spot.eventDates) {
-    return spot.eventDates.some(d => matchesCityArea(d.address, area))
+  if (spot.category === 'event_plus' && spot.eventPlusPins) {
+    return spot.eventPlusPins.some(p => matchesCityArea(p.address, area))
   }
   return false
 }
@@ -163,13 +163,58 @@ export function extractSpotMunicipalities(spot: Spot): string[] {
   const set = new Set<string>()
   const parent = extractMunicipality(spot.address)
   if (parent) set.add(parent)
-  if (spot.category === 'event_plus' && spot.eventDates) {
-    for (const d of spot.eventDates) {
-      const m = extractMunicipality(d.address)
+  if (spot.category === 'event_plus' && spot.eventPlusPins) {
+    for (const p of spot.eventPlusPins) {
+      const m = extractMunicipality(p.address)
       if (m) set.add(m)
     }
   }
   return [...set]
+}
+
+/**
+ * event_plus をリスト表示用に「同一時間帯グループ」ごとに仮想スポットに展開する。
+ * - 全 upcoming pins が同じ (start_time, end_time) を持つ場合：1件（min startDate 〜 max endDate）
+ * - 時間帯が異なる場合：グループごとに1件（各グループの min〜max range と時間帯）
+ * - 非 event_plus / eventPlusPins 未設定：spot を1件そのまま返す
+ * 仮想スポットは同一 detail に紐づくため id に "::groupN" サフィックスを付ける。
+ */
+export function expandSpotForListDisplay(spot: Spot): Spot[] {
+  if (spot.category !== 'event_plus' || !spot.eventPlusPins || spot.eventPlusPins.length === 0) {
+    return [spot]
+  }
+  const pins = spot.eventPlusPins
+  const groups = new Map<string, EventPlusOccurrence[]>()
+  for (const pin of pins) {
+    const key = `${pin.startTime ?? ''}|${pin.endTime ?? ''}`
+    const g = groups.get(key)
+    if (g) g.push(pin)
+    else groups.set(key, [pin])
+  }
+
+  const buildVirtualSpot = (groupPins: EventPlusOccurrence[], index: number): Spot => {
+    const minStart = groupPins.reduce((min, p) => (p.startDate < min ? p.startDate : min), groupPins[0].startDate)
+    const maxEnd   = groupPins.reduce((max, p) => (p.endDate   > max ? p.endDate   : max), groupPins[0].endDate)
+    return {
+      ...spot,
+      id: index === 0 ? spot.id : `${spot.id}::group${index}`,
+      // 閲覧数・いいね等の API 呼び出しは eventId ?? id を使うため、実イベントの id を保持する
+      eventId: spot.eventId ?? spot.id,
+      startDate: minStart,
+      endDate: maxEnd,
+      startTime: groupPins[0].startTime,
+      endTime:   groupPins[0].endTime,
+    }
+  }
+
+  const result: Spot[] = []
+  let i = 0
+  for (const groupPins of groups.values()) {
+    result.push(buildVirtualSpot(groupPins, i))
+    i++
+  }
+  result.sort((a, b) => (a.startDate ?? '').localeCompare(b.startDate ?? ''))
+  return result
 }
 
 /**
