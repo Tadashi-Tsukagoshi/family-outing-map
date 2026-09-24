@@ -1,3 +1,5 @@
+import type { Spot } from './spots'
+
 export const DOW_JA = ['日', '月', '火', '水', '木', '金', '土'] as const
 
 /** ISO文字列をローカル時刻でパース（UTC解釈を避ける） */
@@ -125,4 +127,20 @@ export function getEventStatus(
   }
 
   return 'active'
+}
+
+/**
+ * event_plus で全 upcoming pins の日付範囲（min startDate 〜 max endDate）を返す。
+ * primary が既に全期間をカバーしている場合は結果が spot.startDate/endDate と同じになり、
+ * primary が単一日程のみ持つ場合は範囲が広がる。
+ * 非 event_plus・eventPlusPins 未設定時は spot.startDate/endDate をそのまま返す。
+ */
+export function computeSpotDateRange(spot: Spot): { startDate: string | undefined; endDate: string | undefined } {
+  if (spot.category !== 'event_plus' || !spot.eventPlusPins || spot.eventPlusPins.length === 0) {
+    return { startDate: spot.startDate, endDate: spot.endDate }
+  }
+  const pins = spot.eventPlusPins
+  const minStart = pins.reduce((min, p) => (p.startDate < min ? p.startDate : min), pins[0].startDate)
+  const maxEnd = pins.reduce((max, p) => (p.endDate > max ? p.endDate : max), pins[0].endDate)
+  return { startDate: minStart, endDate: maxEnd }
 }

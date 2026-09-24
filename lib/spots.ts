@@ -143,6 +143,36 @@ export function matchesCityArea(address: string | undefined, area: string | null
 }
 
 /**
+ * event_plus では親の address または任意の event_date の address が一致すれば true。
+ * それ以外のカテゴリは matchesCityArea と同じ挙動。
+ */
+export function matchesAreaForSpot(spot: Spot, area: string | null): boolean {
+  if (!area) return true
+  if (matchesCityArea(spot.address, area)) return true
+  if (spot.category === 'event_plus' && spot.eventDates) {
+    return spot.eventDates.some(d => matchesCityArea(d.address, area))
+  }
+  return false
+}
+
+/**
+ * spot が関与するすべての市区町村を重複除去して返す（エリアチップ件数集計用）。
+ * event_plus では親 + 全 event_dates の住所から抽出。
+ */
+export function extractSpotMunicipalities(spot: Spot): string[] {
+  const set = new Set<string>()
+  const parent = extractMunicipality(spot.address)
+  if (parent) set.add(parent)
+  if (spot.category === 'event_plus' && spot.eventDates) {
+    for (const d of spot.eventDates) {
+      const m = extractMunicipality(d.address)
+      if (m) set.add(m)
+    }
+  }
+  return [...set]
+}
+
+/**
  * 住所文字列から市区町村名を抽出する（エリアチップの動的集計用）。
  * 郵便番号・都道府県・郡名を除去し、最初に現れる「市」「町」「村」までを市区町村名として取り出す。
  * 群馬県に限らず、距離ベースで収録される近隣県（埼玉・栃木など）の住所にも対応する。

@@ -14,7 +14,7 @@ import PeriodChip from './PeriodChip'
 import LocationRadiusChip from './LocationRadiusChip'
 import { getAreaBySlug } from '@/lib/areas'
 import { buildDiscoverOrder } from '@/lib/discover-sort'
-import { CATEGORY_LABELS, buildPeriodOptions, extractMunicipality, getVisualCategory, matchesCityArea, type Category, type PeriodFilter, type PeriodOption, type Spot } from '@/lib/spots'
+import { CATEGORY_LABELS, buildPeriodOptions, extractMunicipality, extractSpotMunicipalities, getVisualCategory, matchesAreaForSpot, matchesCityArea, type Category, type PeriodFilter, type PeriodOption, type Spot } from '@/lib/spots'
 import { eventToSpot, type EventsDatabase } from '@/lib/events'
 import { getEventStatus, getTodayJst, isDateRangeIncludingToday, parseLocalDate } from '@/lib/date-utils'
 
@@ -435,9 +435,10 @@ export default function MapApp() {
   const areaCounts = useMemo<AreaCount[]>(() => {
     const counts = new Map<string, number>()
     for (const spot of filteredSpots) {
-      const municipality = extractMunicipality(spot.address)
-      if (!municipality) continue
-      counts.set(municipality, (counts.get(municipality) ?? 0) + 1)
+      const municipalities = extractSpotMunicipalities(spot)
+      for (const m of municipalities) {
+        counts.set(m, (counts.get(m) ?? 0) + 1)
+      }
     }
     return [...counts.entries()]
       .map(([name, count]) => ({ name, count }))
@@ -451,7 +452,7 @@ export default function MapApp() {
   // エリアチップ選択時、ボトムシートの一覧のみを該当エリアに絞り込む（地図ピンは絞り込んで非該当を非表示にする）
   const areaFilteredSpots = useMemo(() => {
     if (!activeArea) return filteredSpots
-    return filteredSpots.filter((spot) => matchesCityArea(spot.address, activeArea))
+    return filteredSpots.filter((spot) => matchesAreaForSpot(spot, activeArea))
   }, [filteredSpots, activeArea])
 
   // 発見モード（β）：現在適用中のフィルタ結果（areaFilteredSpots）を、現在地ONなら距離順、OFFなら開催日順に並べ替える
