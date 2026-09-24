@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { CATEGORY_LABELS, getVisualCategory, type Category, type Spot } from '@/lib/spots'
-import { getDateDisplay, getEventStatus, STATUS_CONFIG } from '@/lib/date-utils'
+import { getDateDisplay, getEventStatus, fmtTimeRange, STATUS_CONFIG } from '@/lib/date-utils'
 import { distanceKm } from '@/lib/geo'
 
 type Props = {
@@ -17,6 +17,7 @@ type Props = {
 function DiscoverCard({ spot, userLocation, onOpenDetail }: { spot: Spot; userLocation: [number, number] | null; onOpenDetail: () => void }) {
   const status = getEventStatus(spot.startDate, spot.endDate, spot.endTime)
   const dateLabel = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate, spot.specificDates)
+  const timeLabel = fmtTimeRange(spot.startTime, spot.endTime)
   const categoryLabel = CATEGORY_LABELS[getVisualCategory(spot) as Category] ?? null
   const distanceLabel = userLocation ? distanceKm(userLocation, [spot.lat, spot.lng]).toFixed(1) : null
 
@@ -61,7 +62,7 @@ function DiscoverCard({ spot, userLocation, onOpenDetail }: { spot: Spot; userLo
         </div>
 
         <h3 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 8px', lineHeight: 1.35 }}>{spot.name}</h3>
-        {dateLabel && <p style={{ fontSize: 14, margin: '0 0 4px', color: 'rgba(255,255,255,0.9)' }}>{dateLabel}</p>}
+        {dateLabel && <p style={{ fontSize: 14, margin: '0 0 4px', color: 'rgba(255,255,255,0.9)' }}>{dateLabel}{timeLabel ? ` ${timeLabel}` : ''}</p>}
         {spot.venue && <p style={{ fontSize: 14, margin: '0 0 16px', color: 'rgba(255,255,255,0.9)', whiteSpace: 'pre-line' }}>{spot.venue}</p>}
 
         <button
