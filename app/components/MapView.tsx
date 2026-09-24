@@ -10,6 +10,20 @@ import { type PinGroup } from './MapApp'
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? ''
 
+/**
+ * 選択中スポットとの一致判定。
+ * まず id で厳密一致を試し、一致しなければ eventId（無ければ id）同士を比較する。
+ * event_plus のリスト分割で生成された仮想カード（id: parent::groupN、eventId: parent）を
+ * 選択したとき、実ピン（id: parent, parent::1, ...、eventId: parent）と親IDで一致させるため。
+ */
+function matchesSelection(spot: Spot | null | undefined, selected: Spot | null): boolean {
+  if (!spot || !selected) return false
+  if (spot.id === selected.id) return true
+  const spotEventKey = spot.eventId ?? spot.id
+  const selectedEventKey = selected.eventId ?? selected.id
+  return spotEventKey === selectedEventKey
+}
+
 // ─── Types ───────────────────────────────────────────────────────
 type Props = {
   spots: Spot[]
@@ -910,11 +924,11 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
   const icons = useMemo(() => {
     const result: Record<string, IconDef> = {}
     for (const g of pinGroups) {
-      const activeSpot = g.spots.find(s => s.id === selectedSpot?.id) ?? g.spots[0]
+      const activeSpot = g.spots.find(s => matchesSelection(s, selectedSpot)) ?? g.spots[0]
       // グループピンが吹き出し表示中（openGroupId一致）でも、単独spot選択と同様に
       // 拡大＋バウンスさせる
       const isGroupBubbleOpen = g.representativeId === openGroupId
-      const isSpotSelected = activeSpot.id === selectedSpot?.id
+      const isSpotSelected = matchesSelection(activeSpot, selectedSpot)
       result[g.representativeId] = buildIconDef(activeSpot, isSpotSelected || isGroupBubbleOpen, isMobile)
     }
     return result
@@ -1057,7 +1071,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
       if (el.style.width  !== newWidth)  el.style.width  = newWidth
       if (el.style.height !== newHeight) el.style.height = newHeight
 
-      const isGroupSelected = group.spots.some(s => s.id === selectedSpot?.id)
+      const isGroupSelected = group.spots.some(s => matchesSelection(s, selectedSpot))
       // グループピン吹き出し表示中（PC・単独ピンHovered時は無関係、モバイル・PC
       // どちらもグループタップ時のopenGroupId一致で真になる）も選択扱いする
       const isGroupBubbleOpen = group.representativeId === openGroupId
