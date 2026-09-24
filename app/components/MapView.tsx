@@ -1363,7 +1363,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
     if (!map || !mapReady) { setBubbleScreenPos(null); return }
 
     const targetGroupId = openGroupId
-      ?? pinGroups.find(g => g.spots.some(s => s.id === selectedSpot?.id) && g.spots.length >= 2)?.representativeId
+      ?? pinGroups.find(g => g.spots.some(s => matchesSelection(s, selectedSpot)) && g.spots.length >= 2)?.representativeId
       ?? null
 
     if (!targetGroupId) { setBubbleScreenPos(null); return }
