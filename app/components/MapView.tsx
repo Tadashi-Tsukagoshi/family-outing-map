@@ -488,6 +488,7 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
   const aboveGap = BUBBLE_GAP
 
   const [pos, setPos] = useState<Pos>({ left: x, top: y, above: true, ready: false, cardH: 0 })
+  const [needsScroll, setNeedsScroll] = useState(false)
 
   // spot ごとの小型アイコンHTML。spot のデータが変わらない限り再生成しない
   const iconHtmlBySpotId = useMemo(() => {
@@ -539,8 +540,13 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
       const spaceBelow = bottomLimit - y - BUBBLE_GAP
       above = spaceAbove >= spaceBelow
       const availableH = above ? spaceAbove : spaceBelow
-      cardH = Math.max(MIN_BUBBLE_HEIGHT, Math.min(naturalH, heightCap, availableH))
+      const effectiveCap = Math.min(heightCap, availableH)
+      // 実コンテンツが有効な高さ制限を超えるときだけスクロール化する。
+      // 1件しか表示されない等でコンテンツが制限内に収まる場合は maxHeight/overflow を適用せず自然な高さで描画する。
+      setNeedsScroll(naturalH > effectiveCap)
+      cardH = Math.max(MIN_BUBBLE_HEIGHT, Math.min(naturalH, effectiveCap))
     } else {
+      setNeedsScroll(false)
       // 1件のホバーカード：従来どおり、上に収まれば上向き・収まらなければ下向きに出し、
       // 許容領域からはみ出す分はtop値をずらして補正する
       const maxAvailableH = Math.min(bottomLimit - topLimit, heightCap)
@@ -650,8 +656,8 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
           background:   'white',
           boxShadow:    '0 2px 8px rgba(0,0,0,0.15)',
           pointerEvents: 'all',
-          maxHeight:    !isSingle ? pos.cardH : undefined,
-          overflowY:    !isSingle ? 'auto' : undefined,
+          maxHeight:    needsScroll ? pos.cardH : undefined,
+          overflowY:    needsScroll ? 'auto' : undefined,
           WebkitOverflowScrolling: 'touch',
         }}
       >
