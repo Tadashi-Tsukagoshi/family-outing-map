@@ -18,6 +18,7 @@ type Props = {
   selectedSpot: Spot | null
   userLocation?: [number, number] | null
   locationRadius?: number
+  locationChipClickTick?: number
   recenterSignal?: number
   onDetailOpen: (spot: Spot) => void
   onDetailClose: () => void
@@ -764,7 +765,7 @@ const TAP_MAX_DISTANCE = 10
 const TAP_MAX_DURATION = 300
 
 // ─── MapView（メインコンポーネント） ─────────────────────────────
-export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, userLocation = null, locationRadius = 60, recenterSignal = 0, onDetailOpen, onDetailClose, detailPanelOpen, isMobile = false, sheetState = 'closed', activeArea = null, areaClickTick = 0, onMapTapClose, onZoomChange, onFlyStart, onFlyEnd }: Props) {
+export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, userLocation = null, locationRadius = 60, recenterSignal = 0, onDetailOpen, onDetailClose, detailPanelOpen, isMobile = false, sheetState = 'closed', activeArea = null, areaClickTick = 0, locationChipClickTick = 0, onMapTapClose, onZoomChange, onFlyStart, onFlyEnd }: Props) {
   const wrapperRef       = useRef<HTMLDivElement>(null)
   const containerRef     = useRef<HTMLDivElement>(null)
   const mapRef           = useRef<mapboxgl.Map | null>(null)
@@ -1181,7 +1182,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
     } else {
       map.fitBounds(bounds, { padding, animate: true, duration: 300 })
     }
-  }, [userLocation, locationRadius, isMobile, mapReady])
+  }, [userLocation, locationRadius, isMobile, mapReady, locationChipClickTick])
 
   // ─── エリアチップ選択時：ズームは変えずに該当エリアのピン中心へパン移動。「すべて」はデフォルト中心に戻す ──
   // /area/[slug] からの ?area= リダイレクトでは、activeArea が mapReady より先に確定することがある

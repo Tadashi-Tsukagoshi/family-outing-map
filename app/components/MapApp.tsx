@@ -171,6 +171,7 @@ export default function MapApp() {
   const [sheetHeight, setSheetHeight] = useState('72px')
   const [activeArea,    setActiveArea]      = useState<string | null>(null)
   const [areaClickTick, setAreaClickTick]   = useState(0)
+  const [locationChipClickTick, setLocationChipClickTick] = useState(0)
   const [areaOtherModalOpen, setAreaOtherModalOpen] = useState(false)
   const otherButtonRef = useRef<HTMLButtonElement>(null)
   const [discoverModeOpen, setDiscoverModeOpen] = useState(false)
@@ -639,6 +640,7 @@ export default function MapApp() {
           sheetState={sheetState}
           activeArea={activeArea}
           areaClickTick={areaClickTick}
+          locationChipClickTick={locationChipClickTick}
           onMapTapClose={() => setSheetState('closed')}
           onZoomChange={handleZoomChange}
           onFlyStart={handleFlyStart}
@@ -663,10 +665,14 @@ export default function MapApp() {
           <LocationRadiusChip
             hasLocation={userLocation !== null}
             locationRadius={locationRadius}
-            onSelectOff={handleLocateClear}
+            onSelectOff={() => {
+              handleLocateClear()
+              setLocationChipClickTick((t) => t + 1)
+            }}
             onSelectRadius={(radius) => {
               setLocationRadius(radius)
               if (userLocation === null) handleLocate()
+              setLocationChipClickTick((t) => t + 1)
             }}
           />
           <PeriodChip
@@ -813,6 +819,7 @@ export default function MapApp() {
           recenterSignal={recenterSignal}
           activeArea={activeArea}
           areaClickTick={areaClickTick}
+          locationChipClickTick={locationChipClickTick}
           onZoomChange={handleZoomChange}
           onFlyStart={handleFlyStart}
           onFlyEnd={handleFlyEnd}
