@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { BADGE_BG_COLOR, DEFAULT_NOTICE, type AllCategory, type Spot } from '@/lib/spots'
-import { getDateDisplay, getEventStatus, STATUS_CONFIG, PARK_STATUS, fmtTimeRange } from '@/lib/date-utils'
+import { getDateDisplay, getEventStatus, STATUS_CONFIG, PARK_STATUS, fmtTimeRange, fmtDateRange } from '@/lib/date-utils'
 import PhotoCarousel from './PhotoCarousel'
 import PinchZoomImage from './PinchZoomImage'
 import Lightbox from './Lightbox'
@@ -268,6 +268,38 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
   const status      = getEventStatus(spot.startDate, spot.endDate, spot.endTime)
   const dateRange   = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate, spot.specificDates)
   const timeRange   = fmtTimeRange(spot.startTime, spot.endTime)
+
+  // event_plus で時間帯グループが複数ある場合、ヘッダーとカレンダーボタンを複数行/複数ボタン化する。
+  // (startTime, endTime) が同一の日程はまとめ、開始日順に並べる。
+  type DateGroup = { startDate: string; endDate: string; startTime?: string; endTime?: string; text: string }
+  const dateGroups: DateGroup[] = (() => {
+    if (spot.category === 'event_plus' && spot.eventPlusPins && spot.eventPlusPins.length > 0) {
+      const groups = new Map<string, typeof spot.eventPlusPins>()
+      for (const pin of spot.eventPlusPins) {
+        const key = `${pin.startTime ?? ''}|${pin.endTime ?? ''}`
+        const g = groups.get(key)
+        if (g) g.push(pin)
+        else groups.set(key, [pin])
+      }
+      const result: DateGroup[] = []
+      for (const groupPins of groups.values()) {
+        const minStart = groupPins.reduce((min, p) => (p.startDate < min ? p.startDate : min), groupPins[0].startDate)
+        const maxEnd = groupPins.reduce((max, p) => (p.endDate > max ? p.endDate : max), groupPins[0].endDate)
+        const dateText = fmtDateRange(minStart, maxEnd)
+        const timeText = fmtTimeRange(groupPins[0].startTime, groupPins[0].endTime)
+        result.push({
+          startDate: minStart,
+          endDate: maxEnd,
+          startTime: groupPins[0].startTime,
+          endTime: groupPins[0].endTime,
+          text: `${dateText}${timeText ? ` ${timeText}` : ''}`,
+        })
+      }
+      result.sort((a, b) => a.startDate.localeCompare(b.startDate))
+      return result
+    }
+    return []
+  })()
   const statusCfg   = isPark ? { ...PARK_STATUS, label: spot.spotLabel || PARK_STATUS.label } : (status ? STATUS_CONFIG[status] : null)
   const showStatus  = isPark || status === 'ended'
   const showDisclaimer = !isPark && status !== 'ended'
@@ -284,26 +316,51 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
     background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left',
   }
 
-  // event_plus では spot 本体の startDate/endDate/venue に「タップされたピンの情報」
-  // または「直近の次回開催回（primary）の情報」が入っているため、
-  // 非 event_plus と同じロジックで1ボタン描画すればよい。
-  const calendarButtons = (!spot.scheduleNote && spot.startDate) ? (
-    <button
-      type="button"
-      onClick={() => generateIcs({
-        title: spot.name,
-        startDate: spot.startDate!,
-        endDate: spot.endDate || spot.startDate!,
-        startTime: spot.startTime || undefined,
-        endTime: spot.endTime || undefined,
-        venue: spot.venue,
-        url: spot.url || undefined,
-      })}
-      style={calendarButtonStyle}
-    >
-      📅 カレンダーに追加
-    </button>
-  ) : null
+  const calendarButtons = (() => {
+    if (spot.scheduleNote || !spot.startDate) return null
+    if (dateGroups.length > 0) {
+      // event_plus 複数時間帯：グループごとに1ボタン。ラベルに日付を付与する。
+      return (
+        <>
+          {dateGroups.map((g, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => generateIcs({
+                title: spot.name,
+                startDate: g.startDate,
+                endDate: g.endDate,
+                startTime: g.startTime || undefined,
+                endTime: g.endTime || undefined,
+                venue: spot.venue,
+                url: spot.url || undefined,
+              })}
+              style={calendarButtonStyle}
+            >
+              📅 カレンダーに追加 {fmtDateRange(g.startDate, g.endDate)}
+            </button>
+          ))}
+        </>
+      )
+    }
+    return (
+      <button
+        type="button"
+        onClick={() => generateIcs({
+          title: spot.name,
+          startDate: spot.startDate!,
+          endDate: spot.endDate || spot.startDate!,
+          startTime: spot.startTime || undefined,
+          endTime: spot.endTime || undefined,
+          venue: spot.venue,
+          url: spot.url || undefined,
+        })}
+        style={calendarButtonStyle}
+      >
+        📅 カレンダーに追加
+      </button>
+    )
+  })()
 
   const showImagePlaceholder = !image || imageLoadFailed
 
@@ -349,10 +406,12 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                     {spot.businessHours || '未登録'}
                   </p>
                 ) : !isGunmapInfo && (
-                  dateRange && (
+                  (dateGroups.length > 0 || dateRange) && (
                     <>
                       <p style={{ fontSize: 14, fontWeight: 600, color: '#111', margin: 0 }}>
-                        {dateRange}{timeRange ? ` ${timeRange}` : ''}
+                        {dateGroups.length > 0
+                          ? dateGroups.map((g, idx) => <span key={idx} style={{ display: 'block' }}>{g.text}</span>)
+                          : <>{dateRange}{timeRange ? ` ${timeRange}` : ''}</>}
                       </p>
                       {showDisclaimer && (
                         <p style={{ fontSize: 12, fontWeight: 500, color: '#111', margin: 0, whiteSpace: 'pre-line' }}>
@@ -698,10 +757,12 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
             {spot.businessHours || '未登録'}
           </p>
         ) : (
-          dateRange && (
+          (dateGroups.length > 0 || dateRange) && (
             <>
               <p style={{ fontSize: 14, fontWeight: 400, color: '#111', margin: '1px 0 0' }}>
-                {dateRange}{timeRange ? ` ${timeRange}` : ''}
+                {dateGroups.length > 0
+                  ? dateGroups.map((g, idx) => <span key={idx} style={{ display: 'block' }}>{g.text}</span>)
+                  : <>{dateRange}{timeRange ? ` ${timeRange}` : ''}</>}
               </p>
               {showDisclaimer && (
                 <p style={{ fontSize: 12, fontWeight: 400, color: '#4b5563', margin: '1px 0 0', whiteSpace: 'pre-line' }}>
