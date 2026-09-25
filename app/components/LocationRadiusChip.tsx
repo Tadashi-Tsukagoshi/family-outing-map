@@ -33,7 +33,6 @@ export default function LocationRadiusChip({ hasLocation, locationRadius, onSele
     ? 'transparent'
     : 'rgba(255,255,255,0.92)'
   const color = isActive ? 'white' : '#4b5563'
-  const borderColor = isActive ? 'transparent' : '#e5e7eb'
 
   const handleToggle = useCallback(() => {
     setOpen((prev) => !prev)
@@ -58,7 +57,7 @@ export default function LocationRadiusChip({ hasLocation, locationRadius, onSele
         ref={setAnchorEl}
         type="button"
         onClick={handleToggle}
-        className="relative md:hidden inline-flex items-center justify-center whitespace-nowrap rounded-full border py-1.5 text-sm font-medium cursor-pointer"
+        className="relative md:hidden inline-flex items-center justify-center whitespace-nowrap rounded-full py-1.5 text-sm font-medium cursor-pointer"
         style={{
           paddingLeft: 12,
           paddingRight: 12,
@@ -66,9 +65,8 @@ export default function LocationRadiusChip({ hasLocation, locationRadius, onSele
           backgroundColor,
           backgroundClip: 'padding-box',
           WebkitBackgroundClip: 'padding-box',
-          borderColor,
           color,
-          boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+          boxShadow: '0 2px 6px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.15)',
         }}
         aria-label="現在地・距離円"
         aria-haspopup="listbox"
