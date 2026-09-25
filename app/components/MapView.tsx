@@ -1097,8 +1097,12 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
       // 吹き出し表示中グループ以外を薄くする
       const shouldDim = (selectedSpot && !isGroupSelected) || (openGroupId && !isGroupBubbleOpen)
       const opacity = shouldDim ? '0.4' : '1'
-      const pinEl = el.firstElementChild as HTMLElement | null
-      if (pinEl && pinEl.style.opacity !== opacity) pinEl.style.opacity = opacity
+      // el（marker.getElement()）は Mapbox が opacity を上書きするため子要素側に設定する。
+      // 子要素はピンアイコン（firstElementChild）と、必要に応じてバッジの span が続く。両方に適用する。
+      for (const child of Array.from(el.children)) {
+        const childEl = child as HTMLElement
+        if (childEl.style.opacity !== opacity) childEl.style.opacity = opacity
+      }
     }
   }, [pinGroups, icons, selectedSpot?.id, openGroupId, activeArea, mapReady])
 
