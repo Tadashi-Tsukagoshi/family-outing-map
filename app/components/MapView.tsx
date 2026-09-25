@@ -57,6 +57,7 @@ type OgpEntry = string | null | 'loading'
 // ─── Constants ───────────────────────────────────────────────────
 /** [lat, lng] */
 const OTA_CENTER: [number, number] = [36.2913, 139.3758]
+const GUNMA_PREF_OFFICE: [number, number] = [36.391250, 139.060972] // 群馬県前橋市大手町1-1-1（群馬県庁舎）
 
 /** カード幅（固定） */
 const CARD_W   = 260
@@ -1264,7 +1265,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
         }
         map.fitBounds(bounds, { padding: fitPadding, animate: true, duration: 500 })
       } else {
-        map.flyTo({ center: toLngLat(OTA_CENTER[0], OTA_CENTER[1]), zoom: map.getZoom(), padding, duration: 500 })
+        map.flyTo({ center: toLngLat(GUNMA_PREF_OFFICE[0], GUNMA_PREF_OFFICE[1]), zoom: map.getZoom(), padding, duration: 500 })
       }
       return
     }
