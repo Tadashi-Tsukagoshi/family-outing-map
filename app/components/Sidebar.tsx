@@ -1,7 +1,7 @@
 'use client'
 
 import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, getCategoryIconSrc, getVisualCategory, isDarkPin, type Category, type AllCategory, type PeriodFilter, type PeriodOption, type Spot } from '@/lib/spots'
-import { getDateDisplay, fmtTimeRange } from '@/lib/date-utils'
+import { getDateDisplay, fmtTimeRange, fmtDateRange } from '@/lib/date-utils'
 
 type Props = {
   periodFilter: PeriodFilter
@@ -169,8 +169,34 @@ export default function Sidebar({
   const spotList = (
     <div className="space-y-0">
       {spots.map((spot) => {
-        const dateDisplay = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
-        const timeDisplay = fmtTimeRange(spot.startTime, spot.endTime)
+        // event_plus で時間帯が複数ある場合は、(startTime, endTime) でグルーピングして
+        // グループごとに1行にする。それ以外は従来通り1行。
+        type DateLine = { text: string }
+        const dateLines: DateLine[] = (() => {
+          if (spot.category === 'event_plus' && spot.eventPlusPins && spot.eventPlusPins.length > 0) {
+            const groups = new Map<string, typeof spot.eventPlusPins>()
+            for (const pin of spot.eventPlusPins) {
+              const key = `${pin.startTime ?? ''}|${pin.endTime ?? ''}`
+              const g = groups.get(key)
+              if (g) g.push(pin)
+              else groups.set(key, [pin])
+            }
+            const lines: { text: string; sortKey: string }[] = []
+            for (const groupPins of groups.values()) {
+              const minStart = groupPins.reduce((min, p) => (p.startDate < min ? p.startDate : min), groupPins[0].startDate)
+              const maxEnd = groupPins.reduce((max, p) => (p.endDate > max ? p.endDate : max), groupPins[0].endDate)
+              const dateText = fmtDateRange(minStart, maxEnd)
+              const timeText = fmtTimeRange(groupPins[0].startTime, groupPins[0].endTime)
+              lines.push({ text: `${dateText}${timeText ? ` ${timeText}` : ''}`, sortKey: minStart })
+            }
+            lines.sort((a, b) => a.sortKey.localeCompare(b.sortKey))
+            return lines.map(({ text }) => ({ text }))
+          }
+          const dateDisplay = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
+          const timeDisplay = fmtTimeRange(spot.startTime, spot.endTime)
+          if (!dateDisplay) return []
+          return [{ text: `${dateDisplay}${timeDisplay ? ` ${timeDisplay}` : ''}` }]
+        })()
         return (
           <button
             key={spot.id}
@@ -194,11 +220,11 @@ export default function Sidebar({
                 {spot.name}
               </span>
             </div>
-            {dateDisplay && (
-              <p className="text-[11px] text-gray-500 truncate mt-0.5 pl-7">
-                {dateDisplay}{timeDisplay ? ` ${timeDisplay}` : ''}
+            {dateLines.map((line, idx) => (
+              <p key={idx} className="text-[11px] text-gray-500 truncate mt-0.5 pl-7">
+                {line.text}
               </p>
-            )}
+            ))}
           </button>
         )
       })}

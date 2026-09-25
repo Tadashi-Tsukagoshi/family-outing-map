@@ -14,7 +14,7 @@ import PeriodChip from './PeriodChip'
 import LocationRadiusChip from './LocationRadiusChip'
 import { getAreaBySlug } from '@/lib/areas'
 import { buildDiscoverOrder } from '@/lib/discover-sort'
-import { CATEGORY_LABELS, buildPeriodOptions, expandSpotForListDisplay, extractSpotMunicipalities, getVisualCategory, matchesAreaForSpot, type Category, type PeriodFilter, type PeriodOption, type Spot } from '@/lib/spots'
+import { CATEGORY_LABELS, buildPeriodOptions, extractSpotMunicipalities, getVisualCategory, matchesAreaForSpot, type Category, type PeriodFilter, type PeriodOption, type Spot } from '@/lib/spots'
 import { eventToSpot, type EventsDatabase } from '@/lib/events'
 import { getEventStatus, getTodayJst, isDateRangeIncludingToday, parseLocalDate } from '@/lib/date-utils'
 
@@ -455,13 +455,6 @@ export default function MapApp() {
     return filteredSpots.filter((spot) => matchesAreaForSpot(spot, activeArea))
   }, [filteredSpots, activeArea])
 
-  // リスト・リール表示用の展開済みスポット配列。
-  // event_plus で開催時間帯が異なる日程がある場合、時間帯グループごとに別カードとして表示する。
-  const areaFilteredSpotsForList = useMemo(
-    () => areaFilteredSpots.flatMap(expandSpotForListDisplay),
-    [areaFilteredSpots],
-  )
-
   // 発見モード（β）：現在適用中のフィルタ結果（areaFilteredSpots）を、現在地ONなら距離順、OFFなら開催日順に並べ替える
   // リールは event_plus の時間帯分割をせず親スポット1件のまま扱い、
   // タイトル下で複数時間帯を複数行表示する（DiscoverCard 側で対応）。
@@ -742,13 +735,13 @@ export default function MapApp() {
 
         <BottomSheet
           title={activeArea ? `${activeArea}のイベント` : 'イベント一覧'}
-          spotCount={areaFilteredSpotsForList.length}
+          spotCount={areaFilteredSpots.length}
           sheetState={sheetState}
           onSheetStateChange={setSheetState}
           bottomOffset={bottomOffset}
           onHeightChange={setSheetHeight}
         >
-          <Sidebar {...sidebarProps} spots={areaFilteredSpotsForList} mode="sheet" />
+          <Sidebar {...sidebarProps} spots={areaFilteredSpots} mode="sheet" />
         </BottomSheet>
         {detailSpot && (
           <div
@@ -784,7 +777,7 @@ export default function MapApp() {
   /* ── デスクトップレイアウト ── */
   return (
     <div className="flex h-full">
-      <Sidebar {...sidebarProps} spots={areaFilteredSpotsForList} mode="sidebar" />
+      <Sidebar {...sidebarProps} spots={areaFilteredSpots} mode="sidebar" />
       <main className="flex-1 relative">
         {detailSpot && (
           <div className="absolute inset-y-0 left-0 z-[1001]">
