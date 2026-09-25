@@ -4,7 +4,7 @@ export type AreaCount = { name: string; count: number }
 
 const ALL_LABEL = 'すべて'
 const OTHER_LABEL = 'その他'
-const ACTIVE_GRADIENT = 'linear-gradient(to right, #2f50c7, #5fb48c)'
+const ACTIVE_GRADIENT = 'rgb(30, 30, 30)'
 
 type Props = {
   /** 登録数上位N件（表示順ソート済み） */
