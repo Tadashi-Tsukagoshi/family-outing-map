@@ -176,7 +176,7 @@ export default function Sidebar({
           if (spot.category === 'event_plus' && spot.eventPlusPins && spot.eventPlusPins.length > 0) {
             const groups = new Map<string, typeof spot.eventPlusPins>()
             for (const pin of spot.eventPlusPins) {
-              const key = `${pin.startTime ?? ''}|${pin.endTime ?? ''}`
+              const key = `${pin.startTime ?? ''}|${pin.endTime ?? ''}|${pin.startDate}|${pin.endDate}`
               const g = groups.get(key)
               if (g) g.push(pin)
               else groups.set(key, [pin])
