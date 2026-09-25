@@ -51,12 +51,12 @@ function DiscoverCard({ spot, userLocation, onOpenDetail }: { spot: Spot; userLo
   const distanceLabel = userLocation ? distanceKm(userLocation, [spot.lat, spot.lng]).toFixed(1) : null
 
   return (
-    <div style={{ position: 'relative', height: '100%', width: '100%', background: '#000' }}>
+    <div style={{ position: 'relative', height: '100%', width: '100%', background: '#fff' }}>
       {spot.imageUrl ? (
         <img
           src={spot.imageUrl}
           alt=""
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }}
         />
       ) : (
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1f2937' }}>
