@@ -35,7 +35,7 @@ function chipStyle(active: boolean): React.CSSProperties {
         color: '#fff',
         boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
       }
-    : { background: 'rgba(255,255,255,0.92)', borderColor: '#e5e7eb', color: '#4b5563' }
+    : { background: 'rgba(255,255,255,0.92)', borderColor: '#e5e7eb', color: 'rgb(30, 30, 30)' }
 }
 
 export default function AreaChips({ areas, activeArea, onAreaChange, hasOther, otherActive, onOtherClick, positionStyle, mode = 'mobile', otherButtonRef }: Props) {
