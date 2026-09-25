@@ -31,9 +31,9 @@ function chipStyle(active: boolean): React.CSSProperties {
         backgroundClip: 'padding-box',
         WebkitBackgroundClip: 'padding-box',
         color: '#fff',
-        boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+        boxShadow: '0 2px 6px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.15)',
       }
-    : { background: '#fff', color: 'rgb(30, 30, 30)' }
+    : { background: '#fff', color: 'rgb(30, 30, 30)', boxShadow: '0 2px 6px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.15)' }
 }
 
 export default function AreaChips({ areas, activeArea, onAreaChange, hasOther, otherActive, onOtherClick, positionStyle, mode = 'mobile', otherButtonRef }: Props) {
