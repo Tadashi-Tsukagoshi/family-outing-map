@@ -463,9 +463,11 @@ export default function MapApp() {
   )
 
   // 発見モード（β）：現在適用中のフィルタ結果（areaFilteredSpots）を、現在地ONなら距離順、OFFなら開催日順に並べ替える
+  // リールは event_plus の時間帯分割をせず親スポット1件のまま扱い、
+  // タイトル下で複数時間帯を複数行表示する（DiscoverCard 側で対応）。
   const discoverSpots = useMemo(
-    () => buildDiscoverOrder(areaFilteredSpotsForList, userLocation),
-    [areaFilteredSpotsForList, userLocation],
+    () => buildDiscoverOrder(areaFilteredSpots, userLocation),
+    [areaFilteredSpots, userLocation],
   )
 
   // 終了イベントの ?event= リンクから来た場合、フィルターは変えずにピン表示にだけ一時追加する

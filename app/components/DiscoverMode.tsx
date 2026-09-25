@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { CATEGORY_LABELS, getVisualCategory, type Category, type Spot } from '@/lib/spots'
-import { getDateDisplay, getEventStatus, fmtTimeRange, STATUS_CONFIG } from '@/lib/date-utils'
+import { getDateDisplay, getEventStatus, fmtDateRange, fmtTimeRange, STATUS_CONFIG } from '@/lib/date-utils'
 import { distanceKm } from '@/lib/geo'
 
 type Props = {
@@ -14,10 +14,39 @@ type Props = {
   onOpenDetail: (spot: Spot) => void
 }
 
+/**
+ * タイトル下に表示する日付・時刻の行を返す。
+ * event_plus は (startTime, endTime) ごとにグルーピングし、時間帯ごとに「min開始日〜max終了日 時刻」を1行ずつ（開始日順）。
+ * それ以外は従来通り1行。
+ */
+function buildDateLines(spot: Spot): string[] {
+  if (spot.category === 'event_plus' && spot.eventPlusPins && spot.eventPlusPins.length > 0) {
+    const groups = new Map<string, { start: string; end: string; startTime: string; endTime: string }>()
+    for (const pin of spot.eventPlusPins) {
+      const key = `${pin.startTime ?? ''}|${pin.endTime ?? ''}`
+      const g = groups.get(key)
+      if (!g) groups.set(key, { start: pin.startDate, end: pin.endDate, startTime: pin.startTime, endTime: pin.endTime })
+      else {
+        if (pin.startDate < g.start) g.start = pin.startDate
+        if (pin.endDate > g.end) g.end = pin.endDate
+      }
+    }
+    return [...groups.values()]
+      .sort((a, b) => a.start.localeCompare(b.start))
+      .map((g) => {
+        const timeText = fmtTimeRange(g.startTime, g.endTime)
+        return `${fmtDateRange(g.start, g.end) ?? ''}${timeText ? ` ${timeText}` : ''}`
+      })
+  }
+  const dateLabel = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate, spot.specificDates)
+  if (!dateLabel) return []
+  const timeLabel = fmtTimeRange(spot.startTime, spot.endTime)
+  return [`${dateLabel}${timeLabel ? ` ${timeLabel}` : ''}`]
+}
+
 function DiscoverCard({ spot, userLocation, onOpenDetail }: { spot: Spot; userLocation: [number, number] | null; onOpenDetail: () => void }) {
   const status = getEventStatus(spot.startDate, spot.endDate, spot.endTime)
-  const dateLabel = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate, spot.specificDates)
-  const timeLabel = fmtTimeRange(spot.startTime, spot.endTime)
+  const dateLines = buildDateLines(spot)
   const categoryLabel = CATEGORY_LABELS[getVisualCategory(spot) as Category] ?? null
   const distanceLabel = userLocation ? distanceKm(userLocation, [spot.lat, spot.lng]).toFixed(1) : null
 
@@ -62,7 +91,9 @@ function DiscoverCard({ spot, userLocation, onOpenDetail }: { spot: Spot; userLo
         </div>
 
         <h3 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 8px', lineHeight: 1.35 }}>{spot.name}</h3>
-        {dateLabel && <p style={{ fontSize: 14, margin: '0 0 4px', color: 'rgba(255,255,255,0.9)' }}>{dateLabel}{timeLabel ? ` ${timeLabel}` : ''}</p>}
+        {dateLines.map((line, idx) => (
+          <p key={idx} style={{ fontSize: 14, margin: idx === dateLines.length - 1 ? '0 0 4px' : '0 0 2px', color: 'rgba(255,255,255,0.9)' }}>{line}</p>
+        ))}
         {spot.venue && <p style={{ fontSize: 14, margin: '0 0 16px', color: 'rgba(255,255,255,0.9)', whiteSpace: 'pre-line' }}>{spot.venue}</p>}
 
         <button
