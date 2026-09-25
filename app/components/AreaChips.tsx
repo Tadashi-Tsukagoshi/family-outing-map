@@ -28,14 +28,12 @@ function chipStyle(active: boolean): React.CSSProperties {
   return active
     ? {
         background: ACTIVE_GRADIENT,
-        // 角丸ピル形状のため、境界線の内側にだけ背景を描画してborder-radiusの丸みと背景の描画範囲を一致させる
         backgroundClip: 'padding-box',
         WebkitBackgroundClip: 'padding-box',
-        borderColor: 'transparent',
         color: '#fff',
         boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
       }
-    : { background: 'rgba(255,255,255,0.92)', borderColor: '#e5e7eb', color: 'rgb(30, 30, 30)' }
+    : { background: 'rgba(255,255,255,0.92)', color: 'rgb(30, 30, 30)' }
 }
 
 export default function AreaChips({ areas, activeArea, onAreaChange, hasOther, otherActive, onOtherClick, positionStyle, mode = 'mobile', otherButtonRef }: Props) {
@@ -50,7 +48,7 @@ export default function AreaChips({ areas, activeArea, onAreaChange, hasOther, o
       <button
         type="button"
         onClick={() => onAreaChange(null)}
-        className="appearance-none shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer"
+        className="appearance-none shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer"
         style={chipStyle(activeArea === null)}
       >
         {ALL_LABEL}
@@ -61,7 +59,7 @@ export default function AreaChips({ areas, activeArea, onAreaChange, hasOther, o
           key={area.name}
           type="button"
           onClick={() => onAreaChange(area.name)}
-          className="appearance-none shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer"
+          className="appearance-none shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer"
           style={chipStyle(activeArea === area.name)}
         >
           {area.name}
@@ -73,7 +71,7 @@ export default function AreaChips({ areas, activeArea, onAreaChange, hasOther, o
           ref={otherButtonRef}
           type="button"
           onClick={onOtherClick}
-          className="appearance-none shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer"
+          className="appearance-none shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer"
           style={chipStyle(otherActive)}
         >
           {OTHER_LABEL}
