@@ -36,6 +36,23 @@ export function fmtDateRange(start?: string, end?: string): string | null {
   return fmt(start ?? end!)
 }
 
+/**
+ * 日付範囲を "MM.DD(曜)〜MM.DD(曜)" 形式（ゼロパディング＋ドット区切り）でフォーマット。
+ * 桁数のバラつきをなくして日程リストの左端整列を可能にする。
+ * 同日の場合は単一表示。
+ */
+export function fmtDateRangePadded(start?: string, end?: string): string | null {
+  if (!start && !end) return null
+  const fmt = (iso: string) => {
+    const d = parseLocalDate(iso)
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const dd = String(d.getDate()).padStart(2, '0')
+    return `${mm}.${dd}(${DOW_JA[d.getDay()]})`
+  }
+  if (start && end && start !== end) return `${fmt(start)}〜${fmt(end)}`
+  return fmt(start ?? end!)
+}
+
 /** カンマ区切りの個別指定日を "M/D(曜), M/D(曜), ..." 形式にフォーマット */
 export function fmtSpecificDates(specificDates?: string | null): string | null {
   if (!specificDates) return null

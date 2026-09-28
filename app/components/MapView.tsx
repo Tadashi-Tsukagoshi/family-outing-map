@@ -4,7 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import mapboxgl from 'mapbox-gl'
 import { useRef, useState, useMemo, useCallback, useEffect, useLayoutEffect } from 'react'
 import { getCategoryIconSrc, getVisualCategory, matchesCityArea, BADGE_BG_COLOR, type AllCategory, type Spot } from '@/lib/spots'
-import { getDateDisplay, getEventStatus, parseLocalDate, STATUS_CONFIG, PARK_STATUS, fmtTimeRange } from '@/lib/date-utils'
+import { getDateDisplay, getEventStatus, parseLocalDate, STATUS_CONFIG, PARK_STATUS, fmtDateRangePadded, fmtTimeRange } from '@/lib/date-utils'
 import { type SheetState } from './BottomSheet'
 import { type PinGroup } from './MapApp'
 
@@ -750,22 +750,24 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
                   </span>
                 </div>
                 {eg.spots.map(spot => {
-                  const dateDisplay = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate, spot.specificDates)
+                  const dateDisplay = fmtDateRangePadded(spot.startDate, spot.endDate)
                   const timeDisplay = fmtTimeRange(spot.startTime, spot.endTime)
                   return (
                     <div
                       key={spot.id}
                       style={{
+                        display:    'flex',
+                        alignItems: 'center',
                         padding:    '3px 12px 3px 16px',
                         background: anySelected ? '#eff6ff' : 'transparent',
                         fontSize:   12,
                         color:      '#374151',
-                        overflow:   'hidden',
-                        textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      <span style={{ fontSize: 6, verticalAlign: 'middle', color: '#9ca3af' }}>●</span>{'  '}{dateDisplay}{timeDisplay ? ` ${timeDisplay}` : ''}
+                      <span style={{ fontSize: 6, color: '#9ca3af', flexShrink: 0, marginRight: 6 }}>●</span>
+                      <span style={{ flexShrink: 0, minWidth: 140 }}>{dateDisplay}</span>
+                      <span style={{ flexShrink: 0 }}>{timeDisplay}</span>
                     </div>
                   )
                 })}
