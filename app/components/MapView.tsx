@@ -724,6 +724,7 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
 
             const headSpot = eg.spots[0]
             const anySelected = eg.spots.some(s => s.id === selectedSpotId)
+            const dateMinWidth = eg.spots.some(s => !!s.startDate && !!s.endDate && s.startDate !== s.endDate) ? 120 : 65
             return (
               <div
                 key={eg.key}
@@ -766,7 +767,7 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
                       }}
                     >
                       <span style={{ fontSize: 6, color: '#9ca3af', flexShrink: 0, marginRight: 6 }}>●</span>
-                      <span style={{ flexShrink: 0, minWidth: 120 }}>{dateDisplay}</span>
+                      <span style={{ flexShrink: 0, minWidth: dateMinWidth }}>{dateDisplay}</span>
                       <span style={{ flexShrink: 0 }}>{timeDisplay}</span>
                     </div>
                   )
