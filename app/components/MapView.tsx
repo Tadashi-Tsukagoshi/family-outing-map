@@ -723,15 +723,19 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
             }
 
             const headSpot = eg.spots[0]
+            const anySelected = eg.spots.some(s => s.id === selectedSpotId)
             return (
-              <div key={eg.key} style={borderStyle}>
+              <div
+                key={eg.key}
+                onClick={() => onSelectSpot(headSpot)}
+                style={{ ...borderStyle, cursor: 'pointer' }}
+              >
                 <div
                   style={{
                     display:    'flex',
                     alignItems: 'flex-start',
                     gap:        6,
                     padding:    '11px 12px',
-                    cursor:     'default',
                     background: '#f3f4f6',
                   }}
                 >
@@ -746,23 +750,19 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
                   </span>
                 </div>
                 {eg.spots.map(spot => {
-                  const selected = spot.id === selectedSpotId
                   const dateDisplay = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate, spot.specificDates)
                   const timeDisplay = fmtTimeRange(spot.startTime, spot.endTime)
                   return (
                     <div
                       key={spot.id}
-                      onClick={() => onSelectSpot(spot)}
                       style={{
                         padding:    '6px 12px 6px 16px',
-                        cursor:     'pointer',
-                        background: selected ? '#eff6ff' : 'transparent',
+                        background: anySelected ? '#eff6ff' : 'transparent',
                         fontSize:   12,
                         color:      '#374151',
                         overflow:   'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
-                        borderTop:  '1px solid #e5e7eb',
                       }}
                     >
                       <span style={{ fontSize: 6, verticalAlign: 'middle', color: '#9ca3af' }}>●</span>{'  '}{dateDisplay}{timeDisplay ? ` ${timeDisplay}` : ''}
