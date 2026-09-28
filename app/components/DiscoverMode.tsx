@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { CATEGORY_LABELS, getVisualCategory, type Category, type Spot } from '@/lib/spots'
-import { getDateDisplay, getEventStatus, fmtDateRange, fmtTimeRange, STATUS_CONFIG } from '@/lib/date-utils'
+import { getDateDisplay, getEventStatus, fmtDateRange, fmtTimeRange, getTodayJst, STATUS_CONFIG } from '@/lib/date-utils'
 import { distanceKm } from '@/lib/geo'
 
 type Props = {
@@ -15,11 +15,13 @@ type Props = {
 }
 
 /**
- * タイトル下に表示する日付・時刻の行を返す。
- * event_plus は (startTime, endTime) ごとにグルーピングし、時間帯ごとに「min開始日〜max終了日 時刻」を1行ずつ（開始日順）。
- * それ以外は従来通り1行。
+ * タイトル下に表示する日付・時刻の行と、非表示にした残件数を返す。
+ * event_plus は (startTime, endTime, startDate, endDate) ごとにグルーピングし、
+ * 過去日程（endDate < 今日JST）を除外した上で開始日昇順に並べ、最大2件のみを行として返す。
+ * 表示しきれない分は more に件数を入れる（呼び出し側で「他 N 件」と表示する）。
+ * それ以外は従来通り1行、more=0。
  */
-function buildDateLines(spot: Spot): string[] {
+function buildDateLines(spot: Spot): { lines: string[]; more: number } {
   if (spot.category === 'event_plus' && spot.eventPlusPins && spot.eventPlusPins.length > 0) {
     const groups = new Map<string, { start: string; end: string; startTime: string; endTime: string }>()
     for (const pin of spot.eventPlusPins) {
@@ -31,22 +33,29 @@ function buildDateLines(spot: Spot): string[] {
         if (pin.endDate > g.end) g.end = pin.endDate
       }
     }
-    return [...groups.values()]
+    const todayStr = getTodayJst()
+    // 過去日程（endDate < today）は除外。endDate 未指定の場合は startDate で判定
+    const upcoming = [...groups.values()]
+      .filter((g) => (g.end || g.start) >= todayStr)
       .sort((a, b) => a.start.localeCompare(b.start))
-      .map((g) => {
-        const timeText = fmtTimeRange(g.startTime, g.endTime)
-        return `${fmtDateRange(g.start, g.end) ?? ''}${timeText ? ` ${timeText}` : ''}`
-      })
+    const MAX = 2
+    const shown = upcoming.slice(0, MAX)
+    const more = Math.max(0, upcoming.length - shown.length)
+    const lines = shown.map((g) => {
+      const timeText = fmtTimeRange(g.startTime, g.endTime)
+      return `${fmtDateRange(g.start, g.end) ?? ''}${timeText ? ` ${timeText}` : ''}`
+    })
+    return { lines, more }
   }
   const dateLabel = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate, spot.specificDates)
-  if (!dateLabel) return []
+  if (!dateLabel) return { lines: [], more: 0 }
   const timeLabel = fmtTimeRange(spot.startTime, spot.endTime)
-  return [`${dateLabel}${timeLabel ? ` ${timeLabel}` : ''}`]
+  return { lines: [`${dateLabel}${timeLabel ? ` ${timeLabel}` : ''}`], more: 0 }
 }
 
 function DiscoverCard({ spot, userLocation, onOpenDetail }: { spot: Spot; userLocation: [number, number] | null; onOpenDetail: () => void }) {
   const status = getEventStatus(spot.startDate, spot.endDate, spot.endTime)
-  const dateLines = buildDateLines(spot)
+  const { lines: dateLines, more: moreDatesCount } = buildDateLines(spot)
   const categoryLabel = CATEGORY_LABELS[getVisualCategory(spot) as Category] ?? null
   const distanceLabel = userLocation ? distanceKm(userLocation, [spot.lat, spot.lng]).toFixed(1) : null
 
@@ -91,9 +100,15 @@ function DiscoverCard({ spot, userLocation, onOpenDetail }: { spot: Spot; userLo
         </div>
 
         <h3 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 8px', lineHeight: 1.35 }}>{spot.name}</h3>
-        {dateLines.map((line, idx) => (
-          <p key={idx} style={{ fontSize: 14, margin: idx === dateLines.length - 1 ? '0 0 4px' : '0 0 2px', color: 'rgba(255,255,255,0.9)' }}>{line}</p>
-        ))}
+        {dateLines.map((line, idx) => {
+          const isLast = idx === dateLines.length - 1 && moreDatesCount === 0
+          return (
+            <p key={idx} style={{ fontSize: 14, margin: isLast ? '0 0 4px' : '0 0 2px', color: 'rgba(255,255,255,0.9)' }}>{line}</p>
+          )
+        })}
+        {moreDatesCount > 0 && (
+          <p style={{ fontSize: 13, margin: '0 0 4px', color: 'rgba(255,255,255,0.75)' }}>他 {moreDatesCount} 件</p>
+        )}
         {spot.venue && <p style={{ fontSize: 14, margin: '0 0 16px', color: 'rgba(255,255,255,0.9)', whiteSpace: 'pre-line' }}>{spot.venue}</p>}
 
         <button
