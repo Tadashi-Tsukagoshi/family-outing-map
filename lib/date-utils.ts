@@ -53,6 +53,17 @@ export function fmtDateRangePadded(start?: string, end?: string): string | null 
   return fmt(start ?? end!)
 }
 
+/**
+ * getDateDisplay と同じロジックだが、日付範囲を fmtDateRangePadded で
+ * "MM.DD(曜)" 形式に整形して返す（scheduleNote・specificDates はそのまま）。
+ */
+export function getDateDisplayPadded(scheduleNote?: string, startDate?: string, endDate?: string, specificDates?: string | null): string | null {
+  if (scheduleNote) return scheduleNote
+  const specific = fmtSpecificDates(specificDates)
+  if (specific) return specific
+  return fmtDateRangePadded(startDate, endDate)
+}
+
 /** カンマ区切りの個別指定日を "M/D(曜), M/D(曜), ..." 形式にフォーマット */
 export function fmtSpecificDates(specificDates?: string | null): string | null {
   if (!specificDates) return null

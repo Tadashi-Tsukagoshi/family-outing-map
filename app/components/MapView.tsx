@@ -4,7 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import mapboxgl from 'mapbox-gl'
 import { useRef, useState, useMemo, useCallback, useEffect, useLayoutEffect } from 'react'
 import { getCategoryIconSrc, getVisualCategory, matchesCityArea, BADGE_BG_COLOR, type AllCategory, type Spot } from '@/lib/spots'
-import { getDateDisplay, getEventStatus, parseLocalDate, STATUS_CONFIG, PARK_STATUS, fmtDateRangePadded, fmtTimeRange } from '@/lib/date-utils'
+import { getDateDisplay, getEventStatus, parseLocalDate, STATUS_CONFIG, PARK_STATUS, fmtDateRangePadded, getDateDisplayPadded, fmtTimeRange } from '@/lib/date-utils'
 import { type SheetState } from './BottomSheet'
 import { type PinGroup } from './MapApp'
 
@@ -683,41 +683,55 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
             if (eg.spots.length === 1) {
               const spot = eg.spots[0]
               const selected = spot.id === selectedSpotId
-              const dateDisplay = spot.type === 'permanent' ? '' : getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate, spot.specificDates)
+              const dateDisplay = spot.type === 'permanent' ? '' : getDateDisplayPadded(spot.scheduleNote, spot.startDate, spot.endDate, spot.specificDates)
               const timeDisplay = spot.type === 'permanent' ? '' : fmtTimeRange(spot.startTime, spot.endTime)
+              const dateMinWidth = (!!spot.startDate && !!spot.endDate && spot.startDate !== spot.endDate) ? 120 : 58
               return (
                 <div
                   key={spot.id}
                   onClick={() => onSelectSpot(spot)}
                   style={{
-                    display:    'flex',
-                    alignItems: 'flex-start',
-                    gap:        6,
-                    padding:    '11px 12px',
                     cursor:     'pointer',
                     background: selected ? '#eff6ff' : 'transparent',
                     ...borderStyle,
                   }}
                 >
-                  <span
-                    style={{ width: 20, height: 20, display: 'inline-flex', flexShrink: 0, marginTop: 2 }}
-                    dangerouslySetInnerHTML={{ __html: iconHtmlBySpotId[spot.id] }}
-                  />
-                  <div style={{ minWidth: 0 }}>
-                    <span style={{
-                      display: 'block', fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    }}>
-                      {spot.name}
-                    </span>
-                    {dateDisplay && (
+                  <div
+                    style={{
+                      display:    'flex',
+                      alignItems: 'flex-start',
+                      gap:        6,
+                      padding:    '11px 12px',
+                    }}
+                  >
+                    <span
+                      style={{ width: 20, height: 20, display: 'inline-flex', flexShrink: 0, marginTop: 2 }}
+                      dangerouslySetInnerHTML={{ __html: iconHtmlBySpotId[spot.id] }}
+                    />
+                    <div style={{ minWidth: 0 }}>
                       <span style={{
-                        display: 'block', fontSize: 12, color: '#374151',
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        display: 'block', fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                       }}>
-                        {dateDisplay}{timeDisplay ? ` ${timeDisplay}` : ''}
+                        {spot.name}
                       </span>
-                    )}
+                    </div>
                   </div>
+                  {dateDisplay && (
+                    <div
+                      style={{
+                        display:    'flex',
+                        alignItems: 'center',
+                        padding:    '3px 12px 3px 16px',
+                        fontSize:   12,
+                        color:      '#374151',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      <span style={{ fontSize: 6, color: '#9ca3af', flexShrink: 0, marginRight: 6 }}>●</span>
+                      <span style={{ flexShrink: 0, minWidth: dateMinWidth }}>{dateDisplay}</span>
+                      <span style={{ flexShrink: 0 }}>{timeDisplay}</span>
+                    </div>
+                  )}
                 </div>
               )
             }
