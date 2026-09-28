@@ -1196,16 +1196,18 @@ export default function EventFormFields({
                     />
                   </div>
                 )}
-                <label className="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={!!d.useCustomImages}
-                    onChange={e => toggleDateCustomImages(d.id, e.target.checked)}
-                    disabled={disabled}
-                    className="cursor-pointer"
-                  />
-                  画像が異なる場合
-                </label>
+                {d.useCustomImages && (
+                  <label className="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={!!d.useCustomImages}
+                      onChange={e => toggleDateCustomImages(d.id, e.target.checked)}
+                      disabled={disabled}
+                      className="cursor-pointer"
+                    />
+                    画像が異なる場合（レガシー）
+                  </label>
+                )}
                 {d.useCustomImages && (
                   <div className="space-y-2">
                     <div className="flex flex-wrap gap-2">
