@@ -317,6 +317,8 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
       type="button"
       onClick={(e) => { e.stopPropagation(); setDatesExpanded((v) => !v) }}
       onTouchStart={(e) => e.stopPropagation()}
+      onTouchMove={(e) => e.stopPropagation()}
+      onTouchEnd={(e) => e.stopPropagation()}
       style={{
         display: 'inline-block',
         marginTop: 2,
