@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { BADGE_BG_COLOR, DEFAULT_NOTICE, type AllCategory, type Spot } from '@/lib/spots'
-import { getDateDisplay, getEventStatus, STATUS_CONFIG, PARK_STATUS, fmtTimeRange, fmtDateRange } from '@/lib/date-utils'
+import { getDateDisplay, getEventStatus, STATUS_CONFIG, PARK_STATUS, fmtTimeRange, fmtDateRange, getTodayJst } from '@/lib/date-utils'
 import PhotoCarousel from './PhotoCarousel'
 import PinchZoomImage from './PinchZoomImage'
 import Lightbox from './Lightbox'
@@ -145,6 +145,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [galleryImages, setGalleryImages] = useState<{ imageUrl: string; caption: string | null }[]>([])
   const [imageLoadFailed, setImageLoadFailed] = useState(false)
+  const [datesExpanded, setDatesExpanded] = useState(false)
   const startY   = useRef(0)
   const currentY = useRef(0)
   const likeDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -300,6 +301,39 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
     }
     return []
   })()
+
+  // 未来日程のみ（endDate < 今日JST は除外）
+  const todayStr = getTodayJst()
+  const futureDateGroups = dateGroups.filter((g) => (g.endDate || g.startDate) >= todayStr)
+  const MAX_COLLAPSED_DATES = 2
+  const visibleDateGroups = datesExpanded ? futureDateGroups : futureDateGroups.slice(0, MAX_COLLAPSED_DATES)
+  const hiddenDatesCount = Math.max(0, futureDateGroups.length - MAX_COLLAPSED_DATES)
+  // event_plusの場合は未来日程があるかで判定、それ以外は従来通り dateRange の有無で判定
+  const hasDateContent = dateGroups.length > 0 ? futureDateGroups.length > 0 : !!dateRange
+
+  // 「その他 N 件を表示 ▼」/「閉じる ▲」トグルボタンのJSX
+  const datesToggleButton = (dateGroups.length > 0 && hiddenDatesCount > 0) ? (
+    <button
+      type="button"
+      onClick={(e) => { e.stopPropagation(); setDatesExpanded((v) => !v) }}
+      onTouchStart={(e) => e.stopPropagation()}
+      style={{
+        display: 'inline-block',
+        marginTop: 2,
+        padding: 0,
+        background: 'none',
+        border: 'none',
+        color: '#4b5563',
+        fontSize: 13,
+        fontWeight: 500,
+        textDecoration: 'underline',
+        cursor: 'pointer',
+      }}
+    >
+      {datesExpanded ? '閉じる ▲' : `その他 ${hiddenDatesCount} 件を表示 ▼`}
+    </button>
+  ) : null
+
   const statusCfg   = isPark ? { ...PARK_STATUS, label: spot.spotLabel || PARK_STATUS.label } : (status ? STATUS_CONFIG[status] : null)
   const showStatus  = isPark || status === 'ended'
   const showDisclaimer = !isPark && status !== 'ended'
@@ -310,6 +344,10 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
   useEffect(() => {
     setImageLoadFailed(false)
   }, [image])
+
+  useEffect(() => {
+    setDatesExpanded(false)
+  }, [spot.id])
 
   const calendarButtonStyle: React.CSSProperties = {
     fontSize: 12, fontWeight: 600, color: '#374151', textDecoration: 'none',
@@ -406,13 +444,14 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                     {spot.businessHours || '未登録'}
                   </p>
                 ) : !isGunmapInfo && (
-                  (dateGroups.length > 0 || dateRange) && (
+                  hasDateContent && (
                     <>
                       <p style={{ fontSize: 14, fontWeight: 600, color: '#111', margin: 0 }}>
                         {dateGroups.length > 0
-                          ? dateGroups.map((g, idx) => <span key={idx} style={{ display: 'block' }}>{g.text}</span>)
+                          ? visibleDateGroups.map((g, idx) => <span key={idx} style={{ display: 'block' }}>{g.text}</span>)
                           : <>{dateRange}{timeRange ? ` ${timeRange}` : ''}</>}
                       </p>
+                      {datesToggleButton}
                       {showDisclaimer && (
                         <p style={{ fontSize: 12, fontWeight: 500, color: '#111', margin: 0, whiteSpace: 'pre-line' }}>
                           {spot.notice || DEFAULT_NOTICE}
@@ -757,13 +796,14 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
             {spot.businessHours || '未登録'}
           </p>
         ) : (
-          (dateGroups.length > 0 || dateRange) && (
+          hasDateContent && (
             <>
               <p style={{ fontSize: 14, fontWeight: 400, color: '#111', margin: '1px 0 0' }}>
                 {dateGroups.length > 0
-                  ? dateGroups.map((g, idx) => <span key={idx} style={{ display: 'block' }}>{g.text}</span>)
+                  ? visibleDateGroups.map((g, idx) => <span key={idx} style={{ display: 'block' }}>{g.text}</span>)
                   : <>{dateRange}{timeRange ? ` ${timeRange}` : ''}</>}
               </p>
+              {datesToggleButton}
               {showDisclaimer && (
                 <p style={{ fontSize: 12, fontWeight: 400, color: '#4b5563', margin: '1px 0 0', whiteSpace: 'pre-line' }}>
                   {spot.notice || DEFAULT_NOTICE}
