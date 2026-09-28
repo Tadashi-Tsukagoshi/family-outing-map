@@ -766,7 +766,7 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
                       }}
                     >
                       <span style={{ fontSize: 6, color: '#9ca3af', flexShrink: 0, marginRight: 6 }}>●</span>
-                      <span style={{ flexShrink: 0, minWidth: 140 }}>{dateDisplay}</span>
+                      <span style={{ flexShrink: 0, minWidth: 120 }}>{dateDisplay}</span>
                       <span style={{ flexShrink: 0 }}>{timeDisplay}</span>
                     </div>
                   )
