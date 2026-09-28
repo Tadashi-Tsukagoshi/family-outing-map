@@ -724,7 +724,7 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
 
             const headSpot = eg.spots[0]
             const anySelected = eg.spots.some(s => s.id === selectedSpotId)
-            const dateMinWidth = eg.spots.some(s => !!s.startDate && !!s.endDate && s.startDate !== s.endDate) ? 120 : 55
+            const dateMinWidth = eg.spots.some(s => !!s.startDate && !!s.endDate && s.startDate !== s.endDate) ? 120 : 58
             return (
               <div
                 key={eg.key}
