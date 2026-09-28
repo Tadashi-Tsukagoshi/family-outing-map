@@ -326,11 +326,10 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
         color: '#4b5563',
         fontSize: 13,
         fontWeight: 500,
-        textDecoration: 'underline',
         cursor: 'pointer',
       }}
     >
-      {datesExpanded ? '閉じる ▲' : `その他 ${hiddenDatesCount} 件を表示 ▼`}
+      {datesExpanded ? '閉じる ▲' : `他 ${hiddenDatesCount} 件 ▼`}
     </button>
   ) : null
 
