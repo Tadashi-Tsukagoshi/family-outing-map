@@ -436,7 +436,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
               <div style={{ minWidth: 0 }}>
                 <h2 style={{
                   fontSize: 18, fontWeight: 600, color: '#111', lineHeight: 1.4, margin: 0,
-                  display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minWidth: 0,
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0,
                 }}>
                   {spot.name}
                 </h2>
@@ -789,7 +789,10 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
             )}
           </div>
         )}
-        <h2 style={{ fontSize: 18, fontWeight: 500, color: '#111', lineHeight: 1.4, margin: 0 }}>
+        <h2 style={{
+          fontSize: 18, fontWeight: 500, color: '#111', lineHeight: 1.4, margin: 0,
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>
           {spot.name}
         </h2>
         {isPark ? (
