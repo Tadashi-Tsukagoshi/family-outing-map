@@ -483,7 +483,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                           ? visibleDateGroups.map((g, idx) => <span key={idx} style={{ display: 'block' }}>{g.text}</span>)
                           : <>{dateRange}{timeRange ? ` ${timeRange}` : ''}</>}
                       </p>
-                      <div style={{ paddingLeft: 28, marginTop: -4 }}>{datesToggleButtonMobile}</div>
+                      <div style={{ paddingLeft: 28, marginTop: 0 }}>{datesToggleButtonMobile}</div>
                       {showDisclaimer && (
                         <p style={{ fontSize: 12, fontWeight: 400, color: '#4b5563', margin: '6px 0 0', whiteSpace: 'pre-line', paddingLeft: 28 }}>
                           {spot.notice || DEFAULT_NOTICE}
