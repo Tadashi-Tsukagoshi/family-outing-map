@@ -436,7 +436,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
               <div style={{ minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-                  <span style={{ width: 20, height: 20, flexShrink: 0, display: 'inline-flex', marginTop: 2 }}>
+                  <span style={{ width: 20, height: 20, flexShrink: 0, display: 'inline-flex', position: 'relative', top: 0.5 }}>
                     <CategoryIcon category={getVisualCategory(spot)} size={20} />
                   </span>
                   <h2 style={{
