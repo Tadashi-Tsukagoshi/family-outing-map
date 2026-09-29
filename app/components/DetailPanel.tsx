@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { createPortal } from 'react-dom'
-import { BADGE_BG_COLOR, DEFAULT_NOTICE, type AllCategory, type Spot } from '@/lib/spots'
+import { BADGE_BG_COLOR, DEFAULT_NOTICE, getVisualCategory, type AllCategory, type Spot } from '@/lib/spots'
 import { getDateDisplay, getEventStatus, STATUS_CONFIG, PARK_STATUS, fmtTimeRange, fmtDateRange, getTodayJst } from '@/lib/date-utils'
 import PhotoCarousel from './PhotoCarousel'
 import PinchZoomImage from './PinchZoomImage'
 import Lightbox from './Lightbox'
+import { CategoryIcon } from './Sidebar'
 
 const POSTER_TYPE_LABELS: Record<string, string> = {
   general:   '一般ユーザー',
@@ -434,27 +435,32 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
           <div style={{ padding: '0 16px 8px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
               <div style={{ minWidth: 0 }}>
-                <h2 style={{
-                  fontSize: 18, fontWeight: 500, color: '#111', lineHeight: 1.4, margin: 0,
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0,
-                }}>
-                  {spot.name}
-                </h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                  <span style={{ width: 20, height: 20, flexShrink: 0, display: 'inline-flex' }}>
+                    <CategoryIcon category={getVisualCategory(spot)} size={20} />
+                  </span>
+                  <h2 style={{
+                    fontSize: 18, fontWeight: 500, color: '#111', lineHeight: 1.4, margin: 0,
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0,
+                  }}>
+                    {spot.name}
+                  </h2>
+                </div>
                 {!isGunmapInfo && isPark ? (
-                  <p style={{ fontSize: 14, fontWeight: 500, color: '#111', margin: 0 }}>
+                  <p style={{ fontSize: 14, fontWeight: 500, color: '#111', margin: 0, paddingLeft: 28 }}>
                     {spot.businessHours || '未登録'}
                   </p>
                 ) : !isGunmapInfo && (
                   hasDateContent && (
                     <>
-                      <p style={{ fontSize: 14, fontWeight: 400, color: '#111', margin: 0 }}>
+                      <p style={{ fontSize: 14, fontWeight: 400, color: '#111', margin: 0, paddingLeft: 28 }}>
                         {dateGroups.length > 0
                           ? visibleDateGroups.map((g, idx) => <span key={idx} style={{ display: 'block' }}>{g.text}</span>)
                           : <>{dateRange}{timeRange ? ` ${timeRange}` : ''}</>}
                       </p>
-                      {datesToggleButton}
+                      <div style={{ paddingLeft: 28 }}>{datesToggleButton}</div>
                       {showDisclaimer && (
-                        <p style={{ fontSize: 12, fontWeight: 400, color: '#4b5563', margin: 0, whiteSpace: 'pre-line' }}>
+                        <p style={{ fontSize: 12, fontWeight: 400, color: '#4b5563', margin: 0, whiteSpace: 'pre-line', paddingLeft: 28 }}>
                           {spot.notice || DEFAULT_NOTICE}
                         </p>
                       )}
