@@ -23,7 +23,7 @@ type Props = {
   mode?: 'sidebar' | 'sheet'
 }
 
-const ICON_RATIO: Record<AllCategory, number> = { event: 1, event_plus: 1, fireworks: 1.6, festival: 0.92, park: 0.92, kumamoto_earthquake_r8: 1 }
+const ICON_RATIO: Record<AllCategory, number> = { event: 1, event_plus: 1, fireworks: 1.6, festival: 0.63, park: 0.92, kumamoto_earthquake_r8: 1 }
 const GRADIENT_BORDER_BG: Partial<Record<Category, string>> = { fireworks: '#0a0a3c', festival: '#1e1614' }
 const GRADIENT_BORDER = 'conic-gradient(from 0deg, #ffd600 0deg, #ffd600 60deg, #ff8a00 120deg, #ea4335 200deg, #bc2a8d 280deg, #ffd600 360deg)'
 const GRADIENT_BORDER_WIDTH = 2.5 * 0.7
@@ -31,8 +31,11 @@ const GRADIENT_BORDER_WIDTH = 2.5 * 0.7
 export function CategoryIcon({ category, active = true, size = 20 }: { category: AllCategory; active?: boolean; size?: number }) {
   const imgSize = Math.round(size * ICON_RATIO[category])
 
-  if (category === 'fireworks') {
+  if (category === 'fireworks' || category === 'festival') {
     const inner = size - GRADIENT_BORDER_WIDTH * 2
+    const glowFilter = category === 'festival'
+      ? 'drop-shadow(0 0 1.5px rgba(255,255,255,1)) drop-shadow(0 0 1.5px rgba(255,255,255,1))'
+      : undefined
     return (
       <span style={{
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -47,7 +50,7 @@ export function CategoryIcon({ category, active = true, size = 20 }: { category:
           <img
             src={getCategoryIconSrc(category) ?? undefined}
             alt=""
-            style={{ width: imgSize, height: imgSize, objectFit: 'contain', display: 'block', opacity: active ? 1 : 0.35 }}
+            style={{ width: imgSize, height: imgSize, objectFit: 'contain', display: 'block', opacity: active ? 1 : 0.35, filter: glowFilter }}
           />
         </span>
       </span>
