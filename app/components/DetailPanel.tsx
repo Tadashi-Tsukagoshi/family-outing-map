@@ -346,7 +346,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
       onTouchEnd={(e) => e.stopPropagation()}
       style={{
         display: 'inline-block',
-        marginTop: -2,
+        marginTop: 0,
         padding: 0,
         background: 'none',
         border: 'none',
@@ -482,7 +482,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                           ? visibleDateGroups.map((g, idx) => <span key={idx} style={{ display: 'block' }}>{g.text}</span>)
                           : <>{dateRange}{timeRange ? ` ${timeRange}` : ''}</>}
                       </p>
-                      <div style={{ paddingLeft: 28 }}>{datesToggleButtonMobile}</div>
+                      <div style={{ paddingLeft: 28, marginTop: -6 }}>{datesToggleButtonMobile}</div>
                       {showDisclaimer && (
                         <p style={{ fontSize: 12, fontWeight: 400, color: '#4b5563', margin: 0, whiteSpace: 'pre-line', paddingLeft: 28 }}>
                           {spot.notice || DEFAULT_NOTICE}
