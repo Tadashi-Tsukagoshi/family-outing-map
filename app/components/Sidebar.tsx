@@ -1,7 +1,7 @@
 'use client'
 
 import { CATEGORY_LABELS, CATEGORY_BUTTON_LABEL_OVERRIDES, getCategoryIconSrc, getVisualCategory, isDarkPin, type Category, type AllCategory, type PeriodFilter, type PeriodOption, type Spot } from '@/lib/spots'
-import { getDateDisplay, fmtTimeRange, fmtDateRange } from '@/lib/date-utils'
+import { getDateDisplay, fmtTimeRange, fmtDateRange, fmtDateRangePadded, getDateDisplayPadded } from '@/lib/date-utils'
 
 type Props = {
   periodFilter: PeriodFilter
@@ -168,11 +168,11 @@ export default function Sidebar({
   // スポットリスト本体：PC/モバイルで共通
   const spotList = (
     <div className="space-y-0">
-      {spots.map((spot) => {
+      {spots.map((spot, spotIdx) => {
         // event_plus で時間帯が複数ある場合は、(startTime, endTime) でグルーピングして
         // グループごとに1行にする。それ以外は従来通り1行。
-        type DateLine = { text: string }
-        const dateLines: DateLine[] = (() => {
+        type DateInfo = { date: string; time: string; isRange: boolean; sortKey: string }
+        const dateInfos: DateInfo[] = (() => {
           if (spot.category === 'event_plus' && spot.eventPlusPins && spot.eventPlusPins.length > 0) {
             const groups = new Map<string, typeof spot.eventPlusPins>()
             for (const pin of spot.eventPlusPins) {
@@ -181,49 +181,67 @@ export default function Sidebar({
               if (g) g.push(pin)
               else groups.set(key, [pin])
             }
-            const lines: { text: string; sortKey: string }[] = []
+            const infos: DateInfo[] = []
             for (const groupPins of groups.values()) {
               const minStart = groupPins.reduce((min, p) => (p.startDate < min ? p.startDate : min), groupPins[0].startDate)
               const maxEnd = groupPins.reduce((max, p) => (p.endDate > max ? p.endDate : max), groupPins[0].endDate)
-              const dateText = fmtDateRange(minStart, maxEnd)
-              const timeText = fmtTimeRange(groupPins[0].startTime, groupPins[0].endTime)
-              lines.push({ text: `${dateText}${timeText ? ` ${timeText}` : ''}`, sortKey: minStart })
+              const dateText = fmtDateRangePadded(minStart, maxEnd) ?? ''
+              const timeText = fmtTimeRange(groupPins[0].startTime, groupPins[0].endTime) ?? ''
+              infos.push({ date: dateText, time: timeText, isRange: minStart !== maxEnd, sortKey: minStart })
             }
-            lines.sort((a, b) => a.sortKey.localeCompare(b.sortKey))
-            return lines.map(({ text }) => ({ text }))
+            infos.sort((a, b) => a.sortKey.localeCompare(b.sortKey))
+            return infos
           }
-          const dateDisplay = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate)
-          const timeDisplay = fmtTimeRange(spot.startTime, spot.endTime)
+          const dateDisplay = getDateDisplayPadded(spot.scheduleNote, spot.startDate, spot.endDate)
+          const timeDisplay = fmtTimeRange(spot.startTime, spot.endTime) ?? ''
           if (!dateDisplay) return []
-          return [{ text: `${dateDisplay}${timeDisplay ? ` ${timeDisplay}` : ''}` }]
+          const isRange = !!spot.startDate && !!spot.endDate && spot.startDate !== spot.endDate
+          return [{ date: dateDisplay, time: timeDisplay, isRange, sortKey: spot.startDate ?? '' }]
         })()
+        const dateMinWidth = dateInfos.some(i => i.isRange) ? 120 : 58
+        const isSelected = selectedSpot?.id === spot.id
         return (
           <button
             key={spot.id}
             onClick={() => {
               if (isSheet && onSpotSelect) {
-                onSpotSelect(selectedSpot?.id === spot.id ? null : spot)
+                onSpotSelect(isSelected ? null : spot)
               } else {
-                selectedSpot?.id === spot.id ? onDetailClose() : onDetailOpen(spot)
+                isSelected ? onDetailClose() : onDetailOpen(spot)
               }
             }}
-            className={`w-full text-left py-1 pr-3 rounded-lg text-sm transition-colors cursor-pointer ${
-              selectedSpot?.id === spot.id
-                ? 'bg-blue-50 border border-blue-200'
-                : 'hover:bg-gray-50 border border-transparent'
+            className={`w-full text-left block cursor-pointer overflow-hidden ${
+              spotIdx > 0 ? 'border-t border-gray-200' : ''
             }`}
-            style={{ paddingLeft: 24 }}
           >
-            <div className="flex items-center gap-2">
+            <div
+              className="flex items-center"
+              style={{
+                background: '#f3f4f6',
+                padding: '8px 12px 8px 24px',
+                gap: 8,
+              }}
+            >
               <CategoryIcon category={getVisualCategory(spot)} size={20} />
               <span className="text-sm leading-tight flex-1 min-w-0 truncate" style={{ color: '#1F1F1F' }}>
                 {spot.name}
               </span>
             </div>
-            {dateLines.map((line, idx) => (
-              <p key={idx} className="text-[11px] text-gray-500 truncate mt-0.5 pl-7">
-                {line.text}
-              </p>
+            {dateInfos.map((info, idx) => (
+              <div
+                key={idx}
+                className="flex items-center"
+                style={{
+                  padding: '3px 12px 3px 52px',
+                  background: isSelected ? '#eff6ff' : 'transparent',
+                  fontSize: 11,
+                  color: '#6b7280',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <span style={{ flexShrink: 0, minWidth: dateMinWidth }}>{info.date}</span>
+                <span style={{ flexShrink: 0 }}>{info.time}</span>
+              </div>
             ))}
           </button>
         )
