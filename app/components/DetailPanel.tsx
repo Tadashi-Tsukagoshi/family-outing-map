@@ -485,7 +485,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                       </p>
                       <div style={{ paddingLeft: 28, marginTop: 0 }}>{datesToggleButtonMobile}</div>
                       {showDisclaimer && (
-                        <p style={{ fontSize: 12, fontWeight: 400, color: '#4b5563', margin: '6px 0 0', whiteSpace: 'pre-line', paddingLeft: 28 }}>
+                        <p style={{ fontSize: 13, fontWeight: 400, color: '#4b5563', margin: '6px 0 0', whiteSpace: 'pre-line', paddingLeft: 28 }}>
                           {spot.notice || DEFAULT_NOTICE}
                         </p>
                       )}
