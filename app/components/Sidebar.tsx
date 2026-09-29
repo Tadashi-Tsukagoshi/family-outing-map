@@ -234,8 +234,8 @@ export default function Sidebar({
                 style={{
                   padding: '3px 12px 3px 52px',
                   background: isSelected ? '#eff6ff' : 'transparent',
-                  fontSize: 11,
-                  color: '#6b7280',
+                  fontSize: 12,
+                  color: '#374151',
                   whiteSpace: 'nowrap',
                 }}
               >
