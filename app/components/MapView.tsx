@@ -1431,12 +1431,12 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
     <div ref={wrapperRef} style={{ position: 'relative', height: '100%', width: '100%' }}>
       <div ref={containerRef} style={{ height: '100%', width: '100%' }} />
 
-      {/* モバイルはホバーカード不要。PC: hovered は常に表示、pinnedHover は詳細パネルが閉じている時のみ。吹き出しリスト表示中は抑制 */}
+      {/* モバイルはホバーカード不要。PC: マウスホバー中のカード（hovered）のみ表示。吹き出しリスト表示中は抑制。選択状態はピン自体のハイライトと詳細パネルで示す */}
       {(() => {
         const activeGroupId = openGroupId
 
         // ── 個別ホバーカード ──
-        const activeHover = isMobile || activeGroupId ? null : (hovered ?? pinnedHover)
+        const activeHover = isMobile || activeGroupId ? null : hovered
         const hoverCard = activeHover ? (
           <GroupBubble
             key={activeHover.spot.id}
