@@ -218,7 +218,7 @@ export default function Sidebar({
               className="flex items-center"
               style={{
                 background: '#f3f4f6',
-                padding: '8px 12px 8px 24px',
+                padding: '12px 12px 12px 24px',
                 gap: 8,
               }}
             >
