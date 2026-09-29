@@ -346,7 +346,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
       onTouchEnd={(e) => e.stopPropagation()}
       style={{
         display: 'inline-block',
-        marginTop: 2,
+        marginTop: -2,
         padding: 0,
         background: 'none',
         border: 'none',
