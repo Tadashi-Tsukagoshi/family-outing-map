@@ -453,7 +453,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                 ) : !isGunmapInfo && (
                   hasDateContent && (
                     <>
-                      <p style={{ fontSize: 13, fontWeight: 400, color: '#111', margin: 0, paddingLeft: 28 }}>
+                      <p style={{ fontSize: 12, fontWeight: 400, color: '#111', margin: 0, paddingLeft: 28 }}>
                         {dateGroups.length > 0
                           ? visibleDateGroups.map((g, idx) => <span key={idx} style={{ display: 'block' }}>{g.text}</span>)
                           : <>{dateRange}{timeRange ? ` ${timeRange}` : ''}</>}
