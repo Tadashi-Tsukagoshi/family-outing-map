@@ -435,7 +435,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
               <div style={{ minWidth: 0 }}>
                 <h2 style={{
-                  fontSize: 18, fontWeight: 600, color: '#111', lineHeight: 1.4, margin: 0,
+                  fontSize: 18, fontWeight: 500, color: '#111', lineHeight: 1.4, margin: 0,
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0,
                 }}>
                   {spot.name}
@@ -447,14 +447,14 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                 ) : !isGunmapInfo && (
                   hasDateContent && (
                     <>
-                      <p style={{ fontSize: 14, fontWeight: 600, color: '#111', margin: 0 }}>
+                      <p style={{ fontSize: 14, fontWeight: 400, color: '#111', margin: 0 }}>
                         {dateGroups.length > 0
                           ? visibleDateGroups.map((g, idx) => <span key={idx} style={{ display: 'block' }}>{g.text}</span>)
                           : <>{dateRange}{timeRange ? ` ${timeRange}` : ''}</>}
                       </p>
                       {datesToggleButton}
                       {showDisclaimer && (
-                        <p style={{ fontSize: 12, fontWeight: 500, color: '#111', margin: 0, whiteSpace: 'pre-line' }}>
+                        <p style={{ fontSize: 12, fontWeight: 400, color: '#4b5563', margin: 0, whiteSpace: 'pre-line' }}>
                           {spot.notice || DEFAULT_NOTICE}
                         </p>
                       )}
