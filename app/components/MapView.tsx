@@ -450,7 +450,7 @@ function HoverCard({ hovered, wrapperRef, onMouseEnter, onMouseLeave, galleryIma
 
 // ─── GroupBubble（座標一致ピンの吹き出しリスト） ──────────────────
 /** 吹き出しの幅 */
-const BUBBLE_W = 240
+const BUBBLE_W = 260
 /** ピン中心から吹き出し端までのギャップ（グループピン通常サイズ40pxの半径20pxに被らないよう近づける） */
 const BUBBLE_GAP = 22
 
@@ -721,14 +721,13 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
                       style={{
                         display:    'flex',
                         alignItems: 'center',
-                        padding:    '3px 12px 3px 16px',
+                        padding:    '3px 12px 3px 38px',
                         background: selected ? '#eff6ff' : 'transparent',
                         fontSize:   12,
                         color:      '#374151',
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      <span style={{ fontSize: 6, color: '#9ca3af', flexShrink: 0, marginRight: 6 }}>●</span>
                       <span style={{ flexShrink: 0, minWidth: dateMinWidth }}>{dateDisplay}</span>
                       <span style={{ flexShrink: 0 }}>{timeDisplay}</span>
                     </div>
@@ -774,14 +773,13 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
                       style={{
                         display:    'flex',
                         alignItems: 'center',
-                        padding:    '3px 12px 3px 16px',
+                        padding:    '3px 12px 3px 38px',
                         background: anySelected ? '#eff6ff' : 'transparent',
                         fontSize:   12,
                         color:      '#374151',
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      <span style={{ fontSize: 6, color: '#9ca3af', flexShrink: 0, marginRight: 6 }}>●</span>
                       <span style={{ flexShrink: 0, minWidth: dateMinWidth }}>{dateDisplay}</span>
                       <span style={{ flexShrink: 0 }}>{timeDisplay}</span>
                     </div>
