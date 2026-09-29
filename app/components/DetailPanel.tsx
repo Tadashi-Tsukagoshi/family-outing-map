@@ -353,6 +353,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
         color: '#111',
         fontSize: 12,
         fontWeight: 400,
+        fontFamily: 'inherit',
         cursor: 'pointer',
       }}
     >
