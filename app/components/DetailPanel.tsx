@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { BADGE_BG_COLOR, DEFAULT_NOTICE, getVisualCategory, type AllCategory, type Spot } from '@/lib/spots'
-import { getDateDisplay, getEventStatus, STATUS_CONFIG, PARK_STATUS, fmtTimeRange, fmtDateRange, getTodayJst } from '@/lib/date-utils'
+import { getDateDisplay, getEventStatus, STATUS_CONFIG, PARK_STATUS, fmtTimeRange, fmtDateRange, fmtDateRangePadded, getDateDisplayPadded, getTodayJst } from '@/lib/date-utils'
 import PhotoCarousel from './PhotoCarousel'
 import PinchZoomImage from './PinchZoomImage'
 import Lightbox from './Lightbox'
@@ -268,7 +268,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
 
   const isPark      = (spot.category as AllCategory) === 'park'
   const status      = getEventStatus(spot.startDate, spot.endDate, spot.endTime)
-  const dateRange   = getDateDisplay(spot.scheduleNote, spot.startDate, spot.endDate, spot.specificDates)
+  const dateRange   = getDateDisplayPadded(spot.scheduleNote, spot.startDate, spot.endDate, spot.specificDates)
   const timeRange   = fmtTimeRange(spot.startTime, spot.endTime)
 
   // event_plus で時間帯グループが複数ある場合、ヘッダーとカレンダーボタンを複数行/複数ボタン化する。
@@ -287,7 +287,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
       for (const groupPins of groups.values()) {
         const minStart = groupPins.reduce((min, p) => (p.startDate < min ? p.startDate : min), groupPins[0].startDate)
         const maxEnd = groupPins.reduce((max, p) => (p.endDate > max ? p.endDate : max), groupPins[0].endDate)
-        const dateText = fmtDateRange(minStart, maxEnd)
+        const dateText = fmtDateRangePadded(minStart, maxEnd)
         const timeText = fmtTimeRange(groupPins[0].startTime, groupPins[0].endTime)
         result.push({
           startDate: minStart,
@@ -401,7 +401,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
               })}
               style={calendarButtonStyle}
             >
-              📅 カレンダーに追加 {fmtDateRange(g.startDate, g.endDate)}
+              📅 カレンダーに追加 {fmtDateRangePadded(g.startDate, g.endDate)}
             </button>
           ))}
         </>
