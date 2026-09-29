@@ -284,7 +284,7 @@ export default function Sidebar({
         <>
           {filterSection}
           <div className="overflow-y-auto border-t border-gray-200">
-            <div className="py-3 pr-3">
+            <div className="py-3">
               {spotList}
             </div>
           </div>
@@ -292,7 +292,7 @@ export default function Sidebar({
       ) : (
         <div className="flex-1 min-h-0 overflow-y-auto pc-sidebar-scroll">
           {filterSection}
-          <div className="py-1.5 pr-3">
+          <div className="py-1.5">
             {spotList}
           </div>
         </div>
