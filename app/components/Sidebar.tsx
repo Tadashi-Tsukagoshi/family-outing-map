@@ -223,7 +223,7 @@ export default function Sidebar({
               }}
             >
               <CategoryIcon category={getVisualCategory(spot)} size={20} />
-              <span className="text-sm leading-tight flex-1 min-w-0 truncate" style={{ color: '#1F1F1F' }}>
+              <span className="text-sm leading-tight flex-1 min-w-0 truncate">
                 {spot.name}
               </span>
             </div>
