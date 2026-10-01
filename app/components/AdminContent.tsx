@@ -7,20 +7,7 @@ import PendingEventCard from './PendingEventCard'
 import DuplicateEventModal from './DuplicateEventModal'
 import { formatDateRange, type CollectedEvent } from '@/lib/events'
 import { CATEGORY_LABELS, type Category, type EventDateEntry } from '@/lib/spots'
-import { getEventStatus } from '@/lib/date-utils'
-
-/** event_plus の複数日程から「最も近い次回開催日」を選び、イベント本体の start_date/end_date に使う（ピンのステータス判定用） */
-function pickNearestEventDate(dates: EventDateEntry[]): { startDate: string; endDate: string } | null {
-  const valid = dates.filter(d => d.startDate && d.endDate)
-  if (valid.length === 0) return null
-  const todayStr = new Date().toISOString().split('T')[0]
-  const upcoming = valid
-    .filter(d => d.endDate >= todayStr)
-    .sort((a, b) => a.startDate.localeCompare(b.startDate))
-  if (upcoming.length > 0) return { startDate: upcoming[0].startDate, endDate: upcoming[0].endDate }
-  const past = [...valid].sort((a, b) => b.endDate.localeCompare(a.endDate))
-  return { startDate: past[0].startDate, endDate: past[0].endDate }
-}
+import { getEventStatus, pickNearestEventDate } from '@/lib/date-utils'
 
 // ─── 型 ───────────────────────────────────────────────────────────
 type SubmitStatus = 'idle' | 'loading' | 'ok' | 'error'
@@ -87,6 +74,8 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
   const formRef = useRef<HTMLFormElement>(null)
   const [showDuplicateModal, setShowDuplicateModal] = useState(false)
   const [duplicatingImage, setDuplicatingImage] = useState(false)
+  /** event_plus の日程を通常イベントへ変換中の場合の変換元（新規登録成功後に元の日程を親から削除するため） */
+  const [convertingFrom, setConvertingFrom] = useState<{ parentEventId: string; parentName: string; dateId: string } | null>(null)
 
   useEffect(() => {
     if (restrictEditToOwn) setMyEvents(readMyEvents())
@@ -208,6 +197,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
 
   const handleEdit = (ev: CollectedEvent) => {
     setEditingId(ev.id)
+    setConvertingFrom(null)
     const base = eventToFormState(ev)
     setForm({
       ...base,
@@ -221,43 +211,16 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
 
   const handleCancelEdit = () => {
     setEditingId(null)
+    setConvertingFrom(null)
     setForm({ ...INITIAL_FORM, posterType: getInitialPosterType() })
     setSubmitStatus('idle')
     setSubmitMessage('')
     setFormInstanceKey(k => k + 1)
   }
 
-  /** 既存イベントを複製し、新規登録フォームにプリフィルする（id/created_at は投稿時に新規発行される） */
-  const handleDuplicate = async (ev: CollectedEvent) => {
-    setShowDuplicateModal(false)
-    setEditingId(null)
-    const base = eventToFormState(ev)
-    setForm({
-      ...base,
-      postedBy:   '',
-      email:      '',
-      posterType: getInitialPosterType(),
-    })
-    setSubmitStatus('idle')
-    setSubmitMessage('')
-    setFormInstanceKey(k => k + 1)
-    setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
-
-    // 複製元の全画像（event_images）を取得。event_images が空（旧データ等）の場合は events.image_url 1枚にフォールバック
-    let sourceImages: { imageUrl: string; caption: string }[] = []
-    try {
-      const res  = await fetch(`/api/events/${ev.id}/images`)
-      const data = await res.json()
-      const rows: { imageUrl: string; caption?: string | null }[] = Array.isArray(data.images) ? data.images : []
-      sourceImages = rows.map(r => ({ imageUrl: r.imageUrl, caption: r.caption ?? '' }))
-    } catch {
-      sourceImages = []
-    }
-    if (sourceImages.length === 0 && ev.imageUrl) {
-      sourceImages = [{ imageUrl: ev.imageUrl, caption: '' }]
-    }
+  /** 画像を /api/duplicate-image で複製し、成功した分をフォームの画像に入れる（複製機能・日程の通常イベント変換で共用） */
+  const duplicateImagesIntoForm = async (sourceImages: { imageUrl: string; caption: string }[]) => {
     if (sourceImages.length === 0) return
-
     setDuplicatingImage(true)
     try {
       // 各画像の複製は自身で失敗を吸収し、他の画像の複製結果に影響しないようにする
@@ -294,6 +257,99 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
     }
   }
 
+  /** 既存イベントを複製し、新規登録フォームにプリフィルする（id/created_at は投稿時に新規発行される） */
+  const handleDuplicate = async (ev: CollectedEvent) => {
+    setShowDuplicateModal(false)
+    setEditingId(null)
+    setConvertingFrom(null)
+    const base = eventToFormState(ev)
+    setForm({
+      ...base,
+      postedBy:   '',
+      email:      '',
+      posterType: getInitialPosterType(),
+    })
+    setSubmitStatus('idle')
+    setSubmitMessage('')
+    setFormInstanceKey(k => k + 1)
+    setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
+
+    // 複製元の全画像（event_images）を取得。event_images が空（旧データ等）の場合は events.image_url 1枚にフォールバック
+    let sourceImages: { imageUrl: string; caption: string }[] = []
+    try {
+      const res  = await fetch(`/api/events/${ev.id}/images`)
+      const data = await res.json()
+      const rows: { imageUrl: string; caption?: string | null }[] = Array.isArray(data.images) ? data.images : []
+      sourceImages = rows.map(r => ({ imageUrl: r.imageUrl, caption: r.caption ?? '' }))
+    } catch {
+      sourceImages = []
+    }
+    if (sourceImages.length === 0 && ev.imageUrl) {
+      sourceImages = [{ imageUrl: ev.imageUrl, caption: '' }]
+    }
+    if (sourceImages.length === 0) return
+
+    await duplicateImagesIntoForm(sourceImages)
+  }
+
+  /** event_plus の日程1件を、親イベントの値を引き継いだ通常イベントとして新規登録フォームに切り出す */
+  const handleConvertDateToEvent = async (d: EventDateEntry) => {
+    if (!editingId) return
+    if (!window.confirm('この日程を通常イベントとして新規登録フォームに切り替えます。\n親イベントの未保存の変更は破棄されます。よろしいですか？')) return
+
+    const parent = form
+    setConvertingFrom({ parentEventId: editingId, parentName: parent.name, dateId: d.id })
+    setEditingId(null)
+    setForm({
+      ...INITIAL_FORM,
+      name:          parent.name,
+      description:   parent.description,
+      url:           parent.url,
+      instagramUrl:  parent.instagramUrl,
+      xUrl:          parent.xUrl,
+      fee:           parent.fee,
+      groupId:       parent.groupId,
+      postedBy:      parent.postedBy,
+      posterType:    parent.posterType,
+      email:         parent.email,
+      category:      '',
+      subCategory:   INITIAL_FORM.subCategory,
+      type:          'event',
+      dateConfirmed: true,
+      scheduleNote:  '',
+      specificDates: null,
+      eventDates:    [],
+      businessHours: '',
+      spotLabel:     '',
+      startDate:     d.startDate,
+      endDate:       d.endDate,
+      startTime:     d.startTime,
+      endTime:       d.endTime,
+      venue:         d.useCustomVenue ? d.venue   : parent.venue,
+      address:       d.useCustomVenue ? d.address : parent.address,
+      lat:           d.useCustomVenue ? d.lat     : parent.lat,
+      lng:           d.useCustomVenue ? d.lng     : parent.lng,
+      notice:        d.useCustomNotice && d.notice ? d.notice : parent.notice,
+      imageUrl:      '',
+      imageUrls:     [],
+      imageCaptions: [],
+    })
+    setSubmitStatus('idle')
+    setSubmitMessage('')
+    setFormInstanceKey(k => k + 1)
+    setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
+
+    let sourceImages: { imageUrl: string; caption: string }[]
+    if (d.useCustomImages && d.imageUrls.length > 0) {
+      sourceImages = d.imageUrls.map((url, i) => ({ imageUrl: url, caption: d.imageCaptions[i] ?? '' }))
+    } else if (parent.imageUrls.length > 0) {
+      sourceImages = parent.imageUrls.map((url, i) => ({ imageUrl: url, caption: parent.imageCaptions[i] ?? '' }))
+    } else {
+      sourceImages = parent.imageUrl ? [{ imageUrl: parent.imageUrl, caption: '' }] : []
+    }
+    await duplicateImagesIntoForm(sourceImages)
+  }
+
   const handleDelete = async (ev: CollectedEvent) => {
     if (!window.confirm(`「${ev.name}」を削除しますか？`)) return
     try {
@@ -320,6 +376,11 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (form.category === '') {
+      setSubmitStatus('error')
+      setSubmitMessage('カテゴリを選択してください。')
+      return
+    }
     if (form.lat === null || form.lng === null) {
       setSubmitStatus('error')
       setSubmitMessage('住所から緯度経度を取得してください。')
@@ -405,15 +466,27 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
         }
       }
 
+      let convertWarning = ''
+      if (!editingId && convertingFrom) {
+        try {
+          const delRes = await fetch(`/api/event-dates/${encodeURIComponent(convertingFrom.dateId)}`, { method: 'DELETE' })
+          // 404 は親側で未保存の日程（DBに存在しない）なので削除不要
+          if (!delRes.ok && delRes.status !== 404) convertWarning = '（元の日程の削除に失敗しました。親イベントから手動で削除してください）'
+        } catch {
+          convertWarning = '（元の日程の削除に失敗しました。親イベントから手動で削除してください）'
+        }
+      }
+
       setSubmitStatus('ok')
       const eventName = (data.event as { name?: string } | undefined)?.name ?? form.name
       setSubmitMessage((editingId
         ? `「${eventName}」を更新しました！`
         : showApprovalNotice
           ? `「${eventName}」の投稿を受け付けました。運営が確認後、地図に掲載されます。`
-          : `「${eventName}」を登録しました！`) + eventDatesWarning)
+          : `「${eventName}」を登録しました！`) + eventDatesWarning + convertWarning)
       setForm({ ...INITIAL_FORM, posterType: getInitialPosterType() })
       setEditingId(null)
+      setConvertingFrom(null)
       setFormInstanceKey(k => k + 1)
       await loadEvents()
     } catch (e) {
@@ -484,6 +557,20 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
           <h2 className="text-sm font-semibold text-gray-700 mb-3">
             {editingId ? 'スポットを編集' : '新規登録'}
           </h2>
+          {convertingFrom && !editingId && (
+            <div className="mb-3 flex items-start justify-between gap-3 bg-blue-50 border border-blue-200 rounded-lg px-4 py-2.5">
+              <p className="text-xs text-blue-700 leading-relaxed">
+                「{convertingFrom.parentName}」の日程から変換中です。登録すると元の日程は親イベントから削除されます。
+              </p>
+              <button
+                type="button"
+                onClick={handleCancelEdit}
+                className="text-xs text-blue-500 hover:text-blue-700 whitespace-nowrap cursor-pointer"
+              >
+                変換をやめる
+              </button>
+            </div>
+          )}
           {showApprovalSection && !editingId && (
             <div className="mb-3">
               <button
@@ -532,6 +619,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
               onUploadingChange={setImageUploading}
               showEmail={showEmail}
               isStaffAdmin={showApprovalSection}
+              onConvertDateToEvent={showApprovalSection && editingId ? handleConvertDateToEvent : undefined}
             />
 
             {/* 送信結果 */}

@@ -64,6 +64,19 @@ export function getDateDisplayPadded(scheduleNote?: string, startDate?: string, 
   return fmtDateRangePadded(startDate, endDate)
 }
 
+/** event_plus の複数日程から「最も近い次回開催日」を選び、イベント本体の start_date/end_date に使う（ピンのステータス判定用） */
+export function pickNearestEventDate(dates: { startDate: string; endDate: string }[]): { startDate: string; endDate: string } | null {
+  const valid = dates.filter(d => d.startDate && d.endDate)
+  if (valid.length === 0) return null
+  const todayStr = new Date().toISOString().split('T')[0]
+  const upcoming = valid
+    .filter(d => d.endDate >= todayStr)
+    .sort((a, b) => a.startDate.localeCompare(b.startDate))
+  if (upcoming.length > 0) return { startDate: upcoming[0].startDate, endDate: upcoming[0].endDate }
+  const past = [...valid].sort((a, b) => b.endDate.localeCompare(a.endDate))
+  return { startDate: past[0].startDate, endDate: past[0].endDate }
+}
+
 /** カンマ区切りの個別指定日を "M/D(曜), M/D(曜), ..." 形式にフォーマット */
 export function fmtSpecificDates(specificDates?: string | null): string | null {
   if (!specificDates) return null

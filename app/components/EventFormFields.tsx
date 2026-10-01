@@ -14,7 +14,8 @@ export type PosterType = 'general' | 'organizer' | 'business' | 'staff'
 
 export type FormState = {
   name:          string
-  category:      AllCategory
+  /** '' は未選択（event_plus の日程を通常イベントへ変換した直後のみ。送信時に選択必須） */
+  category:      AllCategory | ''
   /** category='event_plus' 選択時の見た目カテゴリ（event/festival/fireworks） */
   subCategory:   string
   /** 地図ピンを手動でグルーピングするためのID。未設定は '' */
@@ -392,11 +393,13 @@ type Props = {
   showEmail?: boolean
   /** true の場合、運営（ota-admin）向けに種別「災害支援」を選択肢に表示する */
   isStaffAdmin?: boolean
+  /** 指定時、event_plus の各日程に「通常イベントへ変更」ボタンを表示する（ota-admin の編集時のみ） */
+  onConvertDateToEvent?: (date: EventDateEntry) => void
 }
 
 export default function EventFormFields({
   form, onChange, disabled, editing, eventId, posterTypeOptions, fixedPosterType, onUploadingChange, showEmail,
-  isStaffAdmin = false,
+  isStaffAdmin = false, onConvertDateToEvent,
 }: Props) {
   const hasInitialLocation = form.lat !== null && form.lng !== null
   const [geoStatus,  setGeoStatus]  = useState<GeoStatus>(() => (editing && hasInitialLocation) ? 'ok' : 'idle')
@@ -960,6 +963,16 @@ export default function EventFormFields({
                     >
                       ▼
                     </button>
+                    {onConvertDateToEvent && isEventPlus && (
+                      <button
+                        type="button"
+                        onClick={() => onConvertDateToEvent(d)}
+                        disabled={disabled}
+                        className="text-xs text-blue-500 hover:text-blue-700 disabled:opacity-40 cursor-pointer"
+                      >
+                        通常イベントへ変更
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => removeEventDate(d.id)}
