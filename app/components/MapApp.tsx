@@ -14,7 +14,7 @@ import PeriodChip from './PeriodChip'
 import LocationRadiusChip from './LocationRadiusChip'
 import { getAreaBySlug } from '@/lib/areas'
 import { buildDiscoverOrder } from '@/lib/discover-sort'
-import { CATEGORY_LABELS, buildPeriodOptions, extractSpotMunicipalities, getVisualCategory, matchesAreaForSpot, type Category, type PeriodFilter, type PeriodOption, type Spot } from '@/lib/spots'
+import { CATEGORY_LABELS, DISASTER_CATEGORIES, PARK_CATEGORIES, buildPeriodOptions, extractSpotMunicipalities, getVisualCategory, matchesAreaForSpot, type Category, type PeriodFilter, type PeriodOption, type Spot } from '@/lib/spots'
 import { eventToSpot, type EventsDatabase } from '@/lib/events'
 import { getEventStatus, getTodayJst, isDateRangeIncludingToday, parseLocalDate } from '@/lib/date-utils'
 
@@ -464,6 +464,22 @@ export default function MapApp() {
   )
 
   // 終了イベントの ?event= リンクから来た場合、フィルターは変えずにピン表示にだけ一時追加する
+  // ロゴピン内のイベント検索（β）の検索対象。期間・カテゴリ・エリアの各フィルタは適用せず、
+  // 常設施設・災害支援・終了イベントを除いた開催中／開催予定の全件を対象にする
+  const searchableSpots = useMemo(() => collectedSpots.filter((spot) => {
+    const visual = getVisualCategory(spot)
+    if (PARK_CATEGORIES.includes(visual) || DISASTER_CATEGORIES.includes(visual)) return false
+    if (spot.type === 'permanent') return false
+    return getEventStatus(spot.startDate, spot.endDate, spot.endTime) !== 'ended'
+  }), [collectedSpots])
+
+  // 検索結果をタップしたとき：フィルタ外なら一時ピンとして表示してから詳細を開く。
+  // ユーザーの保存設定を書き換えないため、期間・カテゴリ・エリアのフィルタは変更しない
+  const handleSearchSelect = useCallback((spot: Spot) => {
+    setTemporarySpot(filteredSpots.some((s) => s.id === spot.id) ? null : spot)
+    handleDetailOpen(spot)
+  }, [filteredSpots, handleDetailOpen])
+
   const displaySpots = useMemo(() => {
     if (!temporarySpot) return filteredSpots
     if (filteredSpots.some((s) => s.id === temporarySpot.id)) return filteredSpots
@@ -759,6 +775,8 @@ export default function MapApp() {
               onCollapse={() => setDetailSheetHeight('50dvh')}
               expanded={detailSheetHeight === '100dvh'}
               mobile
+              searchSpots={searchableSpots}
+              onSearchSelect={handleSearchSelect}
             />
           </div>
         )}

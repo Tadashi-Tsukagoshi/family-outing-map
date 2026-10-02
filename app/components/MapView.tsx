@@ -1024,9 +1024,10 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
     const map = mapRef.current
     if (!map || !mapReady) return
 
-    // エリアチップで絞り込み中は、該当エリア外のピンをマーカーごと除外する（「すべて」選択時は絞り込みなし）
+    // エリアチップで絞り込み中は、該当エリア外のピンをマーカーごと除外する（「すべて」選択時は絞り込みなし）。
+    // ただし選択中のスポット（検索結果から開いたエリア外のイベント等）を含むグループは表示する
     const visibleGroups = activeArea
-      ? pinGroups.filter(g => g.spots.some(s => matchesCityArea(s.address, activeArea)))
+      ? pinGroups.filter(g => g.spots.some(s => matchesCityArea(s.address, activeArea) || matchesSelection(s, selectedSpot)))
       : pinGroups
 
     const representativeIds = new Set(visibleGroups.map(g => g.representativeId))
