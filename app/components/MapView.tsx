@@ -493,6 +493,12 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
   const [pos, setPos] = useState<Pos>({ left: x, top: y, above: true, ready: false, cardH: 0 })
   const [needsScroll, setNeedsScroll] = useState(false)
 
+  // PCで吹き出しの中身がイベント1件分（groupId でまとめられた同一イベントの別日程・別会場を含む）のときは、
+  // 単独ピンのホバーカードと同じ配置（高さ制限なし・スクロールなし・はみ出す分は位置をずらす）にする。
+  // 中身の行は eventId（無ければ id）単位でまとめて描画しているため、同じ基準で件数を数える
+  const eventCount = useMemo(() => new Set(group.spots.map(s => s.eventId ?? s.id)).size, [group])
+  const singleLayout = isSingle || (!isMobile && eventCount === 1)
+
   // spot ごとの小型アイコンHTML。spot のデータが変わらない限り再生成しない
   const iconHtmlBySpotId = useMemo(() => {
     const map: Record<string, string> = {}
@@ -525,7 +531,7 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
     // どちらの向きでもリストがピンを覆いにくくする
     const HEIGHT_CAP_RATIO = 0.45
     const PC_HEIGHT_CAP_RATIO = 0.6
-    const heightCap = isSingle
+    const heightCap = singleLayout
       ? Infinity
       : isMobile ? window.innerHeight * HEIGHT_CAP_RATIO : cH * PC_HEIGHT_CAP_RATIO
 
@@ -535,7 +541,7 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
     let above: boolean
     let cardH: number
 
-    if (!isSingle) {
+    if (!singleLayout) {
       // グループ吹き出し：上下のうち空きが大きい方に出し、その空きに収まる高さに縮める
       // （はみ出し分は吹き出し内スクロールで見せる）。吹き出しをずらさないのでピンを覆わない。
       // 空きが MIN_BUBBLE_HEIGHT 未満（ピンが許容領域の端すれすれ）の場合のみ一部重なりうる
@@ -594,7 +600,7 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
     if (left + halfW > cW - MARGIN) left = cW - MARGIN - halfW
 
     setPos({ left, top, above, ready: true, cardH })
-  }, [group, x, y, wrapperRef, aboveGap, isMobile, isSingle, sheetState])
+  }, [group, x, y, wrapperRef, aboveGap, isMobile, isSingle, singleLayout, sheetState])
 
   return (
     <div
@@ -660,7 +666,10 @@ function GroupBubble({ group, x, y, wrapperRef, selectedSpotId, onSelectSpot, on
           boxShadow:    '0 2px 8px rgba(0,0,0,0.15)',
           pointerEvents: 'all',
           maxHeight:    needsScroll ? pos.cardH : undefined,
-          overflowY:    needsScroll ? 'auto' : undefined,
+          // 縦方向を「値なし」にすると React が空の値を書き込み、直前の overflow: hidden の縦方向が消えて
+          // auto 扱いになる（三角の ::after が下に 6px はみ出す分でスクロールバーが出る）。
+          // PC はスクロール不要のとき hidden と明示する（モバイルは従来どおり）
+          overflowY:    needsScroll ? 'auto' : (isMobile ? undefined : 'hidden'),
           WebkitOverflowScrolling: 'touch',
         }}
       >
