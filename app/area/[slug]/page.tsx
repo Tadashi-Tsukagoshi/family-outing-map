@@ -5,6 +5,7 @@ import { fetchApprovedEvents } from '@/lib/events-server'
 import { eventToSpot } from '@/lib/events'
 import { EVENT_CATEGORIES, getVisualCategory, matchesCityArea } from '@/lib/spots'
 import { getDateDisplay, getEventStatus, fmtTimeRange } from '@/lib/date-utils'
+import { DEFAULT_OGP_IMAGE, SITE_NAME } from '@/lib/seo'
 import AreaRedirect from './AreaRedirect'
 
 // イベント登録内容はSupabase更新のたびに変わりうるため、一定間隔でSSRを再生成する
@@ -54,11 +55,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = `${area.name}のイベント・おでかけ情報 | グンマップ`
   const description = `${area.name}で開催されるイベント・お祭り・マルシェなどのおでかけ情報をマップで探せます。`
 
+  const url = `https://gunma-odekakemap.jp/area/${slug}`
+  // 子ページで openGraph を指定すると layout の既定画像がまるごと置き換わるため、共通画像を明示する
   return {
     title,
     description,
-    openGraph: { title, description },
-    alternates: { canonical: `https://gunma-odekakemap.jp/area/${slug}` },
+    openGraph: {
+      title,
+      description,
+      url,
+      type: 'website',
+      siteName: SITE_NAME,
+      images: [DEFAULT_OGP_IMAGE],
+    },
+    alternates: { canonical: url },
   }
 }
 

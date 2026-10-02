@@ -67,6 +67,41 @@ function forgetLiked(id: string) {
 
 const WEEK_JA = ['日', '月', '火', '水', '木', '金', '土']
 
+/** 共有アイコン（四角から上向き矢印が出ている iOS 風） */
+function ShareIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 3v12" />
+      <path d="M8 7l4-4 4 4" />
+      <path d="M8 10H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1h-2" />
+    </svg>
+  )
+}
+
+/** テキストをクリップボードにコピーする。Clipboard API が使えない環境（http 接続など）では execCommand で代替する */
+async function copyText(text: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text)
+      return true
+    }
+  } catch {}
+  try {
+    const textarea = document.createElement('textarea')
+    textarea.value = text
+    textarea.setAttribute('readonly', '')
+    textarea.style.position = 'fixed'
+    textarea.style.opacity = '0'
+    document.body.appendChild(textarea)
+    textarea.select()
+    const ok = document.execCommand('copy')
+    document.body.removeChild(textarea)
+    return ok
+  } catch {
+    return false
+  }
+}
+
 function generateIcs(params: {
   title: string
   startDate: string
@@ -147,10 +182,77 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
   const [galleryImages, setGalleryImages] = useState<{ imageUrl: string; caption: string | null }[]>([])
   const [imageLoadFailed, setImageLoadFailed] = useState(false)
   const [datesExpanded, setDatesExpanded] = useState(false)
+  const [shareToastVisible, setShareToastVisible] = useState(false)
+  const shareToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const startY   = useRef(0)
   const currentY = useRef(0)
   const likeDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const likeRequestIdRef = useRef(0)
+
+  useEffect(() => () => {
+    if (shareToastTimerRef.current) clearTimeout(shareToastTimerRef.current)
+  }, [])
+
+  // 共有：タッチ端末で共有シートが使えればそれを開き、それ以外（PC など）は URL をコピーしてトーストを出す。
+  // URL は実イベントの id（event_plus のピンごとの合成 id ではなく eventId）を使う
+  const handleShare = async () => {
+    const shareUrl = `${window.location.origin}/events/${eventId}`
+    const isTouchDevice = window.matchMedia('(pointer: coarse)').matches
+    if (isTouchDevice && typeof navigator.share === 'function') {
+      try {
+        await navigator.share({ title: spot.name, url: shareUrl })
+        return
+      } catch (err) {
+        // 利用者がキャンセルした場合は何もしない。それ以外の失敗はコピーで代替する
+        if (err instanceof DOMException && err.name === 'AbortError') return
+      }
+    }
+    if (!(await copyText(shareUrl))) return
+    setShareToastVisible(true)
+    if (shareToastTimerRef.current) clearTimeout(shareToastTimerRef.current)
+    shareToastTimerRef.current = setTimeout(() => setShareToastVisible(false), 2000)
+  }
+
+  // 共有ボタン（ロゴピンのパネルはイベントではないため出さない）。タップ範囲は 44px 四方で、
+  // 負のマージンでヘッダーの高さを変えない。モバイルのヘッダーのドラッグ・タップ処理には伝えない
+  const shareButton = !isGunmapInfo && (
+    <button
+      type="button"
+      aria-label="共有"
+      onTouchStart={(e) => e.stopPropagation()}
+      onTouchMove={(e) => e.stopPropagation()}
+      onTouchEnd={(e) => {
+        // ヘッダーの touchend（タップで閉じる処理）に伝えず、touchend での preventDefault で後続の click も抑止する
+        e.stopPropagation()
+        e.preventDefault()
+        handleShare()
+      }}
+      onClick={handleShare}
+      style={{
+        width: 44, height: 44, margin: '-10px -12px -10px 0', padding: 0,
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        flexShrink: 0, alignSelf: 'flex-start',
+        color: '#374151', background: 'none', border: 'none', cursor: 'pointer',
+      }}
+    >
+      <ShareIcon />
+    </button>
+  )
+
+  const shareToast = shareToastVisible && createPortal(
+    <div
+      role="status"
+      style={{
+        position: 'fixed', left: '50%', bottom: 'calc(24px + env(safe-area-inset-bottom))',
+        transform: 'translateX(-50%)', zIndex: 3000, pointerEvents: 'none',
+        background: 'rgba(17, 24, 39, 0.9)', color: '#fff', fontSize: 14,
+        padding: '10px 16px', borderRadius: 9999, whiteSpace: 'nowrap',
+      }}
+    >
+      リンクをコピーしました
+    </div>,
+    document.body,
+  )
 
   const onHandleTouchStart = (e: React.TouchEvent) => {
     startY.current   = e.touches[0].clientY
@@ -459,7 +561,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
           </div>
           <div style={{ padding: '0 16px 8px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-              <div style={{ minWidth: 0 }}>
+              <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                   {/* ロゴピン（GUNMAP_INFO_SPOT）はイベントではないためカテゴリアイコンを出さない */}
                   {!isGunmapInfo && (
@@ -506,6 +608,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                   日程未確定
                 </span>
               )}
+              {shareButton}
             </div>
           </div>
         </div>
@@ -800,6 +903,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
         />,
         document.body
       )}
+      {shareToast}
       </>
     )
   }

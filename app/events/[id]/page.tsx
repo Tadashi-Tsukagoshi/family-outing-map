@@ -3,6 +3,7 @@ import { type Spot } from '@/lib/spots'
 import { eventToSpot } from '@/lib/events'
 import { supabaseAdmin } from '@/lib/supabase'
 import type { Metadata } from 'next'
+import { DEFAULT_OGP_IMAGE, SITE_NAME } from '@/lib/seo'
 import EventRedirect from './EventRedirect'
 
 // イベント登録内容はSupabase更新のたびに変わりうるため、一定間隔でSSRを再生成する（/area/[slug]と同じ値）
@@ -14,6 +15,8 @@ async function getSpot(id: string): Promise<Spot | null> {
     .from('events')
     .select('*')
     .eq('id', id)
+    // 承認済みのイベントだけを対象にする（未承認・却下のイベントは「ページが見つかりません」）
+    .eq('status', 'approved')
     .single()
   if (error || !data) return null
   return eventToSpot({
@@ -84,15 +87,28 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ? spot.description.slice(0, 80).replace(/\n/g, ' ')
     : buildFallbackDescription(spot, area)
   const title = `${spot.name}｜${area}のイベント｜グンマップ`
+  const url = `https://gunma-odekakemap.jp/events/${spot.id}`
+  // イベント画像があれば OGP・X 用ともにそれを使い、無ければ共通画像を使う。
+  // （子ページで openGraph / twitter を指定すると layout の既定はまるごと置き換わるため、ここで明示する）
+  const image = spot.imageUrl ? { url: spot.imageUrl } : DEFAULT_OGP_IMAGE
   return {
     title,
     description,
     openGraph: {
       title,
       description,
-      ...(spot.imageUrl ? { images: [{ url: spot.imageUrl }] } : {}),
+      url,
+      type: 'article',
+      siteName: SITE_NAME,
+      images: [image],
     },
-    alternates: { canonical: `https://gunma-odekakemap.jp/events/${spot.id}` },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [image.url],
+    },
+    alternates: { canonical: url },
   }
 }
 
