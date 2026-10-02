@@ -947,18 +947,27 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
     spotsByIdRef.current = Object.fromEntries(spots.map(s => [s.id, s]))
   }, [spots])
 
+  // PCで単独ピン（イベント1件のピン）にカーソルが乗っている間、そのピンの代表ID。
+  // グループピンの吹き出し表示中（openGroupId）と同じく、拡大＋バウンス・最前面・他ピンの減光の対象にする
+  const hoveredPinId = useMemo(() => {
+    if (isMobile || !hovered) return null
+    const g = pinGroups.find(g => g.spots.length === 1 && g.spots[0].id === hovered.spot.id)
+    return g ? g.representativeId : null
+  }, [isMobile, hovered, pinGroups])
+
   const icons = useMemo(() => {
     const result: Record<string, IconDef> = {}
     for (const g of pinGroups) {
       const activeSpot = g.spots.find(s => matchesSelection(s, selectedSpot)) ?? g.spots[0]
-      // グループピンが吹き出し表示中（openGroupId一致）でも、単独spot選択と同様に
-      // 拡大＋バウンスさせる
+      // グループピンが吹き出し表示中（openGroupId一致）・PCで単独ピンにカーソルが乗っている間も、
+      // 単独spot選択と同様に拡大＋バウンスさせる
       const isGroupBubbleOpen = g.representativeId === openGroupId
+      const isPinHovered = g.representativeId === hoveredPinId
       const isSpotSelected = matchesSelection(activeSpot, selectedSpot)
-      result[g.representativeId] = buildIconDef(activeSpot, isSpotSelected || isGroupBubbleOpen, isMobile)
+      result[g.representativeId] = buildIconDef(activeSpot, isSpotSelected || isGroupBubbleOpen || isPinHovered, isMobile)
     }
     return result
-  }, [pinGroups, selectedSpot?.id, openGroupId, isMobile])
+  }, [pinGroups, selectedSpot?.id, openGroupId, hoveredPinId, isMobile])
 
   // ─── 地図の初期化 ────────────────────────────────────────────
   useEffect(() => {
@@ -1102,7 +1111,9 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
       // グループピン吹き出し表示中（PC・単独ピンHovered時は無関係、モバイル・PC
       // どちらもグループタップ時のopenGroupId一致で真になる）も選択扱いする
       const isGroupBubbleOpen = group.representativeId === openGroupId
-      const isActiveGroup = isGroupSelected || isGroupBubbleOpen
+      // PCで単独ピンにカーソルが乗っている間も、グループピンの吹き出し表示中と同じ扱いにする
+      const isPinHovered = group.representativeId === hoveredPinId
+      const isActiveGroup = isGroupSelected || isGroupBubbleOpen || isPinHovered
 
       const status = getEventStatus(repSpot.startDate, repSpot.endDate, repSpot.endTime)
       const newZIndex =
@@ -1116,7 +1127,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
       // el.style.opacity を強制上書きするため、内側の描画用 div に設定する
       // selectedSpot がある場合は選択グループ以外を薄く、openGroupId がある場合は
       // 吹き出し表示中グループ以外を薄くする
-      const shouldDim = (selectedSpot && !isGroupSelected) || (openGroupId && !isGroupBubbleOpen)
+      const shouldDim = (selectedSpot && !isGroupSelected) || (openGroupId && !isGroupBubbleOpen) || (hoveredPinId && !isPinHovered)
       const opacity = shouldDim ? '0.4' : '1'
       // el（marker.getElement()）は Mapbox が opacity を上書きするため子要素側に設定する。
       // 子要素はピンアイコン（firstElementChild）と、必要に応じてバッジの span が続く。両方に適用する。
@@ -1125,7 +1136,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
         if (childEl.style.opacity !== opacity) childEl.style.opacity = opacity
       }
     }
-  }, [pinGroups, icons, selectedSpot?.id, openGroupId, activeArea, mapReady])
+  }, [pinGroups, icons, selectedSpot?.id, openGroupId, hoveredPinId, activeArea, mapReady])
 
   // ─── 現在地マーカー・円表示 ──────────────────────────────────
   useEffect(() => {
