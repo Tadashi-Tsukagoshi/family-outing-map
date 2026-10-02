@@ -830,6 +830,8 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
   const groupHideTimer       = useRef<ReturnType<typeof setTimeout> | null>(null)
   // カーソルが吹き出し（GroupBubble）に乗っているか。地図mousemoveでの自動クローズ判定に使う
   const isOverBubbleRef      = useRef(false)
+  // PCの単独ピンのホバーカード（吹き出し）にカーソルが乗っているか（グループ吹き出しの isOverBubbleRef と同じ役割）
+  const isOverCardRef        = useRef(false)
 
   // グループピンの吹き出しリスト（2件以上の PinGroup をタップした時に開く）
   const [openGroupId,     setOpenGroupId]     = useState<string | null>(null)
@@ -900,6 +902,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
   const handleHoverIn = useCallback((spot: Spot, x: number, y: number) => {
     if (Date.now() < suppressHoverUntil.current) return
     clearHide()
+    isOverCardRef.current = false
     setHovered({ spot, x, y })
     const eventId = spot.eventId ?? spot.id
     fetchGalleryFirst(eventId)
@@ -907,6 +910,7 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
 
   const handleImmediateHide = useCallback(() => {
     clearHide()
+    isOverCardRef.current = false
     setHovered(null)
   }, [clearHide])
 
@@ -919,8 +923,16 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
 
   // 抑制ウィンドウ内はカード側の onMouseEnter による clearHide もブロックする
   const handleCardMouseEnter = useCallback(() => {
+    isOverCardRef.current = true
     if (Date.now() < suppressHoverUntil.current) return
     clearHide()
+  }, [clearHide])
+
+  // 単独ピンのホバーカードからカーソルが外れたら、グループ吹き出し（scheduleGroupHide）と同じく 200ms 後に閉じる
+  const handleCardMouseLeave = useCallback(() => {
+    isOverCardRef.current = false
+    clearHide()
+    hideTimer.current = setTimeout(() => setHovered(null), 200)
   }, [clearHide])
 
   const handleMapClick = useCallback(() => {
@@ -1086,9 +1098,9 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
           const pt = m.project(toLngLat(cur.lat, cur.lng))
           handlersRef.current.handleHoverIn(cur, pt.x, pt.y)
         })
-        el.addEventListener('mouseleave', () => {
-          handlersRef.current.scheduleHide()
-        })
+        // 単独ピンのホバーカードは、マーカーの mouseleave では閉じない（ピンからカードへ移る途中で消えるため）。
+        // グループ吹き出しと同じく、地図の mousemove でピン近傍・カード上のどちらでもないことを検出して閉じる（下の useEffect）
+
         el.addEventListener('click', (e) => {
           e.stopPropagation()
           handlersRef.current.handleGroupPinClick(repId)
@@ -1430,6 +1442,26 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
     return () => { map.off('move', update) }
   }, [openGroupId, selectedSpot, pinGroups, mapReady])
 
+  // ─── 単独ピンのホバーカード：PCでカーソルがピンにもカードにも乗っていなければ閉じる ──
+  // グループ吹き出し（下の useEffect）と同じ判定。ピンとカードの間の隙間はピン近傍の半径に収まるため、移動中に閉じない
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady || isMobile || !hovered) return
+
+    const PIN_HOVER_RADIUS = 28
+    const spot = hovered.spot
+    const onMouseMove = (e: mapboxgl.MapMouseEvent) => {
+      const pinPt = map.project(toLngLat(spot.lat, spot.lng))
+      const overPin = Math.hypot(e.point.x - pinPt.x, e.point.y - pinPt.y) <= PIN_HOVER_RADIUS
+      if (!overPin && !isOverCardRef.current) {
+        clearHide()
+        setHovered(null)
+      }
+    }
+    map.on('mousemove', onMouseMove)
+    return () => { map.off('mousemove', onMouseMove) }
+  }, [hovered, isMobile, mapReady, clearHide])
+
   // ─── グループ吹き出し：PCでカーソルがピンにも吹き出しにも乗っていなければ閉じる ──
   // マーカーの mouseleave では閉じない（吹き出しがピンに重なりチャタリングするため）。
   // 地図全体の mousemove でピン近傍・吹き出し上のどちらでもないことを検出してクローズする。
@@ -1474,9 +1506,9 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
             y={activeHover.y}
             wrapperRef={wrapperRef}
             selectedSpotId={selectedSpot?.id}
-            onSelectSpot={(spot) => onDetailOpen(spot)}
+            onSelectSpot={handlePinClick}
             onMouseEnter={handleCardMouseEnter}
-            onMouseLeave={scheduleHide}
+            onMouseLeave={handleCardMouseLeave}
             isMobile={isMobile}
             isSingle={true}
           />
