@@ -68,18 +68,6 @@ export default function SearchSheet({ open, query, onQueryChange, spots, onSelec
         </div>
         <div className="flex items-center justify-between px-[22px] py-2">
           <span className="text-base font-semibold text-gray-900">イベント検索</span>
-          <button
-            type="button"
-            aria-label="閉じる"
-            // ヘッダーのタッチ処理（touchend で preventDefault）に伝えず、ボタン自身で閉じる
-            onTouchStart={(e) => e.stopPropagation()}
-            onTouchEnd={(e) => { e.stopPropagation(); e.preventDefault(); onClose() }}
-            onClick={(e) => { e.stopPropagation(); onClose() }}
-            className="flex items-center justify-center text-gray-500"
-            style={{ width: 28, height: 28, margin: '-4px -6px -4px 0', fontSize: 20, lineHeight: 1 }}
-          >
-            ×
-          </button>
         </div>
       </div>
 
