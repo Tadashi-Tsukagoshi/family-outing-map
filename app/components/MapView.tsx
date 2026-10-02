@@ -1005,13 +1005,13 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // ─── ズームコントロール（PCのみ、右上） ───────────────────────
+  // ─── ズームコントロール（PCのみ、右下。著作権表示の上に積まれる。サイズは globals.css で縮小） ───
   useEffect(() => {
     const map = mapRef.current
     if (!map || !mapReady) return
     if (!isMobile && !navControlRef.current) {
       const ctrl = new mapboxgl.NavigationControl({ showCompass: false })
-      map.addControl(ctrl, 'top-right')
+      map.addControl(ctrl, 'bottom-right')
       navControlRef.current = ctrl
     } else if (isMobile && navControlRef.current) {
       map.removeControl(navControlRef.current)

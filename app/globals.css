@@ -123,3 +123,20 @@ input[type="search"]::-webkit-search-decoration {
   appearance: none;
   display: none;
 }
+
+/* PC版の地図ズームボタン（＋−）を標準（32px）の約8割に縮小する（アイコンはボタンの大きさに合わせて自動で縮む）。
+   ズームボタンはPCのみ右下に置き、著作権表示（.mapboxgl-ctrl-attrib はボタングループではない）には影響しない */
+.mapboxgl-ctrl-bottom-right .mapboxgl-ctrl-group button {
+  width: 26px;
+  height: 26px;
+}
+/* PC版の地図ズームボタンの外枠を、エリアチップ（AreaChips.tsx の chipStyle）と同じ影にする。
+   エリアチップは枠線なしのため、Mapbox 標準の枠線代わりの影（0 0 0 2px rgba(0,0,0,0.1)）を置き換える */
+.mapboxgl-ctrl-bottom-right .mapboxgl-ctrl-group:not(:empty) {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25), 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+/* PC版の地図ズームボタンを地図の右端から18px離す（Mapbox 標準は10px。下方向の余白は標準のまま）。
+   Mapbox の CSS より後に読まれても負けないよう、クラスを重ねて詳細度を上げている */
+.mapboxgl-ctrl-bottom-right .mapboxgl-ctrl.mapboxgl-ctrl-group {
+  margin-right: 18px;
+}

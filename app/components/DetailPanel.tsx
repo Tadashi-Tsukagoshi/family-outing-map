@@ -326,7 +326,7 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
   }, [eventId, isGunmapInfo, spot.category, spot.startDate, spot.endDate, spot.eventDates])
 
   useEffect(() => {
-    const zoomControl = document.querySelector('.mapboxgl-ctrl-top-right .mapboxgl-ctrl-group') as HTMLElement | null
+    const zoomControl = document.querySelector('.mapboxgl-ctrl-bottom-right .mapboxgl-ctrl-group') as HTMLElement | null
     if (zoomControl) {
       zoomControl.style.display = lightboxIndex !== null ? 'none' : ''
     }
