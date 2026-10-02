@@ -36,7 +36,21 @@ export default function GunmapSearch({ query, onQueryChange, spots, onSelect, on
           enterKeyHint="search"
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
-          onFocus={() => onInputFocus?.()}
+          onTouchStart={(e) => {
+            // iOS Safari はフォーカス時に入力欄が見えるようページを自動スクロールするため、
+            // タップの瞬間だけ入力欄を画面外に置いて「スクロールしても見えない」と判断させ、スクロールを起こさせない。
+            // 次のフレームで必ず元に戻す（実際のタップによるフォーカスは元の位置で行われる）
+            const input = e.currentTarget
+            if (document.activeElement === input) return
+            input.style.transform = 'translateY(-2000px)'
+            input.focus({ preventScroll: true })
+            requestAnimationFrame(() => { input.style.transform = '' })
+          }}
+          onFocus={(e) => {
+            const input = e.currentTarget
+            requestAnimationFrame(() => { input.style.transform = '' })
+            onInputFocus?.()
+          }}
           onBlur={() => onInputBlur?.()}
           onKeyDown={(e) => {
             // 日本語変換の確定 Enter で blur すると文字が二重に入力されるため、変換中は何もしない

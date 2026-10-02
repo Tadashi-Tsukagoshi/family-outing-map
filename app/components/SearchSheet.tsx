@@ -9,8 +9,12 @@ import GunmapSearch from './GunmapSearch'
 const SEARCH_SHEET_TOP_RATIO = 0.2
 /** キーボード表示中の半開きで、見えている範囲に最低限残すシートの高さ（px）。ヘッダー・検索窓・結果1件ほど */
 const SEARCH_SHEET_MIN_VISIBLE = 180
-/** キーボードを閉じているときの半開きの高さ（上端が画面の上から SEARCH_SHEET_TOP_RATIO の位置になる） */
-const HALF_HEIGHT = `${Math.round((1 - SEARCH_SHEET_TOP_RATIO) * 100)}dvh`
+const TOP_TRANSITION = 'top 0.3s cubic-bezier(0.32,0.72,0,1)'
+
+/** 半開きの上端位置（px）。キーボードが無い状態の見えている範囲の高さから計算する */
+function calcHalfTopPx(viewportHeight: number): number {
+  return viewportHeight * SEARCH_SHEET_TOP_RATIO
+}
 
 type Props = {
   open: boolean
@@ -41,10 +45,16 @@ export default function SearchSheet({ open, query, onQueryChange, spots, onSelec
   // シートは open の間だけマウントされるため、開くたびに半開きから始まる
   const [stage, setStage] = useState<'half' | 'full'>('half')
   const expanded = stage === 'full'
-  const height = expanded ? '100dvh' : HALF_HEIGHT
   const startY   = useRef(0)
   const currentY = useRef(0)
   const sheetRef = useRef<HTMLDivElement>(null)
+
+  // 半開きの上端位置（px）。dvh（下端基準）と innerHeight（上端基準）は iOS Safari のツールバー状態で基準がずれるため、
+  // シートを開いた瞬間（キーボードが無い状態）の見えている範囲の高さから1回だけ計算し、キーボードの有無に関係なく使う。
+  // シートは open の間だけマウントされるため、この初期値は開いた瞬間に計算される
+  const [halfTopPx, setHalfTopPx] = useState(() =>
+    calcHalfTopPx(window.visualViewport?.height ?? window.innerHeight),
+  )
 
   // 検索窓にフォーカスしている間（＝キーボード表示中）は、見えている範囲（visualViewport）を基準に配置する。
   // iOS Safari はキーボード表示で visualViewport.height が縮み、useBottomOffset の bottomOffset がキーボードの高さ分まで
@@ -52,15 +62,61 @@ export default function SearchSheet({ open, query, onQueryChange, spots, onSelec
   // 下端をレイアウト上の画面下端（キーボードと半透明の帯の裏）に置いて地図が透けないようにする。
   // visualViewport が無い環境では viewportRect は null のままで、今までどおりの配置になる
   const [inputFocused, setInputFocused] = useState(false)
+  const inputFocusedRef = useRef(false)
   const [viewportRect, setViewportRect] = useState<ViewportRect | null>(null)
   // キーボード表示中にヘッダー操作で段階を切り替えたときだけ top をアニメーションする（キーボード開閉の追従では切る）
   const [animateTop, setAnimateTop] = useState(false)
 
   const handleInputFocus = () => {
     setInputFocused(true)
+    inputFocusedRef.current = true
     const vv = window.visualViewport
     if (vv) setViewportRect(readViewportRect(vv))
   }
+  const handleInputBlur = () => {
+    setInputFocused(false)
+    inputFocusedRef.current = false
+  }
+
+  // シートが開いている間は、iOS Safari がフォーカス時・キーボード表示時にページ（レイアウトビューポート）を
+  // 自動スクロールして地図やチップごと画面全体が上にずれるのを防ぐ。
+  // ページのスクロールを止め、それでもスクロールされた場合は scroll イベントで (0, 0) に戻す。
+  // 閉じたとき（結果タップで閉じた場合を含む）・コンポーネントが外れたときは cleanup で元の値に戻す
+  useEffect(() => {
+    if (!open) return
+    const html = document.documentElement
+    const body = document.body
+    const prevHtmlOverflow = html.style.overflow
+    const prevBodyOverflow = body.style.overflow
+    html.style.overflow = 'hidden'
+    body.style.overflow = 'hidden'
+    const resetScroll = () => {
+      if (window.scrollY !== 0 || window.scrollX !== 0) window.scrollTo(0, 0)
+    }
+    window.addEventListener('scroll', resetScroll)
+    return () => {
+      window.removeEventListener('scroll', resetScroll)
+      html.style.overflow = prevHtmlOverflow
+      body.style.overflow = prevBodyOverflow
+    }
+  }, [open])
+
+  // 画面の回転などで見えている範囲の幅が変わったときだけ、半開きの上端位置を計算し直す
+  // （キーボードによる高さの変化では計算し直さない）
+  useEffect(() => {
+    if (!open) return
+    const vv = window.visualViewport
+    if (!vv) return
+    let lastWidth = vv.width
+    const onResize = () => {
+      if (vv.width === lastWidth) return
+      lastWidth = vv.width
+      // キーボード表示中に回転した場合は、キーボードで縮まない innerHeight を使う
+      setHalfTopPx(calcHalfTopPx(inputFocusedRef.current ? window.innerHeight : vv.height))
+    }
+    vv.addEventListener('resize', onResize)
+    return () => vv.removeEventListener('resize', onResize)
+  }, [open])
 
   useEffect(() => {
     if (!viewportRect) return
@@ -74,8 +130,6 @@ export default function SearchSheet({ open, query, onQueryChange, spots, onSelec
         setViewportRect(null)
         return
       }
-      // Safari がフォーカス時にページ自体をスクロールした場合は戻す（地図など fixed でない要素がずれるため）
-      if (window.scrollY !== 0 || window.scrollX !== 0) window.scrollTo(0, 0)
       setViewportRect(readViewportRect(vv))
     }
     vv.addEventListener('resize', update)
@@ -124,27 +178,33 @@ export default function SearchSheet({ open, query, onQueryChange, spots, onSelec
 
   if (!open) return null
 
-  const keyboardStyle: React.CSSProperties | null = viewportRect && {
-    // 半開きはキーボードを閉じているとき（HALF_HEIGHT）と同じ位置にする（iOS Safari はキーボードで innerHeight が変わらない）。
-    // ただし小さい画面で検索窓がキーボードに隠れないよう、見えている範囲に SEARCH_SHEET_MIN_VISIBLE は残す
-    top: expanded
-      ? viewportRect.top
-      : Math.min(
-          viewportRect.top + window.innerHeight * SEARCH_SHEET_TOP_RATIO,
-          viewportRect.top + viewportRect.height - SEARCH_SHEET_MIN_VISIBLE,
-        ),
-    bottom: 0,
-    height: 'auto',
-    transition: animateTop ? 'top 0.3s cubic-bezier(0.32,0.72,0,1)' : 'none',
-  }
+  // 半開き・全開とも上端基準（top と bottom）で配置し、height は指定しない
+  const positionStyle: React.CSSProperties = viewportRect
+    ? {
+        // キーボード表示中：見えている範囲の上端（vvTop）を基準にし、下端はキーボードと半透明の帯の裏（bottom: 0）まで伸ばす。
+        // 半開きは小さい画面で検索窓がキーボードに隠れないよう、見えている範囲に SEARCH_SHEET_MIN_VISIBLE は残す
+        top: expanded
+          ? viewportRect.top
+          : Math.min(
+              viewportRect.top + halfTopPx,
+              viewportRect.top + viewportRect.height - SEARCH_SHEET_MIN_VISIBLE,
+            ),
+        bottom: 0,
+        transition: animateTop ? TOP_TRANSITION : 'none',
+      }
+    : {
+        // キーボードなし：下端は他のシートと同じ値（buildSheetPositionStyle の bottomOffset による持ち上げ）
+        top: expanded ? 0 : halfTopPx,
+        transition: TOP_TRANSITION,
+      }
 
   return (
     <div
       ref={sheetRef}
       className="detail-sheet-enter fixed left-0 right-0 z-[1001] overflow-hidden bg-white flex flex-col"
       style={{
-        ...buildSheetPositionStyle({ height, bottomOffset }),
-        ...keyboardStyle,
+        ...buildSheetPositionStyle({ height: 'auto', bottomOffset }),
+        ...positionStyle,
         boxShadow: '0 -4px 24px rgba(0,0,0,0.15)',
       }}
     >
@@ -178,7 +238,7 @@ export default function SearchSheet({ open, query, onQueryChange, spots, onSelec
           spots={spots}
           onSelect={onSelect}
           onInputFocus={handleInputFocus}
-          onInputBlur={() => setInputFocused(false)}
+          onInputBlur={handleInputBlur}
           endedYear={endedYear}
         />
       </div>
