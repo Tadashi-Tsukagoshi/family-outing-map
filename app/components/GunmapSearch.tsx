@@ -31,6 +31,9 @@ export default function GunmapSearch({ spots, onSelect, onFocusExpand }: Props) 
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => onFocusExpand?.()}
           onKeyDown={(e) => {
+            // 日本語変換の確定 Enter で blur すると文字が二重に入力されるため、変換中は何もしない
+            // （Safari は確定 Enter で isComposing が false になることがあるため keyCode 229 も判定する）
+            if (e.nativeEvent.isComposing || e.keyCode === 229) return
             if (e.key === 'Enter') e.currentTarget.blur()
           }}
           placeholder="イベント名・会場・地名で検索（β）"
