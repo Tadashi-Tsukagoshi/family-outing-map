@@ -14,11 +14,16 @@ type Props = {
   spots: Spot[]
   onSelect: (spot: Spot) => void
   onFocusExpand?: () => void
+  /** 表示期間が終了イベントの年のとき、その年。検索対象はその年の終了イベントになり、終了日の新しい順に並べる */
+  endedYear?: number | null
 }
 
 /** イベント検索シートの中身（検索窓と結果一覧）。モバイル専用。入力値は親が保持する */
-export default function GunmapSearch({ query, onQueryChange, spots, onSelect, onFocusExpand }: Props) {
-  const results = useMemo(() => searchSpots(spots, query), [spots, query])
+export default function GunmapSearch({ query, onQueryChange, spots, onSelect, onFocusExpand, endedYear }: Props) {
+  const results = useMemo(
+    () => searchSpots(spots, query, endedYear ? 'endDesc' : 'startAsc'),
+    [spots, query, endedYear],
+  )
   const hasQuery = query.trim() !== ''
 
   return (
@@ -36,7 +41,7 @@ export default function GunmapSearch({ query, onQueryChange, spots, onSelect, on
             if (e.nativeEvent.isComposing || e.keyCode === 229) return
             if (e.key === 'Enter') e.currentTarget.blur()
           }}
-          placeholder="イベント名・会場・地名で検索"
+          placeholder={endedYear ? `${endedYear}年の終了イベントから検索` : 'イベント名・会場・地名で検索'}
           style={{
             display: 'block',
             width: '100%',

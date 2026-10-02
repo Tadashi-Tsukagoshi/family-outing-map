@@ -13,10 +13,12 @@ type Props = {
   onSelect: (spot: Spot) => void
   onClose: () => void
   bottomOffset: number
+  /** 表示期間が終了イベントの年のとき、その年（それ以外は null） */
+  endedYear?: number | null
 }
 
 /** イベント検索のボトムシート（モバイル専用）。置き方・見た目はモバイル版の詳細シートと揃える */
-export default function SearchSheet({ open, query, onQueryChange, spots, onSelect, onClose, bottomOffset }: Props) {
+export default function SearchSheet({ open, query, onQueryChange, spots, onSelect, onClose, bottomOffset, endedYear }: Props) {
   // 開いた直後は半開き。シートは open の間だけマウントされるため、開くたびに 50dvh から始まる
   const [height, setHeight] = useState<'50dvh' | '100dvh'>('50dvh')
   const expanded = height === '100dvh'
@@ -92,6 +94,7 @@ export default function SearchSheet({ open, query, onQueryChange, spots, onSelec
           spots={spots}
           onSelect={onSelect}
           onFocusExpand={() => { if (!expanded) setHeight('100dvh') }}
+          endedYear={endedYear}
         />
       </div>
     </div>

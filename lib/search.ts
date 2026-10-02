@@ -15,9 +15,13 @@ export function normalizeSearchText(text: string): string {
  * スポットをキーワードで絞り込む（空白区切りの各語の AND 検索）。
  * 対象は name / venue / address / description と、event_plus の日程別の会場・住所。
  * 並び順：name に全語ヒット → name+会場+住所 で全語ヒット → 説明文まで含めて全語ヒット。
- * 同じ優先度の中では開始日の早い順（startDate が無いものは末尾）。
+ * 同じ優先度の中の並びは sort で切り替える。
+ * - 'startAsc'（既定）：開始日の早い順（startDate が無いものは末尾）
+ * - 'endDesc'：終了日の新しい順（endDate が無いものは末尾）
  */
-export function searchSpots(spots: Spot[], query: string): Spot[] {
+export type SearchSort = 'startAsc' | 'endDesc'
+
+export function searchSpots(spots: Spot[], query: string, sort: SearchSort = 'startAsc'): Spot[] {
   const terms = normalizeSearchText(query).split(/\s+/).filter(Boolean)
   if (terms.length === 0) return []
 
@@ -40,11 +44,11 @@ export function searchSpots(spots: Spot[], query: string): Spot[] {
 
   hits.sort((a, b) => {
     if (a.priority !== b.priority) return a.priority - b.priority
-    const as = a.spot.startDate
-    const bs = b.spot.startDate
-    if (as && bs) return as.localeCompare(bs)
-    if (as) return -1
-    if (bs) return 1
+    const ak = sort === 'endDesc' ? a.spot.endDate : a.spot.startDate
+    const bk = sort === 'endDesc' ? b.spot.endDate : b.spot.startDate
+    if (ak && bk) return sort === 'endDesc' ? bk.localeCompare(ak) : ak.localeCompare(bk)
+    if (ak) return -1
+    if (bk) return 1
     return 0
   })
   return hits.map((h) => h.spot)

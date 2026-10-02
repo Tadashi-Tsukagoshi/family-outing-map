@@ -469,14 +469,25 @@ export default function MapApp() {
   )
 
   // 終了イベントの ?event= リンクから来た場合、フィルターは変えずにピン表示にだけ一時追加する
-  // ロゴピン内のイベント検索（β）の検索対象。期間・カテゴリ・エリアの各フィルタは適用せず、
-  // 常設施設・災害支援・終了イベントを除いた開催中／開催予定の全件を対象にする
+  // イベント検索（モバイル）で表示期間が終了イベントの年のとき、その年（それ以外は null）
+  const searchEndedYear = periodFilter.startsWith('ended_')
+    ? parseInt(periodFilter.replace('ended_', ''), 10)
+    : null
+
+  // イベント検索の検索対象。カテゴリ・エリアの各フィルタは適用せず、常設施設・災害支援は除外する。
+  // 表示期間が終了イベントの年なら、その年に終了したイベント（filteredSpots の ended_ 分岐と同じ基準）。
+  // それ以外は期間フィルタを適用せず、開催中／開催予定の全件を対象にする
   const searchableSpots = useMemo(() => collectedSpots.filter((spot) => {
     const visual = getVisualCategory(spot)
     if (PARK_CATEGORIES.includes(visual) || DISASTER_CATEGORIES.includes(visual)) return false
     if (spot.type === 'permanent') return false
-    return getEventStatus(spot.startDate, spot.endDate, spot.endTime) !== 'ended'
-  }), [collectedSpots])
+    const ended = getEventStatus(spot.startDate, spot.endDate, spot.endTime) === 'ended'
+    if (periodFilter.startsWith('ended_')) {
+      const year = parseInt(periodFilter.replace('ended_', ''), 10)
+      return ended && !!spot.endDate && spot.endDate >= `${year}-01-01` && spot.endDate <= `${year}-12-31`
+    }
+    return !ended
+  }), [collectedSpots, periodFilter])
 
   // 検索結果をタップしたとき：検索シートを閉じ、フィルタ外なら一時ピンとして表示してから詳細を（半開きで）開く。
   // ユーザーの保存設定を書き換えないため、期間・カテゴリ・エリアのフィルタは変更しない
@@ -814,6 +825,7 @@ export default function MapApp() {
             onSelect={handleSearchSelect}
             onClose={() => setSearchOpen(false)}
             bottomOffset={bottomOffset}
+            endedYear={searchEndedYear}
           />
         )}
         {discoverModeOpen && (
