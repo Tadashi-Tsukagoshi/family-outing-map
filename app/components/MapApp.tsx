@@ -17,7 +17,7 @@ import LocationRadiusChip from './LocationRadiusChip'
 import { getAreaBySlug } from '@/lib/areas'
 import { DEFAULT_PAGE_TITLE, buildEventTitle } from '@/lib/event-title'
 import { buildDiscoverOrder } from '@/lib/discover-sort'
-import { CATEGORY_LABELS, DISASTER_CATEGORIES, PARK_CATEGORIES, buildPeriodOptions, extractSpotMunicipalities, getVisualCategory, matchesAreaForSpot, type Category, type PeriodFilter, type PeriodOption, type Spot } from '@/lib/spots'
+import { CATEGORY_LABELS, DISASTER_CATEGORIES, PARK_CATEGORIES, buildPeriodOptions, extractSpotMunicipalities, getVisualCategory, matchesAreaForSpot, matchesCityArea, type Category, type PeriodFilter, type PeriodOption, type Spot } from '@/lib/spots'
 import { eventToSpot, type EventsDatabase } from '@/lib/events'
 import { getEventStatus, getTodayJst, isDateRangeIncludingToday, parseLocalDate } from '@/lib/date-utils'
 
@@ -526,9 +526,12 @@ export default function MapApp() {
   }), [collectedSpots, periodFilter])
 
   // 検索結果をタップしたとき：検索シートを閉じ、フィルタ外なら一時ピンとして表示してから詳細を（半開きで）開く。
-  // 終了していないイベントが表示期間外なら、共有URLから開いたときと同じく表示期間をそのイベントが入る最小の期間に
-  // 切り替える（保存も同じ扱い）。カテゴリ・エリアのフィルタは変更しない。
-  // 一時ピンはカテゴリ等の他の絞り込みで表示されない場合の備えとして残す
+  // 選択を外したあともピンが地図に残るよう、外れている絞り込みだけを同時に切り替える（含まれている絞り込みはそのまま）。
+  // - 表示期間：終了していないイベントが期間外なら、共有URLから開いたときと同じく入る最小の期間に切り替える（保存も同じ扱い）
+  // - エリア：選択中のエリアに含まれなければ、「すべて」チップを押したときと同じ処理で「すべて」に戻す
+  //   （地図はその後の選択中スポットへの移動が優先される。一覧シートの開閉は変えない）
+  // - カテゴリ：オフになっていれば、そのカテゴリだけオンにする（利用者向けに非表示のカテゴリは対象外）
+  // 一時ピンは、非表示カテゴリなど上記で表示できない場合の備えとして残す
   const handleSearchSelect = useCallback((spot: Spot) => {
     setSearchOpen(false)
     setTemporarySpot(filteredSpots.some((s) => s.id === spot.id) ? null : spot)
@@ -536,8 +539,16 @@ export default function MapApp() {
       const nextPeriod = findPeriodToShowSpot(spot, periodFilter)
       if (nextPeriod) setPeriodFilter(nextPeriod)
     }
+    // 地図のピンは開催回ごとの住所（matchesCityArea）、一覧はイベント単位（matchesAreaForSpot）で判定しているため、両方を確認する
+    if (activeArea && (!matchesCityArea(spot.address, activeArea) || !matchesAreaForSpot(spot, activeArea))) {
+      handleAreaChange(null)
+    }
+    const categoryKey = (spot.category === 'event_plus' ? getVisualCategory(spot) : spot.category) as Category
+    if (categoryKey in CATEGORY_LABELS && !activeCategories.has(categoryKey)) {
+      setActiveCategories((prev) => new Set(prev).add(categoryKey))
+    }
     handleDetailOpen(spot)
-  }, [filteredSpots, handleDetailOpen, periodFilter])
+  }, [filteredSpots, handleDetailOpen, periodFilter, activeArea, handleAreaChange, activeCategories])
 
   const displaySpots = useMemo(() => {
     if (!temporarySpot) return filteredSpots
