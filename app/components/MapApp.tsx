@@ -327,10 +327,12 @@ export default function MapApp() {
     if (collectedSpots.length === 0) return
     // periodFilter の localStorage 復元が完了する前に判定してしまう競合を避ける
     if (!settingsRestored) return
+    // 起動時の URL だけを処理する。?event= が無くても処理済みにし、その後に詳細パネルの表示連動で
+    // アドレスバーに ?event= が付いたとき（下の useEffect）に、この処理が再度走らないようにする
+    eventParamHandled.current = true
     const eventId = searchParams.get('event')
     if (!eventId) return
 
-    eventParamHandled.current = true
     const spot = collectedSpots.find((s) => s.id === eventId)
     if (spot) {
       if (getEventStatus(spot.startDate, spot.endDate, spot.endTime) === 'ended') {
@@ -348,6 +350,24 @@ export default function MapApp() {
     }
     window.history.replaceState(null, '', '/')
   }, [collectedSpots, searchParams, handleDetailOpen, periodFilter, settingsRestored])
+
+  // 詳細パネルの表示にアドレスバーの URL を連動させる（開いている間は /?event={イベントID}、閉じたら /）。
+  // URL をコピー・ブックマーク・再読み込みしたときに、上の ?event= の処理で同じイベントが開く。
+  // 戻る・進むの履歴を増やさないよう replaceState で URL だけ書き換える。
+  // マウント直後の1回目は、?event= / ?area= の処理より先に URL を消してしまわないよう何もしない
+  const prevUrlEventIdRef = useRef<string | null | undefined>(undefined)
+  useEffect(() => {
+    // event_plus は複数ピンに分裂して spot.id がピンごとの合成 id になるため、実イベントの id（eventId）を使う。
+    // ロゴピンのパネル（GUNMAP_INFO_SPOT）はイベントではないため / のままにする
+    const urlEventId = detailSpot && detailSpot.id !== GUNMAP_INFO_SPOT.id ? (detailSpot.eventId ?? detailSpot.id) : null
+    const prev = prevUrlEventIdRef.current
+    prevUrlEventIdRef.current = urlEventId
+    if (prev === undefined || prev === urlEventId) return
+    const url = urlEventId ? `/?event=${encodeURIComponent(urlEventId)}` : '/'
+    if (window.location.pathname + window.location.search !== url) {
+      window.history.replaceState(null, '', url)
+    }
+  }, [detailSpot])
 
   // /area/[slug] からのリダイレクト（?area=xxx）を受けて、該当エリアをエリアチップ選択状態にする
   // collectedSpots のロードを待ってから activeArea をセットすることで、MapView側のfitBounds/flyTo計算に
