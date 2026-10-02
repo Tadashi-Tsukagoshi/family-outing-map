@@ -5,8 +5,12 @@ import type { Spot } from '@/lib/spots'
 import { buildSheetPositionStyle } from './BottomSheet'
 import GunmapSearch from './GunmapSearch'
 
-/** キーボード表示中・半開きのとき、見えている範囲（visualViewport）のうち上から何割を地図に残すか */
-const KEYBOARD_MAP_RATIO = 0.4
+/** 半開きのとき、シート上端を画面の上から何割の位置に置くか（キーボードの有無に関係なく同じ位置） */
+const SEARCH_SHEET_TOP_RATIO = 0.2
+/** キーボード表示中の半開きで、見えている範囲に最低限残すシートの高さ（px）。ヘッダー・検索窓・結果1件ほど */
+const SEARCH_SHEET_MIN_VISIBLE = 180
+/** キーボードを閉じているときの半開きの高さ（上端が画面の上から SEARCH_SHEET_TOP_RATIO の位置になる） */
+const HALF_HEIGHT = `${Math.round((1 - SEARCH_SHEET_TOP_RATIO) * 100)}dvh`
 
 type Props = {
   open: boolean
@@ -34,9 +38,10 @@ function readViewportRect(vv: VisualViewport): ViewportRect {
 /** イベント検索のボトムシート（モバイル専用）。置き方・見た目はモバイル版の詳細シートと揃える */
 export default function SearchSheet({ open, query, onQueryChange, spots, onSelect, onClose, bottomOffset, endedYear }: Props) {
   // 開いた直後は半開き。段階はヘッダーのスワイプ・タップでだけ変わる（検索窓のフォーカスでは変えない）。
-  // シートは open の間だけマウントされるため、開くたびに 50dvh から始まる
-  const [height, setHeight] = useState<'50dvh' | '100dvh'>('50dvh')
-  const expanded = height === '100dvh'
+  // シートは open の間だけマウントされるため、開くたびに半開きから始まる
+  const [stage, setStage] = useState<'half' | 'full'>('half')
+  const expanded = stage === 'full'
+  const height = expanded ? '100dvh' : HALF_HEIGHT
   const startY   = useRef(0)
   const currentY = useRef(0)
   const sheetRef = useRef<HTMLDivElement>(null)
@@ -84,10 +89,10 @@ export default function SearchSheet({ open, query, onQueryChange, spots, onSelec
     }
   }, [viewportRect, inputFocused])
 
-  const changeStage = (next: '50dvh' | '100dvh') => {
-    if (next === height) return
+  const changeStage = (next: 'half' | 'full') => {
+    if (next === stage) return
     if (viewportRect) setAnimateTop(true)
-    setHeight(next)
+    setStage(next)
   }
 
   // 閉じるときは検索窓のフォーカスも外してキーボードを閉じる
@@ -109,9 +114,9 @@ export default function SearchSheet({ open, query, onQueryChange, spots, onSelec
     e.preventDefault()
     const delta = currentY.current - startY.current
     if (delta < -30) {
-      changeStage('100dvh')
+      changeStage('full')
     } else if (expanded) {
-      changeStage('50dvh')
+      changeStage('half')
     } else {
       closeSheet()
     }
@@ -120,7 +125,14 @@ export default function SearchSheet({ open, query, onQueryChange, spots, onSelec
   if (!open) return null
 
   const keyboardStyle: React.CSSProperties | null = viewportRect && {
-    top: expanded ? viewportRect.top : viewportRect.top + viewportRect.height * KEYBOARD_MAP_RATIO,
+    // 半開きはキーボードを閉じているとき（HALF_HEIGHT）と同じ位置にする（iOS Safari はキーボードで innerHeight が変わらない）。
+    // ただし小さい画面で検索窓がキーボードに隠れないよう、見えている範囲に SEARCH_SHEET_MIN_VISIBLE は残す
+    top: expanded
+      ? viewportRect.top
+      : Math.min(
+          viewportRect.top + window.innerHeight * SEARCH_SHEET_TOP_RATIO,
+          viewportRect.top + viewportRect.height - SEARCH_SHEET_MIN_VISIBLE,
+        ),
     bottom: 0,
     height: 'auto',
     transition: animateTop ? 'top 0.3s cubic-bezier(0.32,0.72,0,1)' : 'none',
