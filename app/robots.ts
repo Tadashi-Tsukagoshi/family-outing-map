@@ -2,7 +2,6 @@ import type { MetadataRoute } from 'next'
 
 const AI_CRAWLER_USER_AGENTS = [
   'GPTBot',
-  'ChatGPT-User',
   'CCBot',
   'anthropic-ai',
   'Claude-Web',
@@ -10,7 +9,6 @@ const AI_CRAWLER_USER_AGENTS = [
   'FacebookBot',
   'Bytespider',
   'Applebot-Extended',
-  'PerplexityBot',
   'Amazonbot',
 ]
 

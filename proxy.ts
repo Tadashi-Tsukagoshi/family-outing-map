@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 const BLOCKED_USER_AGENTS = [
   "GPTBot",
-  "ChatGPT-User",
   "CCBot",
   "anthropic-ai",
   "Claude-Web",
@@ -10,7 +9,6 @@ const BLOCKED_USER_AGENTS = [
   "FacebookBot",
   "Bytespider",
   "Applebot-Extended",
-  "PerplexityBot",
   "Amazonbot",
   "Scrapy",
   "python-requests/",
