@@ -44,6 +44,8 @@ type Props = {
   /** エリアチップのクリック回数（同一エリア再押下でもflyToを再実行するためのトリガー） */
   areaClickTick?: number
   onMapTapClose?: () => void
+  /** 地図の何もない所をクリックしたとき（ピンのクリックでは呼ばれない）。PC版の検索パネルを閉じるのに使う */
+  onMapClick?: () => void
   onZoomChange?: (zoom: number) => void
   onFlyStart?: () => void
   onFlyEnd?: () => void
@@ -802,7 +804,7 @@ const TAP_MAX_DISTANCE = 10
 const TAP_MAX_DURATION = 300
 
 // ─── MapView（メインコンポーネント） ─────────────────────────────
-export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, userLocation = null, locationRadius = 60, recenterSignal = 0, onDetailOpen, onDetailClose, detailPanelOpen, isMobile = false, sheetState = 'closed', activeArea = null, areaClickTick = 0, locationChipClickTick = 0, onMapTapClose, onZoomChange, onFlyStart, onFlyEnd }: Props) {
+export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, userLocation = null, locationRadius = 60, recenterSignal = 0, onDetailOpen, onDetailClose, detailPanelOpen, isMobile = false, sheetState = 'closed', activeArea = null, areaClickTick = 0, locationChipClickTick = 0, onMapTapClose, onMapClick, onZoomChange, onFlyStart, onFlyEnd }: Props) {
   const wrapperRef       = useRef<HTMLDivElement>(null)
   const containerRef     = useRef<HTMLDivElement>(null)
   const mapRef           = useRef<mapboxgl.Map | null>(null)
@@ -914,10 +916,11 @@ export default function MapView({ spots, pinGroups, onSpotSelect, selectedSpot, 
 
   const handleMapClick = useCallback(() => {
     onDetailClose()
+    onMapClick?.()
     if (isMobile) onSpotSelect(null)
     handleImmediateHide()
     setOpenGroupId(null)
-  }, [onDetailClose, isMobile, onSpotSelect, handleImmediateHide])
+  }, [onDetailClose, onMapClick, isMobile, onSpotSelect, handleImmediateHide])
 
   // グループピン（座標一致で束ねたピン）タップ時：2件以上なら吹き出しリストのみ開き選択は解除、1件なら従来通り選択・詳細を開く
   const handleGroupPinClick = useCallback((repId: string) => {

@@ -11,6 +11,7 @@ import AreaOtherModal from './AreaOtherModal'
 import AreaOtherPopover from './AreaOtherPopover'
 import DiscoverMode from './DiscoverMode'
 import SearchSheet from './SearchSheet'
+import SearchPanel from './SearchPanel'
 import PeriodChip from './PeriodChip'
 import LocationRadiusChip from './LocationRadiusChip'
 import { getAreaBySlug } from '@/lib/areas'
@@ -850,17 +851,52 @@ export default function MapApp() {
             <DetailPanel spot={detailSpot} onClose={handleDetailClose} />
           </div>
         )}
-        {/* タイトルボタン（PC） */}
-        <div className="absolute top-4 left-4" style={{ zIndex: 999 }}>
+        {searchOpen && (
+          <div className="absolute inset-y-0 left-0 z-[1001]">
+            <SearchPanel
+              query={searchQuery}
+              onQueryChange={setSearchQuery}
+              spots={searchableSpots}
+              onSelect={handleSearchSelect}
+              endedYear={searchEndedYear}
+            />
+          </div>
+        )}
+        {/* 左上の横並び（PC）：タイトルボタン・検索ボタン・エリアチップ。間隔はエリアチップ同士と同じ 8px。
+            詳細パネル・検索パネル（幅 320px）を開いている間は、パネルに隠れないよう横並びごとパネルの右隣に移す */}
+        <div
+          className="absolute top-4 flex items-center gap-2"
+          style={{ left: detailSpot || searchOpen ? 320 + 16 : 16, right: 60, height: 55, zIndex: 999, pointerEvents: 'none' }}
+        >
           <button
-            onClick={() => { setDetailSpot(GUNMAP_INFO_SPOT); setSelectedSpot(null) }}
-            className="block cursor-pointer select-none overflow-hidden rounded-full"
-            style={{ width: 55, height: 55, boxShadow: '0 2px 6px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.15)' }}
+            onClick={() => { setDetailSpot(GUNMAP_INFO_SPOT); setSelectedSpot(null); setSearchOpen(false) }}
+            className="block shrink-0 cursor-pointer select-none overflow-hidden rounded-full"
+            style={{ width: 55, height: 55, boxShadow: '0 2px 6px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.15)', pointerEvents: 'auto' }}
           >
             <img src="/gunmap_icon_02.png" alt="グンマップ" width={55} height={55} className="h-full w-full object-cover" />
           </button>
-        </div>
-        {!detailSpot && (
+          {/* 検索ボタン（見た目はモバイル版の検索ボタンと同じ） */}
+          <button
+            type="button"
+            aria-label="イベント検索"
+            onClick={() => {
+              if (searchOpen) {
+                setSearchOpen(false)
+                return
+              }
+              handleDetailClose()
+              setAreaOtherModalOpen(false)
+              setSearchOpen(true)
+            }}
+            className="appearance-none shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer flex items-center gap-1"
+            style={{ ...chipStyle(searchOpen), boxShadow: '0 2px 6px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.15)', pointerEvents: 'auto' }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" />
+              <line x1="16.5" y1="16.5" x2="21" y2="21" />
+            </svg>
+            検索
+          </button>
           <AreaChips
             mode="pc"
             otherButtonRef={otherButtonRef}
@@ -870,10 +906,11 @@ export default function MapApp() {
             hasOther={otherAreas.length > 0}
             otherActive={otherAreaActive}
             onOtherClick={() => setAreaOtherModalOpen(prev => !prev)}
-            positionStyle={{ top: 16, left: 87, right: 60, height: 55 }}
+            // 横並びの中で残りの幅を使う（AreaChips の absolute 配置を上書き）
+            positionStyle={{ position: 'relative', flex: 1, minWidth: 0, height: 55, pointerEvents: 'auto' }}
           />
-        )}
-        {!detailSpot && areaOtherModalOpen && (
+        </div>
+        {areaOtherModalOpen && (
           <AreaOtherPopover
             areas={otherAreas}
             anchorEl={otherButtonRef.current}
@@ -895,6 +932,7 @@ export default function MapApp() {
           activeArea={activeArea}
           areaClickTick={areaClickTick}
           locationChipClickTick={locationChipClickTick}
+          onMapClick={() => setSearchOpen(false)}
           onZoomChange={handleZoomChange}
           onFlyStart={handleFlyStart}
           onFlyEnd={handleFlyEnd}
