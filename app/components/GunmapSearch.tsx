@@ -14,12 +14,15 @@ type Props = {
   spots: Spot[]
   onSelect: (spot: Spot) => void
   onFocusExpand?: () => void
+  /** 検索窓のフォーカス・フォーカス解除の通知（キーボード表示中のシート配置に使う） */
+  onInputFocus?: () => void
+  onInputBlur?: () => void
   /** 表示期間が終了イベントの年のとき、その年。検索対象はその年の終了イベントになり、終了日の新しい順に並べる */
   endedYear?: number | null
 }
 
 /** イベント検索シートの中身（検索窓と結果一覧）。モバイル専用。入力値は親が保持する */
-export default function GunmapSearch({ query, onQueryChange, spots, onSelect, onFocusExpand, endedYear }: Props) {
+export default function GunmapSearch({ query, onQueryChange, spots, onSelect, onFocusExpand, onInputFocus, onInputBlur, endedYear }: Props) {
   const results = useMemo(
     () => searchSpots(spots, query, endedYear ? 'endDesc' : 'startAsc'),
     [spots, query, endedYear],
@@ -34,7 +37,8 @@ export default function GunmapSearch({ query, onQueryChange, spots, onSelect, on
           enterKeyHint="search"
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
-          onFocus={() => onFocusExpand?.()}
+          onFocus={() => { onFocusExpand?.(); onInputFocus?.() }}
+          onBlur={() => onInputBlur?.()}
           onKeyDown={(e) => {
             // 日本語変換の確定 Enter で blur すると文字が二重に入力されるため、変換中は何もしない
             // （Safari は確定 Enter で isComposing が false になることがあるため keyCode 229 も判定する）
