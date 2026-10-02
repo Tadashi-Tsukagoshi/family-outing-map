@@ -1,120 +1,23 @@
 import { notFound } from 'next/navigation'
-import { type Spot } from '@/lib/spots'
-import { eventToSpot } from '@/lib/events'
-import { supabaseAdmin } from '@/lib/supabase'
 import type { Metadata } from 'next'
-import { DEFAULT_OGP_IMAGE, SITE_NAME } from '@/lib/seo'
+import { buildEventMetadata, getApprovedEventSpot } from '@/lib/seo'
 import EventRedirect from './EventRedirect'
 
 // イベント登録内容はSupabase更新のたびに変わりうるため、一定間隔でSSRを再生成する（/area/[slug]と同じ値）
 export const revalidate = 1800
 
-async function getSpot(id: string): Promise<Spot | null> {
-  const supabase = supabaseAdmin()
-  const { data, error } = await supabase
-    .from('events')
-    .select('*')
-    .eq('id', id)
-    // 承認済みのイベントだけを対象にする（未承認・却下のイベントは「ページが見つかりません」）
-    .eq('status', 'approved')
-    .single()
-  if (error || !data) return null
-  return eventToSpot({
-    id:          data.id,
-    name:        data.name,
-    description: data.description,
-    prefecture:  data.prefecture,
-    startDate:   data.start_date,
-    endDate:     data.end_date,
-    venue:       data.venue,
-    fee:         data.fee ?? undefined,
-    imageUrl:    data.image_url ?? undefined,
-    lat:         data.lat,
-    lng:         data.lng,
-    address:     data.address ?? undefined,
-    category:    data.category,
-    type:        data.type ?? undefined,
-    url:          data.url ?? undefined,
-    collectedAt:  data.collected_at,
-    postedBy:     data.posted_by,
-    posterType:   data.poster_type,
-    scheduleNote: data.schedule_note ?? undefined,
-    specificDates: data.specific_dates ?? undefined,
-    notice:       data.notice ?? undefined,
-    likes:        data.likes ?? 0,
-  })
-}
-
-function extractCity(address?: string, prefecture?: string): string | null {
-  if (!address) return null
-  const cleaned = address.replace(/〒?\d{3}-?\d{4}\s*/, '')
-  const withoutPref = prefecture
-    ? cleaned.replace(prefecture, '')
-    : cleaned.replace(/^.+?[都道府県]/, '')
-  const match = withoutPref.match(/^(.+?市)/)
-    || withoutPref.match(/^(.+?区)/)
-    || withoutPref.match(/^(.+?(?:町|村))/)
-  return match ? match[1] : null
-}
-
-function buildFallbackDescription(spot: Spot, area: string): string {
-  const parts: string[] = [spot.name]
-  if (spot.startDate) {
-    const d = new Date(spot.startDate + 'T00:00:00')
-    const month = d.getMonth() + 1
-    const day = d.getDate()
-    parts.push(`${month}/${day}開催`)
-  }
-  if (spot.venue) {
-    parts.push(spot.venue)
-  }
-  parts.push(`${area}のイベント情報`)
-  parts.push('グンマップ')
-  return parts.join(' - ')
-}
-
 type Props = { params: Promise<{ id: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params
-  const spot = await getSpot(id)
+  const spot = await getApprovedEventSpot(id)
   if (!spot) return {}
-  const city = extractCity(spot.address, spot.prefecture)
-  const area = city
-    ? `${spot.prefecture ?? '群馬県'}${city}`
-    : (spot.prefecture ?? '群馬県')
-  const description = spot.description
-    ? spot.description.slice(0, 80).replace(/\n/g, ' ')
-    : buildFallbackDescription(spot, area)
-  const title = `${spot.name}｜${area}のイベント｜グンマップ`
-  const url = `https://gunma-odekakemap.jp/events/${spot.id}`
-  // イベント画像があれば OGP・X 用ともにそれを使い、無ければ共通画像を使う。
-  // （子ページで openGraph / twitter を指定すると layout の既定はまるごと置き換わるため、ここで明示する）
-  const image = spot.imageUrl ? { url: spot.imageUrl } : DEFAULT_OGP_IMAGE
-  return {
-    title,
-    description,
-    openGraph: {
-      title,
-      description,
-      url,
-      type: 'article',
-      siteName: SITE_NAME,
-      images: [image],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-      images: [image.url],
-    },
-    alternates: { canonical: url },
-  }
+  return buildEventMetadata(spot)
 }
 
 export default async function EventDetailPage({ params }: Props) {
   const { id } = await params
-  const spot = await getSpot(id)
+  const spot = await getApprovedEventSpot(id)
   if (!spot) notFound()
 
   const eventJsonLd: Record<string, unknown> = {

@@ -15,6 +15,7 @@ import SearchPanel from './SearchPanel'
 import PeriodChip from './PeriodChip'
 import LocationRadiusChip from './LocationRadiusChip'
 import { getAreaBySlug } from '@/lib/areas'
+import { DEFAULT_PAGE_TITLE, buildEventTitle } from '@/lib/event-title'
 import { buildDiscoverOrder } from '@/lib/discover-sort'
 import { CATEGORY_LABELS, DISASTER_CATEGORIES, PARK_CATEGORIES, buildPeriodOptions, extractSpotMunicipalities, getVisualCategory, matchesAreaForSpot, type Category, type PeriodFilter, type PeriodOption, type Spot } from '@/lib/spots'
 import { eventToSpot, type EventsDatabase } from '@/lib/events'
@@ -367,6 +368,12 @@ export default function MapApp() {
     if (window.location.pathname + window.location.search !== url) {
       window.history.replaceState(null, '', url)
     }
+    // ブラウザのタブの見出しも URL と同じタイミングで連動させる（/?event= で開いたときのサーバ側の見出しと同じ形）。
+    // 地域名は実イベント（event_plus は分裂前の親）の住所から作る
+    const titleSpot = urlEventId ? (collectedSpots.find((s) => s.id === urlEventId) ?? detailSpot) : null
+    document.title = titleSpot ? buildEventTitle(titleSpot) : DEFAULT_PAGE_TITLE
+    // collectedSpots は見出しの地域名の参照用。詳細の開閉・切り替え（detailSpot の変化）のときだけ更新する
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [detailSpot])
 
   // /area/[slug] からのリダイレクト（?area=xxx）を受けて、該当エリアをエリアチップ選択状態にする
