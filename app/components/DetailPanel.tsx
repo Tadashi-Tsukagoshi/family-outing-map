@@ -8,7 +8,6 @@ import PhotoCarousel from './PhotoCarousel'
 import PinchZoomImage from './PinchZoomImage'
 import Lightbox from './Lightbox'
 import { CategoryIcon } from './Sidebar'
-import GunmapSearch from './GunmapSearch'
 
 const POSTER_TYPE_LABELS: Record<string, string> = {
   general:   '一般ユーザー',
@@ -135,13 +134,9 @@ type Props = {
   onCollapse?: () => void
   expanded?: boolean
   mobile?: boolean
-  /** ロゴピン内のイベント検索（β）の検索対象。モバイルのみ */
-  searchSpots?: Spot[]
-  /** イベント検索（β）の結果をタップしたとき。モバイルのみ */
-  onSearchSelect?: (spot: Spot) => void
 }
 
-export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expanded = false, mobile = false, searchSpots, onSearchSelect }: Props) {
+export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expanded = false, mobile = false }: Props) {
   // event_plus は複数ピンに分裂して spot.id がピンごとの合成idになるため、
   // 画像・いいねなど実イベントに紐づくAPI呼び出しは常に eventId（実イベントのid）を使う
   const eventId = spot.eventId ?? spot.id
@@ -736,13 +731,6 @@ export default function DetailPanel({ spot, onClose, onExpand, onCollapse, expan
                 >
                   Instagram（@gunmap_jp）
                 </a>
-                {searchSpots && onSearchSelect && (
-                  <GunmapSearch
-                    spots={searchSpots}
-                    onSelect={onSearchSelect}
-                    onFocusExpand={() => { if (!expanded) onExpand?.() }}
-                  />
-                )}
               </>
             ) : (
               <>

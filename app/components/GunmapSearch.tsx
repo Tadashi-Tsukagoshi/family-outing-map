@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { getVisualCategory, type Spot } from '@/lib/spots'
 import { getDateDisplayPadded } from '@/lib/date-utils'
 import { searchSpots } from '@/lib/search'
@@ -9,26 +9,26 @@ import { CategoryIcon } from './Sidebar'
 const MAX_RESULTS = 50
 
 type Props = {
+  query: string
+  onQueryChange: (query: string) => void
   spots: Spot[]
   onSelect: (spot: Spot) => void
   onFocusExpand?: () => void
 }
 
-/** ロゴピンのパネル内に置くイベント検索（β）。モバイル専用 */
-export default function GunmapSearch({ spots, onSelect, onFocusExpand }: Props) {
-  const [query, setQuery] = useState('')
+/** イベント検索シートの中身（検索窓と結果一覧）。モバイル専用。入力値は親が保持する */
+export default function GunmapSearch({ query, onQueryChange, spots, onSelect, onFocusExpand }: Props) {
   const results = useMemo(() => searchSpots(spots, query), [spots, query])
   const hasQuery = query.trim() !== ''
 
   return (
-    <div style={{ marginTop: 16 }}>
-      <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>イベントを検索（β）</div>
+    <div>
       <div style={{ position: 'relative' }}>
         <input
           type="search"
           enterKeyHint="search"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => onQueryChange(e.target.value)}
           onFocus={() => onFocusExpand?.()}
           onKeyDown={(e) => {
             // 日本語変換の確定 Enter で blur すると文字が二重に入力されるため、変換中は何もしない
@@ -36,7 +36,7 @@ export default function GunmapSearch({ spots, onSelect, onFocusExpand }: Props) 
             if (e.nativeEvent.isComposing || e.keyCode === 229) return
             if (e.key === 'Enter') e.currentTarget.blur()
           }}
-          placeholder="イベント名・会場・地名で検索（β）"
+          placeholder="イベント名・会場・地名で検索"
           style={{
             display: 'block',
             width: '100%',
@@ -53,7 +53,7 @@ export default function GunmapSearch({ spots, onSelect, onFocusExpand }: Props) 
           <button
             type="button"
             aria-label="検索語をクリア"
-            onClick={() => setQuery('')}
+            onClick={() => onQueryChange('')}
             style={{
               position: 'absolute', top: 0, right: 0, bottom: 0, width: 36,
               display: 'flex', alignItems: 'center', justifyContent: 'center',

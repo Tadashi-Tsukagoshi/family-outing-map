@@ -24,7 +24,7 @@ type Props = {
   otherButtonRef?: React.Ref<HTMLButtonElement>
 }
 
-function chipStyle(active: boolean): React.CSSProperties {
+export function chipStyle(active: boolean): React.CSSProperties {
   return active
     ? {
         background: ACTIVE_GRADIENT,

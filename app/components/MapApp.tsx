@@ -6,10 +6,11 @@ import dynamic from 'next/dynamic'
 import Sidebar from './Sidebar'
 import DetailPanel from './DetailPanel'
 import BottomSheet, { buildSheetPositionStyle, useBottomOffset, type SheetState } from './BottomSheet'
-import AreaChips, { type AreaCount } from './AreaChips'
+import AreaChips, { chipStyle, type AreaCount } from './AreaChips'
 import AreaOtherModal from './AreaOtherModal'
 import AreaOtherPopover from './AreaOtherPopover'
 import DiscoverMode from './DiscoverMode'
+import SearchSheet from './SearchSheet'
 import PeriodChip from './PeriodChip'
 import LocationRadiusChip from './LocationRadiusChip'
 import { getAreaBySlug } from '@/lib/areas'
@@ -164,6 +165,9 @@ export default function MapApp() {
   const [detailSpot,     setDetailSpot]     = useState<Spot | null>(null)
   const [temporarySpot,  setTemporarySpot]  = useState<Spot | null>(null)
   const [detailSheetHeight, setDetailSheetHeight] = useState<'50dvh' | '100dvh'>('50dvh')
+  // イベント検索シート（モバイル）。searchQuery はシートを閉じても消さず、次に開いたとき前回の結果から再開する
+  const [searchOpen,  setSearchOpen]  = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const [sheetState,     setSheetState]     = useState<SheetState>('closed')
   // イベント一覧・イベント詳細の両ボトムシートで共有する単一のインスタンス（BottomSheet.tsx参照）
   const bottomOffset = useBottomOffset()
@@ -237,6 +241,7 @@ export default function MapApp() {
   }, [])
 
   const handleDetailOpen = useCallback((spot: Spot) => {
+    setSearchOpen(false)
     setDetailSpot(spot)
     setSelectedSpot(spot)
     // ビュー計測（fire-and-forget、エラーは無視）。GUNMAP_INFO_SPOT は events テーブルに存在しないため除外。
@@ -473,9 +478,10 @@ export default function MapApp() {
     return getEventStatus(spot.startDate, spot.endDate, spot.endTime) !== 'ended'
   }), [collectedSpots])
 
-  // 検索結果をタップしたとき：フィルタ外なら一時ピンとして表示してから詳細を開く。
+  // 検索結果をタップしたとき：検索シートを閉じ、フィルタ外なら一時ピンとして表示してから詳細を（半開きで）開く。
   // ユーザーの保存設定を書き換えないため、期間・カテゴリ・エリアのフィルタは変更しない
   const handleSearchSelect = useCallback((spot: Spot) => {
+    setSearchOpen(false)
     setTemporarySpot(filteredSpots.some((s) => s.id === spot.id) ? null : spot)
     handleDetailOpen(spot)
   }, [filteredSpots, handleDetailOpen])
@@ -660,7 +666,7 @@ export default function MapApp() {
           activeArea={activeArea}
           areaClickTick={areaClickTick}
           locationChipClickTick={locationChipClickTick}
-          onMapTapClose={() => setSheetState('closed')}
+          onMapTapClose={() => { setSheetState('closed'); setSearchOpen(false) }}
           onZoomChange={handleZoomChange}
           onFlyStart={handleFlyStart}
           onFlyEnd={handleFlyEnd}
@@ -668,7 +674,7 @@ export default function MapApp() {
         {/* タイトルボタン */}
         <div className="fixed top-4 left-4" style={{ zIndex: 999 }}>
           <button
-            onClick={() => { setDetailSpot(GUNMAP_INFO_SPOT); setSelectedSpot(null); setSheetState('closed') }}
+            onClick={() => { setDetailSpot(GUNMAP_INFO_SPOT); setSelectedSpot(null); setSheetState('closed'); setSearchOpen(false) }}
             className="block cursor-pointer select-none overflow-hidden rounded-full"
             style={{ width: 55, height: 55, boxShadow: '0 2px 6px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.15)' }}
           >
@@ -681,6 +687,27 @@ export default function MapApp() {
           className="fixed top-4 right-4 flex items-center justify-end gap-2 md:hidden"
           style={{ height: 55, zIndex: 999 }}
         >
+          <button
+            type="button"
+            aria-label="イベント検索"
+            onClick={() => {
+              if (searchOpen) {
+                setSearchOpen(false)
+                return
+              }
+              handleDetailClose()
+              setSheetState('closed')
+              setSearchOpen(true)
+            }}
+            className="appearance-none shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer flex items-center gap-1"
+            style={{ ...chipStyle(searchOpen), boxShadow: '0 2px 6px rgba(0,0,0,0.25), 0 8px 20px rgba(0,0,0,0.15)' }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" />
+              <line x1="16.5" y1="16.5" x2="21" y2="21" />
+            </svg>
+            検索
+          </button>
           <LocationRadiusChip
             hasLocation={userLocation !== null}
             locationRadius={locationRadius}
@@ -701,7 +728,7 @@ export default function MapApp() {
           />
         </div>
 
-        {!detailSpot && (
+        {!detailSpot && !searchOpen && (
           <button
             type="button"
             onClick={() => setDiscoverModeOpen(true)}
@@ -727,7 +754,7 @@ export default function MapApp() {
           </button>
         )}
 
-        {!detailSpot && (
+        {!detailSpot && !searchOpen && (
           <AreaChips
             areas={topAreas}
             activeArea={activeArea}
@@ -775,10 +802,19 @@ export default function MapApp() {
               onCollapse={() => setDetailSheetHeight('50dvh')}
               expanded={detailSheetHeight === '100dvh'}
               mobile
-              searchSpots={searchableSpots}
-              onSearchSelect={handleSearchSelect}
             />
           </div>
+        )}
+        {searchOpen && (
+          <SearchSheet
+            open={searchOpen}
+            query={searchQuery}
+            onQueryChange={setSearchQuery}
+            spots={searchableSpots}
+            onSelect={handleSearchSelect}
+            onClose={() => setSearchOpen(false)}
+            bottomOffset={bottomOffset}
+          />
         )}
         {discoverModeOpen && (
           <DiscoverMode
