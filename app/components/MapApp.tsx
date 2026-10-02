@@ -92,6 +92,19 @@ function eventPlusOccurrencePassesPeriod(
 /** ?event=xxx 受信時、イベントを含む最短の期間フィルタを探す際の探索順 */
 const PERIOD_SEARCH_ORDER: PeriodFilter[] = ['1w', '2w', '1m', '3m', '6m']
 
+/**
+ * 終了していないイベントが現在の表示期間に入らないとき、そのイベントが入る最小の表示期間を返す
+ * （どれにも入らなければ '6m'）。表示期間内なら null。
+ * 共有URL（?event=）から開いたときと、イベント検索の結果から選んだときで共通
+ */
+function findPeriodToShowSpot(spot: Spot, current: PeriodFilter): PeriodFilter | null {
+  if (eventPlusOccurrencePassesPeriod(spot.startDate, spot.endDate, spot.endTime, current)) return null
+  const matched = PERIOD_SEARCH_ORDER.find((p) =>
+    eventPlusOccurrencePassesPeriod(spot.startDate, spot.endDate, spot.endTime, p)
+  )
+  return matched ?? '6m'
+}
+
 /** グループ内ソート用の優先度。値が大きいほど前面（先頭）。z-index 計算ロジックと同じ優先順位 */
 function pinSortRank(spot: Spot, todayStartMs: number): number {
   const status = getEventStatus(spot.startDate, spot.endDate, spot.endTime)
@@ -339,13 +352,8 @@ export default function MapApp() {
       if (getEventStatus(spot.startDate, spot.endDate, spot.endTime) === 'ended') {
         setTemporarySpot(spot)
       } else {
-        const alreadyVisible = eventPlusOccurrencePassesPeriod(spot.startDate, spot.endDate, spot.endTime, periodFilter)
-        if (!alreadyVisible) {
-          const matched = PERIOD_SEARCH_ORDER.find((p) =>
-            eventPlusOccurrencePassesPeriod(spot.startDate, spot.endDate, spot.endTime, p)
-          )
-          setPeriodFilter(matched ?? '6m')
-        }
+        const nextPeriod = findPeriodToShowSpot(spot, periodFilter)
+        if (nextPeriod) setPeriodFilter(nextPeriod)
       }
       handleDetailOpen(spot)
     }
@@ -518,12 +526,18 @@ export default function MapApp() {
   }), [collectedSpots, periodFilter])
 
   // 検索結果をタップしたとき：検索シートを閉じ、フィルタ外なら一時ピンとして表示してから詳細を（半開きで）開く。
-  // ユーザーの保存設定を書き換えないため、期間・カテゴリ・エリアのフィルタは変更しない
+  // 終了していないイベントが表示期間外なら、共有URLから開いたときと同じく表示期間をそのイベントが入る最小の期間に
+  // 切り替える（保存も同じ扱い）。カテゴリ・エリアのフィルタは変更しない。
+  // 一時ピンはカテゴリ等の他の絞り込みで表示されない場合の備えとして残す
   const handleSearchSelect = useCallback((spot: Spot) => {
     setSearchOpen(false)
     setTemporarySpot(filteredSpots.some((s) => s.id === spot.id) ? null : spot)
+    if (getEventStatus(spot.startDate, spot.endDate, spot.endTime) !== 'ended') {
+      const nextPeriod = findPeriodToShowSpot(spot, periodFilter)
+      if (nextPeriod) setPeriodFilter(nextPeriod)
+    }
     handleDetailOpen(spot)
-  }, [filteredSpots, handleDetailOpen])
+  }, [filteredSpots, handleDetailOpen, periodFilter])
 
   const displaySpots = useMemo(() => {
     if (!temporarySpot) return filteredSpots
