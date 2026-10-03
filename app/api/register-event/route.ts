@@ -1,9 +1,16 @@
 import crypto from 'crypto'
+import type { NextRequest } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { normalizeCategory, normalizeEventType } from '@/lib/spots'
 import type { CollectedEvent } from '@/lib/events'
+import { isAdminRequest } from '@/lib/admin-session'
 
-export async function POST(req: Request) {
+/** イベントの新規登録。運営（/ota-admin にログイン中）からのみ受け付ける */
+export async function POST(req: NextRequest) {
+  if (!isAdminRequest(req)) {
+    return Response.json({ error: '権限がありません' }, { status: 403 })
+  }
+
   let body: unknown
   try {
     body = await req.json()
@@ -47,7 +54,6 @@ export async function POST(req: Request) {
     return Response.json({ error: '緯度経度を取得してください' }, { status: 400 })
   }
 
-  const editToken = crypto.randomUUID()
   const posterType = (b.posterType as string) || 'general'
   const status = posterType === 'staff' ? 'approved' : 'pending'
 
@@ -81,7 +87,6 @@ export async function POST(req: Request) {
     posted_by:     posterType === 'staff' ? 'グンマップ' : (((b.postedBy as string | undefined) ?? '匿名').trim() || '匿名'),
     email,
     poster_type:   posterType,
-    edit_token:    editToken,
     status,
   }
 
@@ -138,5 +143,5 @@ export async function POST(req: Request) {
     status:      newEvent.status as CollectedEvent['status'],
   }
 
-  return Response.json({ success: true, event: responseEvent, editToken }, { status: 201 })
+  return Response.json({ success: true, event: responseEvent }, { status: 201 })
 }

@@ -1,7 +1,15 @@
+import type { NextRequest } from 'next/server'
+import { isAdminRequest } from '@/lib/admin-session'
+
 /**
- * ジオコーディング プロキシ（Google Geocoding API）
+ * ジオコーディング プロキシ（Google Geocoding API）。
+ * 管理画面の入力フォーム専用のため、運営（/ota-admin にログイン中）のみ使える
  */
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
+  if (!isAdminRequest(req)) {
+    return Response.json({ error: '権限がありません' }, { status: 403 })
+  }
+
   const { searchParams } = new URL(req.url)
   const q = searchParams.get('q')
   if (!q) return Response.json({ error: '住所を指定してください' }, { status: 400 })

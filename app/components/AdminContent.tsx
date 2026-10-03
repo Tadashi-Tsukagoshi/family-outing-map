@@ -13,45 +13,15 @@ import { getEventStatus, pickNearestEventDate } from '@/lib/date-utils'
 type SubmitStatus = 'idle' | 'loading' | 'ok' | 'error'
 
 type Props = {
-  posterTypeOptions?: { value: PosterType; label: string }[]
   fixedPosterType?: PosterType
   onLogout?: () => void
-  /** true の場合、localStorage "myEvents" に記録された自分の投稿にのみ編集・削除ボタンを表示し、
-   *  PUT/DELETE リクエストに x-edit-token ヘッダを付与する（一般公開の /admin 用） */
-  restrictEditToOwn?: boolean
   /** true の場合、承認待ちスポットの承認・却下セクションを表示する（運営用の /ota-admin 用） */
   showApprovalSection?: boolean
-  /** true の場合、「登録済みスポット一覧」セクションを非表示にする（一般公開の /admin 用） */
-  hideEventList?: boolean
-  /** true の場合、投稿が承認制であることを投稿前・投稿後に案内する（一般公開の /admin 用） */
-  showApprovalNotice?: boolean
-  /** true の場合、メールアドレス（任意）入力欄を表示する（一般公開の /admin 用） */
-  showEmail?: boolean
-}
-
-// ─── 自分の投稿（編集トークン）の localStorage 管理 ──────────────────
-const MY_EVENTS_KEY = 'myEvents'
-
-type MyEvent = { id: string; token: string }
-
-function readMyEvents(): MyEvent[] {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(MY_EVENTS_KEY) ?? '[]')
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return []
-  }
-}
-
-function appendMyEvent(id: string, token: string): MyEvent[] {
-  const next = [...readMyEvents(), { id, token }]
-  try { localStorage.setItem(MY_EVENTS_KEY, JSON.stringify(next)) } catch { /* noop */ }
-  return next
 }
 
 // ─── 管理画面本体 ──────────────────────────────────────────────────
-export default function AdminContent({ posterTypeOptions, fixedPosterType, onLogout, restrictEditToOwn, showApprovalSection, hideEventList, showApprovalNotice, showEmail }: Props) {
-  const getInitialPosterType = () => fixedPosterType ?? posterTypeOptions?.[0]?.value ?? 'general'
+export default function AdminContent({ fixedPosterType, onLogout, showApprovalSection }: Props) {
+  const getInitialPosterType = () => fixedPosterType ?? 'general'
   const [form, setForm]                   = useState<FormState>({ ...INITIAL_FORM, posterType: getInitialPosterType() })
   const [submitStatus, setSubmitStatus]   = useState<SubmitStatus>('idle')
   const [submitMessage, setSubmitMessage] = useState('')
@@ -66,7 +36,6 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [listMinHeight, setListMinHeight] = useState<number | undefined>(undefined)
   const listContainerRef = useRef<HTMLDivElement>(null)
-  const [myEvents,      setMyEvents]      = useState<MyEvent[]>([])
   const [pendingEvents,   setPendingEvents]   = useState<CollectedEvent[]>([])
   const [pendingLoading,  setPendingLoading]  = useState(true)
   const [pendingActionId, setPendingActionId] = useState<string | null>(null)
@@ -76,13 +45,6 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
   const [duplicatingImage, setDuplicatingImage] = useState(false)
   /** event_plus の日程を通常イベントへ変換中の場合の変換元（新規登録成功後に元の日程を親から削除するため） */
   const [convertingFrom, setConvertingFrom] = useState<{ parentEventId: string; parentName: string; dateId: string } | null>(null)
-
-  useEffect(() => {
-    if (restrictEditToOwn) setMyEvents(readMyEvents())
-  }, [restrictEditToOwn])
-
-  const getEditToken = (id: string) => myEvents.find(m => m.id === id)?.token
-  const isMyEvent    = (id: string) => myEvents.some(m => m.id === id)
 
   const loadEvents = async () => {
     setEventsLoading(true)
@@ -353,12 +315,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
   const handleDelete = async (ev: CollectedEvent) => {
     if (!window.confirm(`「${ev.name}」を削除しますか？`)) return
     try {
-      const headers: Record<string, string> = {}
-      if (restrictEditToOwn) {
-        const token = getEditToken(ev.id)
-        if (token) headers['x-edit-token'] = token
-      }
-      const res = await fetch(`/api/events/${ev.id}`, { method: 'DELETE', headers })
+      const res = await fetch(`/api/events/${ev.id}`, { method: 'DELETE' })
       if (!res.ok) {
         let data: Record<string, unknown> = {}
         try { data = await res.json() } catch { /* empty body */ }
@@ -392,10 +349,6 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
       const url    = editingId ? `/api/events/${editingId}` : '/api/register-event'
       const method = editingId ? 'PUT' : 'POST'
       const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-      if (editingId && restrictEditToOwn) {
-        const token = getEditToken(editingId)
-        if (token) headers['x-edit-token'] = token
-      }
       const isPermanent = form.type === 'permanent'
       const isEventPlus = form.category === 'event_plus'
       const nearestDate = isEventPlus ? pickNearestEventDate(form.eventDates) : null
@@ -425,12 +378,6 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
         throw new Error(res.status === 403
           ? `${message}。セッションが切れている可能性があります。ログアウトして再ログインしてください`
           : message)
-      }
-
-      if (!editingId && restrictEditToOwn) {
-        const newId    = (data.event as { id?: string } | undefined)?.id
-        const newToken = data.editToken as string | undefined
-        if (newId && newToken) setMyEvents(appendMyEvent(newId, newToken))
       }
 
       let eventDatesWarning = ''
@@ -481,9 +428,7 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
       const eventName = (data.event as { name?: string } | undefined)?.name ?? form.name
       setSubmitMessage((editingId
         ? `「${eventName}」を更新しました！`
-        : showApprovalNotice
-          ? `「${eventName}」の投稿を受け付けました。運営が確認後、地図に掲載されます。`
-          : `「${eventName}」を登録しました！`) + eventDatesWarning + convertWarning)
+        : `「${eventName}」を登録しました！`) + eventDatesWarning + convertWarning)
       setForm({ ...INITIAL_FORM, posterType: getInitialPosterType() })
       setEditingId(null)
       setConvertingFrom(null)
@@ -587,11 +532,6 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
               )}
             </div>
           )}
-          {showApprovalNotice && !editingId && (
-            <p className="mb-3 text-xs text-gray-900 leading-relaxed">
-              ※ 投稿いただいた内容は、運営の確認後に地図に掲載されます
-            </p>
-          )}
           <form ref={formRef} onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 space-y-5">
 
             {editingId && (
@@ -614,10 +554,8 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
               disabled={isSubmitting}
               editing={!!editingId}
               eventId={editingId ?? undefined}
-              posterTypeOptions={posterTypeOptions}
               fixedPosterType={fixedPosterType}
               onUploadingChange={setImageUploading}
-              showEmail={showEmail}
               isStaffAdmin={showApprovalSection}
               onConvertDateToEvent={showApprovalSection && editingId ? handleConvertDateToEvent : undefined}
             />
@@ -679,7 +617,6 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
         )}
 
         {/* 登録済みスポット一覧 */}
-        {!hideEventList && (
         <section>
           <h2 className="text-sm font-semibold text-gray-700 mb-3">登録済みスポット</h2>
           <input
@@ -720,26 +657,24 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
                           <p className="text-sm font-medium text-gray-800 truncate">{ev.name}</p>
                           <p className="text-xs text-gray-500 mt-0.5">{formatDateRange(ev)} · {ev.venue}</p>
                         </div>
-                        {(!restrictEditToOwn || isMyEvent(ev.id)) && (
-                          <div className="flex gap-1.5 flex-shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => handleEdit(ev)}
-                              className="px-2.5 py-1 text-xs rounded-md border border-blue-200 text-blue-600
-                                hover:bg-blue-100 transition-colors cursor-pointer"
-                            >
-                              編集
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleDelete(ev)}
-                              className="px-2.5 py-1 text-xs rounded-md border border-red-200 text-red-500
-                                hover:bg-red-50 transition-colors cursor-pointer"
-                            >
-                              削除
-                            </button>
-                          </div>
-                        )}
+                        <div className="flex gap-1.5 flex-shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => handleEdit(ev)}
+                            className="px-2.5 py-1 text-xs rounded-md border border-blue-200 text-blue-600
+                              hover:bg-blue-100 transition-colors cursor-pointer"
+                          >
+                            編集
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(ev)}
+                            className="px-2.5 py-1 text-xs rounded-md border border-red-200 text-red-500
+                              hover:bg-red-50 transition-colors cursor-pointer"
+                          >
+                            削除
+                          </button>
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -748,7 +683,6 @@ export default function AdminContent({ posterTypeOptions, fixedPosterType, onLog
             </div>
           )}
         </section>
-        )}
 
       </main>
 

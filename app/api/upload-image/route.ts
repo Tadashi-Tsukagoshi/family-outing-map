@@ -1,10 +1,17 @@
 import crypto from 'crypto'
+import type { NextRequest } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { isAdminRequest } from '@/lib/admin-session'
 
 const BUCKET   = 'event-images'
 const MAX_SIZE = 5 * 1024 * 1024 // 5MB
 
-export async function POST(req: Request) {
+/** 画像アップロード。運営（/ota-admin にログイン中）のみ使える */
+export async function POST(req: NextRequest) {
+  if (!isAdminRequest(req)) {
+    return Response.json({ error: '権限がありません' }, { status: 403 })
+  }
+
   let formData: FormData
   try {
     formData = await req.formData()

@@ -1,14 +1,19 @@
 import { supabaseAdmin } from '@/lib/supabase'
 import type { CollectedEvent } from '@/lib/events'
 import type { NextRequest } from 'next/server'
-import { ADMIN_SESSION_COOKIE, verifyAdminSessionToken } from '@/lib/admin-session'
+import { isAdminRequest } from '@/lib/admin-session'
 import { normalizeCategory, normalizeEventType } from '@/lib/spots'
 
+/** 編集・削除は運営（/ota-admin にログイン中）のみ許可する */
 async function authorizeEventAccess(req: NextRequest, id: string) {
+  if (!isAdminRequest(req)) {
+    return { ok: false as const, response: Response.json({ error: '権限がありません' }, { status: 403 }) }
+  }
+
   const supabase = supabaseAdmin()
   const { data, error } = await supabase
     .from('events')
-    .select('edit_token')
+    .select('id')
     .eq('id', id)
     .single()
 
@@ -16,21 +21,7 @@ async function authorizeEventAccess(req: NextRequest, id: string) {
     return { ok: false as const, response: Response.json({ error: '対象のイベントが見つかりません' }, { status: 404 }) }
   }
 
-  const adminPassword = process.env.ADMIN_PASSWORD
-  const adminKey      = req.headers.get('x-admin-key')
-  const editToken     = req.headers.get('x-edit-token')
-  const sessionToken  = req.cookies.get(ADMIN_SESSION_COOKIE)?.value
-
-  const isAdminByKey     = !!adminPassword && adminKey === adminPassword
-  const isAdminBySession = !!adminPassword && verifyAdminSessionToken(sessionToken, adminPassword)
-  const isAdmin = isAdminByKey || isAdminBySession
-  const isOwner = !!data.edit_token && editToken === data.edit_token
-
-  if (!isAdmin && !isOwner) {
-    return { ok: false as const, response: Response.json({ error: '権限がありません' }, { status: 403 }) }
-  }
-
-  return { ok: true as const, isAdmin }
+  return { ok: true as const }
 }
 
 export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
@@ -115,10 +106,8 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
       posted_by:     postedBy,
     }
 
-    if (auth.isAdmin) {
-      updateData.edited_by = '運営'
-      updateData.edited_at = new Date().toISOString()
-    }
+    updateData.edited_by = '運営'
+    updateData.edited_at = new Date().toISOString()
 
     const supabase = supabaseAdmin()
     const { data, error } = await supabase

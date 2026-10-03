@@ -385,12 +385,9 @@ type Props = {
   editing?: boolean
   /** editing=true の場合に既存の event_images を読み込むためのイベントID */
   eventId?: string
-  posterTypeOptions?: { value: PosterType; label: string }[]
   fixedPosterType?: PosterType
   /** 画像アップロード中かどうかを親に通知する（送信ボタンの無効化判定などに使用） */
   onUploadingChange?: (uploading: boolean) => void
-  /** true の場合、メールアドレス（任意）入力欄を表示する（一般公開の /admin 用） */
-  showEmail?: boolean
   /** true の場合、運営（ota-admin）向けに種別「災害支援」を選択肢に表示する */
   isStaffAdmin?: boolean
   /** 指定時、event_plus の各日程に「通常イベントへ変更」ボタンを表示する（ota-admin の編集時のみ） */
@@ -398,7 +395,7 @@ type Props = {
 }
 
 export default function EventFormFields({
-  form, onChange, disabled, editing, eventId, posterTypeOptions, fixedPosterType, onUploadingChange, showEmail,
+  form, onChange, disabled, editing, eventId, fixedPosterType, onUploadingChange,
   isStaffAdmin = false, onConvertDateToEvent,
 }: Props) {
   const hasInitialLocation = form.lat !== null && form.lng !== null
@@ -1851,28 +1848,11 @@ export default function EventFormFields({
         </div>
       )}
 
-      {/* メールアドレス */}
-      {showEmail && (
+      {/* 投稿者種別（表示のみ） */}
+      {fixedPosterType && (
         <div>
-          <Label>メールアドレス（任意）</Label>
-          <Input
-            type="email"
-            value={form.email}
-            onChange={e => set('email', e.target.value)}
-            placeholder="例：example@mail.com"
-            disabled={disabled}
-          />
-          <p className="mt-1 text-xs text-gray-400">
-            ご入力いただいた場合、投稿内容の確認メールをお送りします
-          </p>
-        </div>
-      )}
-
-      {/* 投稿者種別 */}
-      <div>
-        <Label required>投稿者種別</Label>
-        <div className="flex gap-2">
-          {fixedPosterType ? (
+          <Label required>投稿者種別</Label>
+          <div className="flex gap-2">
             <button
               type="button"
               disabled
@@ -1880,24 +1860,9 @@ export default function EventFormFields({
             >
               {POSTER_TYPE_LABELS[fixedPosterType] ?? fixedPosterType}
             </button>
-          ) : (
-            posterTypeOptions?.map(opt => (
-              <button
-                key={opt.value}
-                type="button"
-                disabled={disabled}
-                onClick={() => set('posterType', opt.value)}
-                className={`flex-1 py-2 rounded-md border text-sm font-medium transition-colors cursor-pointer
-                  ${form.posterType === opt.value
-                    ? 'border-green-400 bg-green-50 text-green-700'
-                    : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
-              >
-                {opt.label}
-              </button>
-            ))
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
       {spotPickerTarget && (
         <ExistingSpotModal
